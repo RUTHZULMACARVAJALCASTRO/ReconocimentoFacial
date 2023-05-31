@@ -8,7 +8,6 @@ import { Button } from '@mui/material'
 import { Login } from 'src/services/services'
 import Counter from 'src/redux/slices/counter/counter'
 
-
 const Home = () => {
   const getDataLogin = async () => {
     const form = {
@@ -17,7 +16,6 @@ const Home = () => {
     }
 
     alert(process.env.NEXT_PUBLIC_API_PERSONAL)
-
     await Login(form)
       .then(result => {
         alert(JSON.stringify(result))
@@ -27,11 +25,10 @@ const Home = () => {
         alert(JSON.stringify(e))
       })
   }
-
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <Counter />
+        <Counter/>
         <Button onClick={getDataLogin}>CLICK</Button>
         <Card>
           <CardHeader title='Kick start your project 🚀'></CardHeader>
@@ -49,8 +46,7 @@ const Home = () => {
           <CardHeader title='ACL and JWT 🔒'></CardHeader>
           <CardContent>
             <Typography sx={{ mb: 2 }}>
-              Access Control (ACL) and Authentication (JWT) are the two main security features of our template and are
-              implemented in the starter-kit as well.
+              Access Control (ACL) and Authentication (JWT) are the two main security features of our template and are implemented in the starter-kit as well.
             </Typography>
             <Typography>Please read our Authentication and ACL Documentations to get more out of them.</Typography>
           </CardContent>
