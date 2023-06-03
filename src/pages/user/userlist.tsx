@@ -22,231 +22,74 @@ import FormControl from '@mui/material/FormControl'
 import CardContent from '@mui/material/CardContent'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
 // ** Store Imports
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch} from 'react-redux'
 
 // ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import CardStatisticsHorizontal from 'src/@core/components/card-statistics/card-stats-horizontal'
-
-// ** Utils Import
-import { getInitials } from 'src/@core/utils/get-initials'
-
-// ** Actions Imports
-import { fetchData, deleteUser } from 'src/store/apps/user'
-
 // ** Third Party Components
 import axios from 'axios'
 
 // ** Types Imports
-import { RootState, AppDispatch } from 'src/store'
-import { CardStatsType } from 'src/@fake-db/types'
-import { ThemeColor } from 'src/@core/layouts/types'
-import { UsersType } from 'src/types/apps/userTypes'
-import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/types'
-
+import { AppDispatch } from 'src/store'
 // ** Custom Table Components Imports
+
 import TableHeader from 'src/views/apps/user/list/TableHeader'
-import AddUserDrawer from 'src/apps/user/AddUserDrawer'
+import AddUserDrawer from 'src/pages/user/AddUserDrawer';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, InputAdornment, Switch, TextField } from '@mui/material'
+import data from 'src/@fake-db/components/data'
 
-interface UserRoleType {
-  [key: string]: { icon: string; color: string }
-}
-
-interface UserStatusType {
-  [key: string]: ThemeColor
-}
-
-// ** Vars
-const userRoleObj: UserRoleType = {
-  admin: { icon: 'mdi:laptop', color: 'error.main' },
-  author: { icon: 'mdi:cog-outline', color: 'warning.main' },
-  editor: { icon: 'mdi:pencil-outline', color: 'info.main' },
-  maintainer: { icon: 'mdi:chart-donut', color: 'success.main' },
-  subscriber: { icon: 'mdi:account-outline', color: 'primary.main' }
+interface Docu {
+  _id: string
+  name: string
+  lastName: string
+  ci: string
+  email: string
+  phone: string
+  direction: string
+  nationality: string
 }
 
 interface CellType {
-  row: UsersType
+  row: Docu
 }
+  // ** States
+/* const [openEdit, setOpenEdit] = useState<boolean>(false);
+const [openPlans, setOpenPlans] = useState<boolean>(false);
+const [suspendDialogOpen, setSuspendDialogOpen] = useState<boolean>(false);
+const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false); */
 
-const userStatusObj: UserStatusType = {
-  active: 'success',
-  pending: 'warning',
-  inactive: 'secondary'
-}
 
-const StyledLink = styled(Link)(({ theme }) => ({
-  fontWeight: 600,
-  fontSize: '1rem',
-  cursor: 'pointer',
-  textDecoration: 'none',
-  color: theme.palette.text.secondary,
-  '&:hover': {
-    color: theme.palette.primary.main
+  // Handle Edit dialog
+/*   const handleEditClickOpen = () => setOpenEdit(true)
+  const handleEditClose = () => setOpenEdit(false)
+
+  // Handle Upgrade Plan dialog
+  const handlePlansClickOpen = () => setOpenPlans(true)
+  const handlePlansClose = () => setOpenPlans(false) */
+
+let isOpen=false;
+function clickOpenCard(){
+  if(isOpen){
+    isOpen=false
   }
-}))
-
-// ** renders client column
-const renderClient = (row: UsersType) => {
-  if (row.avatar.length) {
-    return <CustomAvatar src={row.avatar} sx={{ mr: 3, width: 34, height: 34 }} />
-  } else {
-    return (
-      <CustomAvatar
-        skin='light'
-        color={row.avatarColor || 'primary'}
-        sx={{ mr: 3, width: 34, height: 34, fontSize: '1rem' }}
-      >
-        {getInitials(row.fullName ? row.fullName : 'John Doe')}
-      </CustomAvatar>
-    )
+  else{
+    isOpen=true
   }
-}
-
-const RowOptions = ({ id }: { id: number | string }) => {
-  // ** Hooks
-  const dispatch = useDispatch<AppDispatch>()
-
-  // ** State
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-  const rowOptionsOpen = Boolean(anchorEl)
-
-  const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-  const handleRowOptionsClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleDelete = () => {
-    dispatch(deleteUser(id))
-    handleRowOptionsClose()
-  }
-
-  return (
-    <>
-      <IconButton size='small' onClick={handleRowOptionsClick}>
-        <Icon icon='mdi:dots-vertical' />
-      </IconButton>
-      <Menu
-        keepMounted
-        anchorEl={anchorEl}
-        open={rowOptionsOpen}
-        onClose={handleRowOptionsClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right'
-        }}
-        PaperProps={{ style: { minWidth: '8rem' } }}
-      >
-        <MenuItem
-          component={Link}
-          sx={{ '& svg': { mr: 2 } }}
-          onClick={handleRowOptionsClose}
-          href='/apps/user/view/overview/'
-        >
-          <Icon icon='mdi:eye-outline' fontSize={20} />
-          View
-        </MenuItem>
-        <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='mdi:pencil-outline' fontSize={20} />
-          Edit
-        </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
-          <Icon icon='mdi:delete-outline' fontSize={20} />
-          Delete
-        </MenuItem>
-      </Menu>
-    </>
-  )
 }
 
 const columns = [
   {
-    flex: 0.2,
-    minWidth: 230,
-    field: 'fullName',
-    headerName: 'User',
-    renderCell: ({ row }: CellType) => {
-      const { fullName, username } = row
-
-      return (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {renderClient(row)}
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink href='/apps/user/view/overview/'>{fullName}</StyledLink>
-            <Typography noWrap variant='caption'>
-              {`@${username}`}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    }
-  },
-  {
-    flex: 0.2,
-    minWidth: 250,
-    field: 'email',
-    headerName: 'Email',
-    renderCell: ({ row }: CellType) => {
-      return (
-        <Typography noWrap variant='body2'>
-          {row.email}
-        </Typography>
-      )
-    }
-  },
-  {
-    flex: 0.15,
-    field: 'role',
-    minWidth: 150,
-    headerName: 'Role',
-    renderCell: ({ row }: CellType) => {
-      return (
-        <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 3, color: userRoleObj[row.role].color } }}>
-          <Icon icon={userRoleObj[row.role].icon} fontSize={20} />
-          <Typography noWrap sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-            {row.role}
-          </Typography>
-        </Box>
-      )
-    }
-  },
-  {
-    flex: 0.15,
-    minWidth: 120,
-    headerName: 'Plan',
-    field: 'currentPlan',
-    renderCell: ({ row }: CellType) => {
-      return (
-        <Typography variant='subtitle1' noWrap sx={{ textTransform: 'capitalize' }}>
-          {row.currentPlan}
-        </Typography>
-      )
-    }
-  },
-  {
     flex: 0.1,
     minWidth: 110,
-    field: 'status',
-    headerName: 'Status',
+    field: 'name',
+    headerName: 'Nombre',
     renderCell: ({ row }: CellType) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row.status}
-          color={userStatusObj[row.status]}
+          label={row.name}
           sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
         />
       )
@@ -254,143 +97,277 @@ const columns = [
   },
   {
     flex: 0.1,
-    minWidth: 90,
-    sortable: false,
-    field: 'actions',
-    headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
-  }
+    minWidth: 110,
+    field: 'lastName',
+    headerName: 'Apellido',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.lastName}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'ci',
+    headerName: 'CI',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.ci}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'email',
+    headerName: 'correo electronico',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.email}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '30px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'phone',
+    headerName: 'Celular',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.phone}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'direction',
+    headerName: 'Direccion',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.direction}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'nationality',
+    headerName: 'Nacionalidad',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={row.nationality}
+          sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+        />
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'delete',
+    headerName: 'ELIMINAR',
+    renderCell: ({ row }: CellType) => {
+      return (
+        <Button onClick={()=>handleDelete(row._id)}
+        style={{backgroundColor:'#ff7961',color:'white',borderRadius:'10px'}}>
+          ELIMINAR
+        </Button>
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 110,
+    field: 'edit',
+    headerName: 'EDITAR',
+    renderCell: ({ row }: CellType) => {
+      const userData=row;
+      return (
+        <>
+        <Button  variant='contained' sx={{ mr: 2 }} onClick={()=>clickOpenCard()}>
+        EDITAR
+        </Button>
+        </>
+      )
+    }
+  },
+  {
+    flex: 0.1,
+    minWidth: 1,
+    field: '',
+    headerName: '',
+    renderCell: ({ row }: CellType) => {
+      return (
+      <Dialog
+      open={isOpen}
+      onClose={()=>clickOpenCard()}
+      aria-labelledby='userData-view-edit'
+      sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 650, p: [2, 10] } }}
+      aria-describedby='userData-view-edit-description'
+      >
+      <DialogTitle id='userData-view-edit' sx={{ textAlign: 'center', fontSize: '1.5rem !important' }}>
+        editar informacion de usuario
+      </DialogTitle>
+              <DialogContent>
+                <DialogContentText variant='body2' id='userData-view-edit-description' sx={{ textAlign: 'center', mb: 7 }}>
+                  privado
+                </DialogContentText>
+                <form>
+                  <Grid container spacing={6}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth label='name' defaultValue={row.name} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label='name'
+                        defaultValue={row.name}
+                        InputProps={{ startAdornment: <InputAdornment position='start'>nombre</InputAdornment> }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth type='lastName' label='Billing Email' defaultValue={row.ci} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel id='userData-view-status-label'>lastName</InputLabel>
+                        <Select
+                          label='lasName'
+                          defaultValue={row.name}
+                          id='userData-view-status'
+                          labelId='userData-view-status-label'
+                        >
+                          <MenuItem value='pending'>Pending</MenuItem>
+                          <MenuItem value='active'>Active</MenuItem>
+                          <MenuItem value='inactive'>Inactive</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth label='TAX ID' defaultValue='Tax-8894' />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth label='Contact' defaultValue={`+1 ${row.name}`} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel id='userData-view-language-label'>Language</InputLabel>
+                        <Select
+                          label='Language'
+                          defaultValue='English'
+                          id='userData-view-language'
+                          labelId='userData-view-language-label'
+                        >
+                          <MenuItem value='English'>English</MenuItem>
+                          <MenuItem value='Spanish'>Spanish</MenuItem>
+                          <MenuItem value='Portuguese'>Portuguese</MenuItem>
+                          <MenuItem value='Russian'>Russian</MenuItem>
+                          <MenuItem value='French'>French</MenuItem>
+                          <MenuItem value='German'>German</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel id='userData-view-country-label'>Country</InputLabel>
+                        <Select
+                          label='Country'
+                          defaultValue='USA'
+                          id='userData-view-country'
+                          labelId='userData-view-country-label'
+                        >
+                          <MenuItem value='USA'>USA</MenuItem>
+                          <MenuItem value='UK'>UK</MenuItem>
+                          <MenuItem value='Spain'>Spain</MenuItem>
+                          <MenuItem value='Russia'>Russia</MenuItem>
+                          <MenuItem value='France'>France</MenuItem>
+                          <MenuItem value='Germany'>Germany</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        label='Use as a billing address?'
+                        control={<Switch defaultChecked />}
+                        sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
+                      />
+                    </Grid>
+                  </Grid>
+                </form>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: 'center' }}>
+                <Button variant='contained' sx={{ mr: 1 }} >
+                  ACEPTAR
+                </Button>
+                <Button variant='outlined' color='secondary' onClick={()=>clickOpenCard()}>
+                  CANCELAR
+                </Button>
+              </DialogActions>
+      </Dialog>
+      )
+    }
+  },
+  
+  
 ]
 
+const showId=(id:string)=>{
+  console.log(id)
+}
 const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) => {
   // ** State
-  const [role, setRole] = useState<string>('')
-  const [plan, setPlan] = useState<string>('')
+
   const [value, setValue] = useState<string>('')
-  const [status, setStatus] = useState<string>('')
   const [pageSize, setPageSize] = useState<number>(10)
   const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
 
-  // ** Hooks
-  const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.user)
-
-  useEffect(() => {
-    dispatch(
-      fetchData({
-        role,
-        status,
-        q: value,
-        currentPlan: plan
-      })
-    )
-  }, [dispatch, plan, role, status, value])
+  const store = apiData || [];
 
   const handleFilter = useCallback((val: string) => {
     setValue(val)
   }, [])
 
-  const handleRoleChange = useCallback((e: SelectChangeEvent) => {
-    setRole(e.target.value)
-  }, [])
-
-  const handlePlanChange = useCallback((e: SelectChangeEvent) => {
-    setPlan(e.target.value)
-  }, [])
-
-  const handleStatusChange = useCallback((e: SelectChangeEvent) => {
-    setStatus(e.target.value)
-  }, [])
-
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
 
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        {apiData && (
-          <Grid container spacing={6}>
-            {apiData.statsHorizontal.map((item: CardStatsHorizontalProps, index: number) => {
-              return (
-                <Grid item xs={12} md={3} sm={6} key={index}>
-                  <CardStatisticsHorizontal {...item} icon={<Icon icon={item.icon as string} />} />
-                </Grid>
-              )
-            })}
-          </Grid>
-        )}
-      </Grid>
+    <Grid container spacing={50}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Search Filters' sx={{ pb: 4, '& .MuiCardHeader-title': { letterSpacing: '.15px' } }} />
-          <CardContent>
-            <Grid container spacing={6}>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='role-select'>Select Role</InputLabel>
-                  <Select
-                    fullWidth
-                    value={role}
-                    id='select-role'
-                    label='Select Role'
-                    labelId='role-select'
-                    onChange={handleRoleChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='admin'>Admin</MenuItem>
-                    <MenuItem value='author'>Author</MenuItem>
-                    <MenuItem value='editor'>Editor</MenuItem>
-                    <MenuItem value='maintainer'>Maintainer</MenuItem>
-                    <MenuItem value='subscriber'>Subscriber</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='plan-select'>Select Plan</InputLabel>
-                  <Select
-                    fullWidth
-                    value={plan}
-                    id='select-plan'
-                    label='Select Plan'
-                    labelId='plan-select'
-                    onChange={handlePlanChange}
-                    inputProps={{ placeholder: 'Select Plan' }}
-                  >
-                    <MenuItem value=''>Select Plan</MenuItem>
-                    <MenuItem value='basic'>Basic</MenuItem>
-                    <MenuItem value='company'>Company</MenuItem>
-                    <MenuItem value='enterprise'>Enterprise</MenuItem>
-                    <MenuItem value='team'>Team</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id='status-select'>Select Status</InputLabel>
-                  <Select
-                    fullWidth
-                    value={status}
-                    id='select-status'
-                    label='Select Status'
-                    labelId='status-select'
-                    onChange={handleStatusChange}
-                    inputProps={{ placeholder: 'Select Role' }}
-                  >
-                    <MenuItem value=''>Select Role</MenuItem>
-                    <MenuItem value='pending'>Pending</MenuItem>
-                    <MenuItem value='active'>Active</MenuItem>
-                    <MenuItem value='inactive'>Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </CardContent>
-          <Divider />
           <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
           <DataGrid
+            getRowId={row => row._id}
             autoHeight
-            rows={store?.data ?? []}
+            rows={store}
             columns={columns}
             checkboxSelection
             pageSize={pageSize}
@@ -401,15 +378,16 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
           />
         </Card>
       </Grid>
-
+      
       <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
     </Grid>
   )
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get('/cards/statistics')
-  const apiData: CardStatsType = res.data
+  const res = await axios.get(process.env.NEXT_PUBLIC_PERSONAL)
+  const apiData = await res.data
+
 
   return {
     props: {
@@ -418,4 +396,20 @@ export const getStaticProps: GetStaticProps = async () => {
   }
 }
 
+const handleDelete = (_id: string) => {
+  axios
+    .delete(`${process.env.NEXT_PUBLIC_PERSONAL + _id}`)
+    .then(response => {
+      console.log("se elimino con exito"+response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+
 export default UserList
+
+
+
+

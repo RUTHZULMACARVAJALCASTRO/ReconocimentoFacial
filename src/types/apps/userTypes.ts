@@ -2,18 +2,15 @@
 import { ThemeColor } from 'src/@core/layouts/types'
 
 export type UsersType = {
-  id: number
-  role: string
+  _id: string
+  name: string
+  lastName: string
+  ci: string
   email: string
-  status: string
-  avatar: string
-  company: string
-  country: string
-  contact: string
-  fullName: string
-  username: string
-  currentPlan: string
-  avatarColor?: ThemeColor
+  phone: string
+  direction: string
+  nationality: string
+  
 }
 
 export type ProjectListDataType = {

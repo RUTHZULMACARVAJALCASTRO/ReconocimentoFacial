@@ -22,23 +22,15 @@ const navigation = (): VerticalNavItemsType => {
     },
     {
       title: 'User',
+      path: '/user/userlist',
       icon: 'mdi:account-outline',
-      children: [
-        {
-          title: 'List',
-          path: '/apps/user/list'
-        },
-        {
-          title: 'View',
-          children: [
-            {
-              title: 'Overview',
-              path: '/apps/user/view/overview'
-            },
-          ]
-        }
-      ]
     },
+    {
+      title: 'Useredit',
+      path: '/user/useredit',
+      icon: 'mdi:account-outline',
+    }
+      
   ]
 }
 
