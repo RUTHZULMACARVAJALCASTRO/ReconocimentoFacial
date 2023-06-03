@@ -24,9 +24,11 @@ export const apiCall = async function (getOptions) {
     })
     .catch(async function (error) {
       const responseError = await error.response.data
-      if (responseError.statusCode == 401 && responseError.message == 'Unauthorized') {
+      console.log(responseError)
+      if (responseError.statusCode == 401) {
+        console.log("no sesion")
         localStorage.clear()
-        window.location.href = process.env.NEXT_PUBLIC_API_PERSONAL
+        window.location.href = process.env.NEXT_PUBLIC_URL_CENTRAL
       } else {
         throw responseError
       }

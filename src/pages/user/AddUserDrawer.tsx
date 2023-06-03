@@ -147,7 +147,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 500, sm: 600 } } }}
     >
       <Header>
         <Typography variant='h6'>Agregar Usuario</Typography>
@@ -169,6 +169,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Ruth'
                   error={Boolean(errors.name)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -186,6 +187,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Carvajal'
                   error={Boolean(errors.lastName)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -204,6 +206,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='ruth@email.com'
                   error={Boolean(errors.email)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -221,6 +224,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   placeholder='6700630'
                   onChange={onChange}
                   error={Boolean(errors.ci)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -238,6 +242,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   placeholder='78906547'
                   onChange={onChange}
                   error={Boolean(errors.phone)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -255,6 +260,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='Av. Bolivar n°415'
                   error={Boolean(errors.direction)}
+                  autoComplete='off'
                 />
               )}
             />
@@ -272,6 +278,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   onChange={onChange}
                   placeholder='boliviana'
                   error={Boolean(errors.nationality)}
+                  autoComplete='off'
                 />
               )}
             />

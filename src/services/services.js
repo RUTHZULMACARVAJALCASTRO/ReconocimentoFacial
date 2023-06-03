@@ -2,11 +2,11 @@ import { apiCall } from './config'
 
 export const Login = async data => {
   const options = {
-    url: 'auth/login',
+    url: '/central/login-central',
     method: 'POST',
     data: data
   }
-
+  console.log(options)
   return await apiCall(options)
     .then(result => {
       console.log(result)

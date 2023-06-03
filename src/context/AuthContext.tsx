@@ -38,60 +38,63 @@ const AuthProvider = ({ children }: Props) => {
   // ** Hooks
   const router = useRouter()
 
-  useEffect(() => {
-    const initAuth = async (): Promise<void> => {
-      const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
-      if (storedToken) {
-        setLoading(true)
-        await axios
-          .get(authConfig.meEndpoint, {
-            headers: {
-              Authorization: storedToken
-            }
-          })
-          .then(async response => {
-            setLoading(false)
-            setUser({ ...response.data.userData })
-          })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUser(null)
-            setLoading(false)
-            if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-              router.replace('/login')
-            }
-          })
-      } else {
-        setLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const initAuth = async (): Promise<void> => {
+  //     const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
+  //     if (storedToken) {
+  //       setLoading(true)
+  //       await axios
+  //         .get(authConfig.meEndpoint, {
+  //           headers: {
+  //             Authorization: storedToken
+  //           }
+  //         })
+  //         .then(async response => {
+  //           setLoading(false)
+  //           setUser({ ...response.data.userData })
+  //         })
+  //         .catch(() => {
+  //           localStorage.removeItem('userData')
+  //           localStorage.removeItem('refreshToken')
+  //           localStorage.removeItem('accessToken')
+  //           setUser(null)
+  //           setLoading(false)
+  //           if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+  //             router.replace('/login')
+  //           }
+  //         })
+  //     } else {
+  //       setLoading(false)
+  //     }
+  //   }
 
-    initAuth()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  //   initAuth()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-    axios
-      .post(authConfig.loginEndpoint, params)
-      .then(async response => {
-        params.rememberMe
-          ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-          : null
-        const returnUrl = router.query.returnUrl
+    //{"id":1,"role":"admin","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"}
+    // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw
 
-        setUser({ ...response.data.userData })
-        params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
+    // axios
+    //   .post(authConfig.loginEndpoint, params)
+    //   .then(async response => {
+    //     params.rememberMe
+    //       ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
+    //       : null
+    //     const returnUrl = router.query.returnUrl
 
-        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+    //     setUser({ ...response.data.userData })
+    //     params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
 
-        router.replace(redirectURL as string)
-      })
+    //     const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
 
-      .catch(err => {
-        if (errorCallback) errorCallback(err)
-      })
+    //     router.replace(redirectURL as string)
+    //   })
+
+    //   .catch(err => {
+    //     if (errorCallback) errorCallback(err)
+    //   })
   }
 
   const handleLogout = () => {
@@ -113,10 +116,12 @@ const AuthProvider = ({ children }: Props) => {
       })
       .catch((err: { [key: string]: string }) => (errorCallback ? errorCallback(err) : null))
   }
-
+  console.log(user)
   const values = {
-    user,
-    loading,
+    user: {"id":1,"usepage":"use-page-frontend","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"} as any,
+    loading:false,
+    // user,
+    // loading,
     setUser,
     setLoading,
     login: handleLogin,

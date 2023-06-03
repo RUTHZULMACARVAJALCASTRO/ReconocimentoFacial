@@ -13,7 +13,7 @@ import { UserDataType } from 'src/context/types'
 const users: UserDataType[] = [
   {
     id: 1,
-    role: 'admin',
+    usepage: 'admin',
     password: 'admin',
     fullName: 'John Doe',
     username: 'johndoe',
@@ -21,7 +21,7 @@ const users: UserDataType[] = [
   },
   {
     id: 2,
-    role: 'client',
+    usepage: 'client',
     password: 'client',
     fullName: 'Jane Doe',
     username: 'janedoe',
@@ -88,7 +88,7 @@ mock.onPost('/jwt/register').reply(request => {
         username,
         avatar: null,
         fullName: '',
-        role: 'admin'
+        usepage: 'admin'
       }
 
       users.push(userData)

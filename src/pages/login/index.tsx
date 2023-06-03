@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, ReactNode, MouseEvent } from 'react'
+import { useState, ReactNode, MouseEvent,useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -43,6 +43,19 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
+import { useRouter } from 'next/router'
+import { Login } from 'src/services/services'
+import {UserDataType,AuthValuesType} from 'src/context/types'
+
+const defaultProvider: AuthValuesType = {
+  user: null,
+  loading: true,
+  setUser: () => null,
+  setLoading: () => Boolean,
+  login: () => Promise.resolve(),
+  logout: () => Promise.resolve(),
+  register: () => Promise.resolve()
+}
 
 // ** Styled Components
 const LoginIllustrationWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -110,11 +123,58 @@ interface FormData {
 }
 
 const LoginPage = () => {
+  console.log("ointooooo")
   const [rememberMe, setRememberMe] = useState<boolean>(true)
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  /////////////
+  const [user, setUser] = useState<UserDataType | null>(defaultProvider.user)
+  const [loading, setLoading] = useState<boolean>(defaultProvider.loading)
+  ////////////
+  const router = useRouter()
+  const queryLogin = router.query
+  console.log(queryLogin)
+  if (router.isReady) {
+    //useEffect(() => {
+      console.log("into!!!! success")
+      ///setLoading(true)
+              // window.localStorage.setItem('accessToken', 'esyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw')
+              // window.localStorage.setItem('userData', JSON.stringify({"id":1,"role":"admin","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"})) 
+              // window.location.href = "/home"
+      Login(queryLogin).then((result:any)=>{
+          //console.log("login success")
+            //useEffect(() => {
+              // if (!router.isReady) {
+              //   return
+              // }
 
+              // if (auth.user && auth.user.role) {
+              //   const homeRoute = getHomeRoute(auth.user.role)
+
+              //   // Redirect user to Home URL
+              console.log("into!!!! success")
+              const response = {"id":1,"usepage":"use-page-frontend","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"}
+              window.localStorage.setItem('accessToken', 'esyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw')
+              window.localStorage.setItem('userData', JSON.stringify(response)) 
+              //setUser({...response})
+              //setLoading(false)
+              //window.location.href = "/home"
+
+                 router.replace('/home')
+              // }
+              // eslint-disable-next-line react-hooks/exhaustive-deps
+            //}, [])
+      }).catch(e=>{
+        console.log(e)
+        console.log("mal!!!")
+      })
+  //}, [])
+  }
+  //////////////
+
+  //////////////
   // ** Hooks
-  const auth = useAuth()
+  const auth
+   = useAuth()
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()
@@ -402,6 +462,6 @@ const LoginPage = () => {
 
 LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-LoginPage.guestGuard = true
+LoginPage.guestGuard = false
 
 export default LoginPage
