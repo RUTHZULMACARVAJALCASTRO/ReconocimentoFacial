@@ -245,30 +245,16 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get(process.env.NEXT_PUBLIC_PERSONAL)
-  const apiData = await res.data
-
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}?isActive=true`);
+  const apiData = await res.data;
 
   return {
     props: {
-      apiData
-    }
-  }
-  /* .then(response => {
-    const users = response.data; // Suponiendo que los datos de respuesta contienen una lista de usuarios
+      apiData,
+    },
+  };
+};
 
-    // Asignar un id único a cada fila
-    const rowsWithIds = users.map(user => {
-      return { id: user.id, ...user };
-    }); */
-
-    // Asignar los datos al Data Grid
-   /*  dataGrid.setData(rowsWithIds);
-  })
-  .catch(error => {
-    // Manejar errores aquí
-  }); */
-}
 
 const handleDelete = (_id: string) => {
   axios

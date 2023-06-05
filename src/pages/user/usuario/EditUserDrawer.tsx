@@ -185,10 +185,9 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.name}
                   label='Nombre'
                   onChange={onInputChange}
-                  placeholder='Ruth'
+                  placeholder={user.name}
                   error={Boolean(errors.name)}
                   autoComplete='off'
                 />
@@ -203,10 +202,9 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.lastName}
                   label='Apellido'
                   onChange={onInputChange}
-                  placeholder='Carvajal'
+                  placeholder={user.lastName}
                   error={Boolean(errors.lastName)}
                   autoComplete='off'
                 />
@@ -222,10 +220,9 @@ useEffect(() => {
               render={({ field: { value, onChange } }) => (
                 <TextField
                   type='email'
-                  value={user.email}
                   label='Correo Electronico'
                   onChange={onInputChange}
-                  placeholder='ruth@email.com'
+                  placeholder={user.email}
                   error={Boolean(errors.email)}
                   autoComplete='off'
                 />
@@ -240,9 +237,8 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.ci}
                   label='CI'
-                  placeholder='6700630'
+                  placeholder={user.ci}
                   onChange={onInputChange}
                   error={Boolean(errors.ci)}
                   autoComplete='off'
@@ -258,9 +254,8 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.phone}
                   label='Celular'
-                  placeholder='78906547'
+                  placeholder={user.phone}
                   onChange={onInputChange}
                   error={Boolean(errors.phone)}
                   autoComplete='off'
@@ -276,10 +271,9 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.direction}
                   label='direccion'
                   onChange={onInputChange}
-                  placeholder='Av. Bolivar n°415'
+                  placeholder={user.direction}
                   error={Boolean(errors.direction)}
                   autoComplete='off'
                 />
@@ -294,10 +288,9 @@ useEffect(() => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  value={user.nationality}
                   label='nacionalidad'
                   onChange={onInputChange}
-                  placeholder='boliviana'
+                  placeholder={user.nationality}
                   error={Boolean(errors.nationality)}
                   autoComplete='off'
                 />
