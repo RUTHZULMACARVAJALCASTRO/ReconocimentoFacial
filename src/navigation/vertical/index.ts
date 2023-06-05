@@ -4,12 +4,12 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 const navigation = (): VerticalNavItemsType => {
   return [
     {
-      title: 'Home',
+      title: 'Hogar',
       path: '/home',
       icon: 'mdi:home-outline',
     },
     {
-      title: 'Second Page',
+      title: 'Mensajes',
       path: '/second-page',
       icon: 'mdi:email-outline',
     },
@@ -17,19 +17,36 @@ const navigation = (): VerticalNavItemsType => {
       path: '/acl',
       action: 'read',
       subject: 'acl-page',
-      title: 'Access Control',
+      title: 'Control de Acceso',
       icon: 'mdi:shield-outline',
     },
     {
-      title: 'User',
-      path: '/user/userlist',
-      icon: 'mdi:account-outline',
+        title: 'Usuario',
+        icon: 'mdi:account-outline',
+        children: [
+          {
+            title: 'Nuevo Usuario',
+            path: '/user/usuario/userlist',
+            icon: 'mdi:account-check',
+          },
+          {
+            title: 'Vista de Usuario',
+            path: '/user/usuario/view',
+            icon: 'mdi:account-group',
+          },
+          {
+            title: 'Editar Usuario',
+            path: '/user/usuario/newedituser',
+            icon: 'mdi:account-edit-outline',
+          }
+        ]
     },
     {
-      title: 'Useredit',
-      path: '/user/useredit',
-      icon: 'mdi:account-outline',
-    }
+      title: 'Imagen',
+      path: '/user/usuario/base64/base64',
+      icon: 'mdi:account-box-multiple',
+    },
+    
       
   ]
 }

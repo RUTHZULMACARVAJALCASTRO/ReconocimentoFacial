@@ -132,7 +132,9 @@ const LoginPage = () => {
   ////////////
   const router = useRouter()
   const queryLogin = router.query
+
   console.log(queryLogin)
+  
   if (router.isReady) {
     //useEffect(() => {
       console.log("into!!!! success")

@@ -15,7 +15,7 @@ const Home = () => {
       password: '12345678'
     }
 
-    alert(process.env.NEXT_PUBLIC_API_PERSONAL)
+    //alert(process.env.NEXT_PUBLIC_API_PERSONAL)
     await Login(form)
       .then(result => {
         alert(JSON.stringify(result))
@@ -25,6 +25,7 @@ const Home = () => {
         alert(JSON.stringify(e))
       })
   }
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>

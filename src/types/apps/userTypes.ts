@@ -2,6 +2,7 @@
 import { ThemeColor } from 'src/@core/layouts/types'
 
 export type UsersType = {
+  [x: string]: any
   _id: string
   name: string
   lastName: string

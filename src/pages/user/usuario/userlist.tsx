@@ -35,9 +35,10 @@ import { AppDispatch } from 'src/store'
 // ** Custom Table Components Imports
 
 import TableHeader from 'src/views/apps/user/list/TableHeader'
-import AddUserDrawer from 'src/pages/user/AddUserDrawer';
+import AddUserDrawer from 'src/pages/user/usuario/AddUserDrawer';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, InputAdornment, Switch, TextField } from '@mui/material'
 import data from 'src/@fake-db/components/data'
+import EditUserDrawer from './EditUserDrawer'
 
 interface Docu {
   _id: string
@@ -52,30 +53,6 @@ interface Docu {
 
 interface CellType {
   row: Docu
-}
-  // ** States
-/* const [openEdit, setOpenEdit] = useState<boolean>(false);
-const [openPlans, setOpenPlans] = useState<boolean>(false);
-const [suspendDialogOpen, setSuspendDialogOpen] = useState<boolean>(false);
-const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false); */
-
-
-  // Handle Edit dialog
-/*   const handleEditClickOpen = () => setOpenEdit(true)
-  const handleEditClose = () => setOpenEdit(false)
-
-  // Handle Upgrade Plan dialog
-  const handlePlansClickOpen = () => setOpenPlans(true)
-  const handlePlansClose = () => setOpenPlans(false) */
-
-let isOpen=false;
-function clickOpenCard(){
-  if(isOpen){
-    isOpen=false
-  }
-  else{
-    isOpen=true
-  }
 }
 
 const columns = [
@@ -211,133 +188,14 @@ const columns = [
     field: 'edit',
     headerName: 'EDITAR',
     renderCell: ({ row }: CellType) => {
-      const userData=row;
       return (
         <>
-        <Button  variant='contained' sx={{ mr: 2 }} onClick={()=>clickOpenCard()}>
-        EDITAR
-        </Button>
-        </>
+        <EditUserDrawer userId={row._id}/>
+        </> 
       )
     }
   },
-  {
-    flex: 0.1,
-    minWidth: 1,
-    field: '',
-    headerName: '',
-    renderCell: ({ row }: CellType) => {
-      return (
-      <Dialog
-      open={isOpen}
-      onClose={()=>clickOpenCard()}
-      aria-labelledby='userData-view-edit'
-      sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 650, p: [2, 10] } }}
-      aria-describedby='userData-view-edit-description'
-      >
-      <DialogTitle id='userData-view-edit' sx={{ textAlign: 'center', fontSize: '1.5rem !important' }}>
-        editar informacion de usuario
-      </DialogTitle>
-              <DialogContent>
-                <DialogContentText variant='body2' id='userData-view-edit-description' sx={{ textAlign: 'center', mb: 7 }}>
-                  privado
-                </DialogContentText>
-                <form>
-                  <Grid container spacing={6}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label='name' defaultValue={row.name} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label='name'
-                        defaultValue={row.name}
-                        InputProps={{ startAdornment: <InputAdornment position='start'>nombre</InputAdornment> }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField fullWidth type='lastName' label='Billing Email' defaultValue={row.ci} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel id='userData-view-status-label'>lastName</InputLabel>
-                        <Select
-                          label='lasName'
-                          defaultValue={row.name}
-                          id='userData-view-status'
-                          labelId='userData-view-status-label'
-                        >
-                          <MenuItem value='pending'>Pending</MenuItem>
-                          <MenuItem value='active'>Active</MenuItem>
-                          <MenuItem value='inactive'>Inactive</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label='TAX ID' defaultValue='Tax-8894' />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField fullWidth label='Contact' defaultValue={`+1 ${row.name}`} />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel id='userData-view-language-label'>Language</InputLabel>
-                        <Select
-                          label='Language'
-                          defaultValue='English'
-                          id='userData-view-language'
-                          labelId='userData-view-language-label'
-                        >
-                          <MenuItem value='English'>English</MenuItem>
-                          <MenuItem value='Spanish'>Spanish</MenuItem>
-                          <MenuItem value='Portuguese'>Portuguese</MenuItem>
-                          <MenuItem value='Russian'>Russian</MenuItem>
-                          <MenuItem value='French'>French</MenuItem>
-                          <MenuItem value='German'>German</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel id='userData-view-country-label'>Country</InputLabel>
-                        <Select
-                          label='Country'
-                          defaultValue='USA'
-                          id='userData-view-country'
-                          labelId='userData-view-country-label'
-                        >
-                          <MenuItem value='USA'>USA</MenuItem>
-                          <MenuItem value='UK'>UK</MenuItem>
-                          <MenuItem value='Spain'>Spain</MenuItem>
-                          <MenuItem value='Russia'>Russia</MenuItem>
-                          <MenuItem value='France'>France</MenuItem>
-                          <MenuItem value='Germany'>Germany</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControlLabel
-                        label='Use as a billing address?'
-                        control={<Switch defaultChecked />}
-                        sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
-                      />
-                    </Grid>
-                  </Grid>
-                </form>
-              </DialogContent>
-              <DialogActions sx={{ justifyContent: 'center' }}>
-                <Button variant='contained' sx={{ mr: 1 }} >
-                  ACEPTAR
-                </Button>
-                <Button variant='outlined' color='secondary' onClick={()=>clickOpenCard()}>
-                  CANCELAR
-                </Button>
-              </DialogActions>
-      </Dialog>
-      )
-    }
-  },
-  
+
   
 ]
 
@@ -350,6 +208,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   const [value, setValue] = useState<string>('')
   const [pageSize, setPageSize] = useState<number>(10)
   const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
+  const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
 
   const store = apiData || [];
 
@@ -358,6 +217,7 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
   }, [])
 
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
+  const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
 
   return (
     <Grid container spacing={50}>
@@ -394,6 +254,20 @@ export const getStaticProps: GetStaticProps = async () => {
       apiData
     }
   }
+  /* .then(response => {
+    const users = response.data; // Suponiendo que los datos de respuesta contienen una lista de usuarios
+
+    // Asignar un id único a cada fila
+    const rowsWithIds = users.map(user => {
+      return { id: user.id, ...user };
+    }); */
+
+    // Asignar los datos al Data Grid
+   /*  dataGrid.setData(rowsWithIds);
+  })
+  .catch(error => {
+    // Manejar errores aquí
+  }); */
 }
 
 const handleDelete = (_id: string) => {

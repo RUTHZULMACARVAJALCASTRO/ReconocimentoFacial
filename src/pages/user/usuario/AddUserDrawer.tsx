@@ -122,7 +122,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 
   const handleSave = async(data:UserData) => {
       await axios
-        .post(`http://10.10.214.219:3300/api/personal/`, data)
+        .post(process.env.NEXT_PUBLIC_PERSONAL, data)
         .then(response => {
           console.log(response.data);
           toggle()
@@ -147,7 +147,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 500, sm: 600 } } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800} } }}
     >
       <Header>
         <Typography variant='h6'>Agregar Usuario</Typography>
@@ -157,7 +157,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
       </Header>
       <Box sx={{ p: 5 }}>
         <form onSubmit={handleSubmit(handleSave)}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4}}>
             <Controller
               name='name'
               control={control}
@@ -175,7 +175,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='lastName'
               control={control}
@@ -193,7 +193,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.lastName && <FormHelperText sx={{ color: 'error.main' }}>{errors.lastName.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='email'
               control={control}
@@ -212,7 +212,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='ci'
               control={control}
@@ -230,7 +230,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.ci && <FormHelperText sx={{ color: 'error.main' }}>{errors.ci.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='phone'
               control={control}
@@ -248,7 +248,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.phone && <FormHelperText sx={{ color: 'error.main' }}>{errors.phone.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='direction'
               control={control}
@@ -266,7 +266,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             />
             {errors.direction && <FormHelperText sx={{ color: 'error.main' }}>{errors.direction.message}</FormHelperText>}
           </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='nationality'
               control={control}
@@ -285,7 +285,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
             {errors.nationality && <FormHelperText sx={{ color: 'error.main' }}>{errors.nationality.message}</FormHelperText>}
           </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button size='large' type='submit' variant='contained' sx={{ mr: 3 }}>
+            <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>
               Aceptar
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
