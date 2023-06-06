@@ -45,7 +45,7 @@ interface UserData {
   ci: string
   email: string
   phone: string
-  direction: string
+  address: string
   nationality: string
 }
 
@@ -68,7 +68,7 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  direction: yup.string().required(),
+  address: yup.string().required(),
   nationality: yup.string().required(),
   email: yup.string().email().required(),
   ci: yup.string().required(),
@@ -93,7 +93,7 @@ const defaultValues = {
   ci: '',
   email: '',
   phone: '',
-  direction: '',
+  address: '',
   nationality: ''
 }
 
@@ -167,7 +167,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='Nombre'
                   onChange={onChange}
-                  placeholder='Ruth'
                   error={Boolean(errors.name)}
                   autoComplete='off'
                 />
@@ -185,7 +184,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='Apellido'
                   onChange={onChange}
-                  placeholder='Carvajal'
                   error={Boolean(errors.lastName)}
                   autoComplete='off'
                 />
@@ -204,7 +202,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='Correo Electronico'
                   onChange={onChange}
-                  placeholder='ruth@email.com'
                   error={Boolean(errors.email)}
                   autoComplete='off'
                 />
@@ -221,7 +218,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 <TextField
                   value={value}
                   label='CI'
-                  placeholder='6700630'
                   onChange={onChange}
                   error={Boolean(errors.ci)}
                   autoComplete='off'
@@ -239,7 +235,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                 <TextField
                   value={value}
                   label='Celular'
-                  placeholder='78906547'
                   onChange={onChange}
                   error={Boolean(errors.phone)}
                   autoComplete='off'
@@ -250,7 +245,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
-              name='direction'
+              name='address'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
@@ -258,13 +253,12 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='direccion'
                   onChange={onChange}
-                  placeholder='Av. Bolivar n°415'
-                  error={Boolean(errors.direction)}
+                  error={Boolean(errors.address)}
                   autoComplete='off'
                 />
               )}
             />
-            {errors.direction && <FormHelperText sx={{ color: 'error.main' }}>{errors.direction.message}</FormHelperText>}
+            {errors.address && <FormHelperText sx={{ color: 'error.main' }}>{errors.address.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
@@ -276,7 +270,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   value={value}
                   label='nacionalidad'
                   onChange={onChange}
-                  placeholder='boliviana'
                   error={Boolean(errors.nationality)}
                   autoComplete='off'
                 />

@@ -1,38 +1,48 @@
-import { ImageList, ImageListItem } from "@mui/material";
-import { Key } from "react";
+import { useState } from 'react';
 
+const FileUploadForm = () => {
+  const [fileData, setFileData] = useState<string>('');
+  const [fileId, setFileId] = useState<string>('');
 
-// Cadena Base64 de la imagen
-const base64String = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD...";
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        setFileData(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-// Crear objeto Image
-const img = new Image();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-// Asignar la cadena Base64 a la propiedad src del objeto Image
-img.src = base64String;
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: JSON.stringify({ fileData }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-// Escuchar el evento onload
-img.onload = function() {
-  // La imagen se ha cargado correctamente
-  // Puedes acceder a la imagen en formato Image y realizar cualquier operación necesaria
-  // Por ejemplo, mostrarla en un elemento <img>
+      const data = await response.json();
+      setFileId(data.id);
+    } catch (error) {
+      // Manejo de errores
+    }
+  };
 
-  const imgElement = document.createElement("img");
-  imgElement.src = img.src;
-
-  // Agregar el elemento img al DOM para mostrar la imagen
-  document.body.appendChild(imgElement);
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="file" onChange={handleFileChange} />
+      <button type="submit">Subir archivo</button>
+      {fileId && <p>ID del archivo: {fileId}</p>}
+    </form>
+  );
 };
-{/* <ImageList variant="masonry" cols={3} gap={8}>
-  {itemData.map((item: { img: Key | null | undefined; title: string | undefined; }) => (
-    <ImageListItem key={item.img}>
-      <img
-        src={`${item.img}?w=248&fit=crop&auto=format`}
-        srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
-        alt={item.title}
-        loading="lazy"
-      />
-    </ImageListItem>
-  ))}
-</ImageList>
-export default itemData; */}
+
+export default FileUploadForm;
+

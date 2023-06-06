@@ -42,7 +42,7 @@ interface UserData {
   ci: string
   email: string
   phone: string
-  direction: string
+  address: string
   nationality: string
 }
 
@@ -90,7 +90,7 @@ const defaultValues = {
   ci: '',
   email: '',
   phone: '',
-  direction: '',
+  address: '',
   nationality: ''
 }
 
@@ -103,14 +103,21 @@ const defaultValues = {
   ci: '',
   email: '',
   phone: '',
-  direction: '',
+  address: '',
   nationality: '',
 });
+
+useEffect(() => {
+  if (userId) {
+    getData();
+  }
+}, [userId]);
 
 const onInputChange=(e:React.ChangeEvent<HTMLInputElement>)=>{
   setUser({...user,[e.target.name]:e.target.value})
 }
 const getData = async() => {
+  console.log("getdata")
   await axios
     .get<UserData>(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`)
     .then(response => {
@@ -121,16 +128,16 @@ const getData = async() => {
       console.error(error);
     });
 };
-const OnSubmit=async(e:React.FormEvent)=>{
-  e.preventDefault();
-  console.log(user)
-  await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`, user);
+const OnSubmit=async()=>{
+  await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`,user)
+  .then(response => {
+    console.log(response.data);
+  })
+  .catch(error => {
+    console.error(error);
+  });
 }
-useEffect(() => {
-  if (userId) {
-    getData();
-  }
-}, [userId]);
+
 
   const toggleDrawer =
     (open: boolean) =>
@@ -148,6 +155,7 @@ useEffect(() => {
   // ** Hooks
   const {
     reset,
+    handleSubmit,
     control,
     formState: { errors }
   } = useForm({
@@ -155,6 +163,7 @@ useEffect(() => {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
+
 
   return (
     <>
@@ -171,18 +180,18 @@ useEffect(() => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800} } }}
     >
       <Header>
-        <Typography variant='h6'>Agregar Usuario</Typography>
+        <Typography variant='h6'>{userId}</Typography>
         <IconButton size='small' onClick={toggleDrawer(false)} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Header>
       <Box sx={{ p: 5 }}>
-        <form onSubmit={OnSubmit}>
+        <form onSubmit={()=>OnSubmit()}>
           <FormControl fullWidth sx={{ mb: 4}}>
             <Controller
               name='name'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='Nombre'
@@ -199,7 +208,7 @@ useEffect(() => {
             <Controller
               name='lastName'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='Apellido'
@@ -216,7 +225,7 @@ useEffect(() => {
             <Controller
               name='email'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   type='email'
@@ -234,7 +243,7 @@ useEffect(() => {
             <Controller
               name='ci'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='CI'
@@ -251,7 +260,7 @@ useEffect(() => {
             <Controller
               name='phone'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='Celular'
@@ -266,26 +275,26 @@ useEffect(() => {
           </FormControl>
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
-              name='direction'
+              name='address'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='direccion'
                   onChange={onInputChange}
-                  placeholder={user.direction}
-                  error={Boolean(errors.direction)}
+                  placeholder={user.address}
+                  error={Boolean(errors.address)}
                   autoComplete='off'
                 />
               )}
             />
-            {errors.direction && <FormHelperText sx={{ color: 'error.main' }}>{errors.direction.message}</FormHelperText>}
+            {errors.address && <FormHelperText sx={{ color: 'error.main' }}>{errors.address.message}</FormHelperText>}
           </FormControl>
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='nationality'
               control={control}
-              rules={{ required: true }}
+              rules={{ required: false }}
               render={({ field: { value, onChange } }) => (
                 <TextField
                   label='nacionalidad'

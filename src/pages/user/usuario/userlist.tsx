@@ -47,8 +47,9 @@ interface Docu {
   ci: string
   email: string
   phone: string
-  direction: string
+  address: string
   nationality: string
+  isActive:boolean
 }
 
 interface CellType {
@@ -139,14 +140,14 @@ const columns = [
   {
     flex: 0.1,
     minWidth: 110,
-    field: 'direction',
+    field: 'address',
     headerName: 'Direccion',
     renderCell: ({ row }: CellType) => {
       return (
         <CustomChip
           skin='light'
           size='small'
-          label={row.direction}
+          label={row.address}
           sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
         />
       )
@@ -195,13 +196,8 @@ const columns = [
       )
     }
   },
-
-  
 ]
 
-const showId=(id:string)=>{
-  console.log(id)
-}
 const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) => {
   // ** State
 
@@ -225,12 +221,12 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
         <Card>
           <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
           <DataGrid
-            getRowId={row => row._id}
+            getRowId={ row => row._id }
             autoHeight
             rows={store}
             columns={columns}
             checkboxSelection
-            pageSize={pageSize}
+            pageSize={pageSize}   
             disableSelectionOnClick
             rowsPerPageOptions={[10, 25, 50]}
             sx={{ '& .MuiDataGrid-columnHeaders': { borderRadius: 0 } }}
@@ -245,9 +241,14 @@ const UserList = ({ apiData }: InferGetStaticPropsType<typeof getStaticProps>) =
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}?isActive=true`);
-  const apiData = await res.data;
+  const res = await axios.get(process.env.NEXT_PUBLIC_PERSONAL);
+  let apiData: any[] = []; // Definir un arreglo vacío por defecto
 
+  if (Array.isArray(res.data)) {
+    apiData = res.data.map((user: Docu) => {
+      return { ...user, id: user._id }; // Agregar la propiedad 'id' con el mismo valor que '_id'
+    });
+  }
   return {
     props: {
       apiData,

@@ -34,17 +34,23 @@ const navigation = (): VerticalNavItemsType => {
             path: '/user/usuario/view',
             icon: 'mdi:account-group',
           },
-          {
-            title: 'Editar Usuario',
-            path: '/user/usuario/newedituser',
-            icon: 'mdi:account-edit-outline',
-          }
         ]
     },
     {
       title: 'Imagen',
-      path: '/user/usuario/base64/base64',
-      icon: 'mdi:account-box-multiple',
+      icon: 'mdi:account-outline',
+      children: [
+        {
+          title: 'Base64',
+          path: '/user/usuario/base64/base64',
+          icon: 'mdi:account-box-outline',
+        },
+        {
+          title: 'Archivo base64',
+          path: '/user/usuario/base64/imagen',
+          icon: 'mdi:account-box-multiple-outline',
+        },
+      ]
     },
     
       
