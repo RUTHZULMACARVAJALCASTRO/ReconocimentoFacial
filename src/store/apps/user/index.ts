@@ -30,7 +30,7 @@ export const fetchData = createAsyncThunk('appUsers/fetchData', async (params: D
 export const addUser = createAsyncThunk(
   'appUsers/addUser',
   async (data: { [key: string]: number | string }, { getState, dispatch }: Redux) => {
-    const response = await axios.post('/apps/users/add-user', {
+    const response = await axios.post( `${process.env.NEXT_PUBLIC_PERSONAL}`, {
       data
     })
     dispatch(fetchData(getState().user.params))
@@ -52,23 +52,32 @@ export const deleteUser = createAsyncThunk(
   }
 )
 
+interface AppUsersState {
+  data: any[];
+  total: number;
+  params: any;
+  allData: any[];
+}
+
+const initialState: AppUsersState = {
+  data: [],
+  total: 1,
+  params: {},
+  allData: [],
+};
+
 export const appUsersSlice = createSlice({
   name: 'appUsers',
-  initialState: {
-    data: [],
-    total: 1,
-    params: {},
-    allData: []
-  },
+  initialState,
   reducers: {},
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder.addCase(fetchData.fulfilled, (state, action) => {
-      state.data = action.payload.users
-      state.total = action.payload.total
-      state.params = action.payload.params
-      state.allData = action.payload.allData
-    })
-  }
-})
+      state.data = action.payload.users;
+      state.total = action.payload.total;
+      state.params = action.payload.params;
+      state.allData = action.payload.allData;
+    });
+  },
+});
 
 export default appUsersSlice.reducer

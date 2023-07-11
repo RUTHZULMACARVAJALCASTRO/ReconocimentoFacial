@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, ReactNode, MouseEvent,useEffect } from 'react'
+import { useState, ReactNode, MouseEvent } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'

@@ -1,15 +1,12 @@
 // ** React Imports
-import React, { useEffect, useState } from 'react'
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
 import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
 import Box, { BoxProps } from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
@@ -23,18 +20,14 @@ import { useForm, Controller } from 'react-hook-form'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Store Imports
-import { useDispatch } from 'react-redux'
-
-// ** Actions Imports
-import { addUser } from 'src/store/apps/user'
-
 // ** Types Imports
-import { AppDispatch } from 'src/store'
-import { Direction } from '@mui/material';
 import axios from 'axios'
-import { useRouter } from 'next/router'
-import user from 'src/store/apps/user';
+import { dividerClasses } from '@mui/material'
+
+interface SidebarEditUserType {
+  open: boolean
+  toggle: () => void
+}
 
 interface UserData {
   name: string
@@ -43,14 +36,15 @@ interface UserData {
   email: string
   phone: string
   address: string
+  file: string
   nationality: string
 }
 
 const showErrors = (field: string, valueLen: number, min: number) => {
   if (valueLen === 0) {
-    return `${field} field is required`
+    return `${field} Se requiere campo`
   } else if (valueLen > 0 && valueLen < min) {
-    return `${field} must be at least ${min} characters`
+    return `${field} al menos debe ser ${min} caracteres`
   } else {
     return ''
   }
@@ -65,14 +59,14 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  direction: yup.string().required(),
+  address: yup.string().required(),
   nationality: yup.string().required(),
   email: yup.string().email().required(),
   ci: yup.string().required(),
   phone: yup
     .string()
     .typeError('')
-    .min(10, obj => showErrors('Celular', obj.value.length, obj.min))
+    .min(8, obj => showErrors('Celular', obj.value.length, obj.min))
     .required(),
   name: yup
     .string()
@@ -91,53 +85,27 @@ const defaultValues = {
   email: '',
   phone: '',
   address: '',
+  file:'',
   nationality: ''
 }
 
-  const SidebarEditUser = (props: { userId: string }) => {
+  const SidebarEditUser = ( props: { userId: string } ) => {
+
   const [state,setState]=useState<boolean>(false)
   const userId=props.userId;
   const [user,setUser]=useState<UserData>({
-  name: '',
-  lastName: '',
-  ci: '',
-  email: '',
-  phone: '',
-  address: '',
-  nationality: '',
-});
-
-useEffect(() => {
-  if (userId) {
-    getData();
-  }
-}, [userId]);
-
-const onInputChange=(e:React.ChangeEvent<HTMLInputElement>)=>{
-  setUser({...user,[e.target.name]:e.target.value})
-}
-const getData = async() => {
-  console.log("getdata")
-  await axios
-    .get<UserData>(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`)
-    .then(response => {
-      console.log(response.data)
-      setUser(response.data)
-    })
-    .catch(error => {
-      console.error(error);
-    });
-};
-const OnSubmit=async()=>{
-  await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`,user)
-  .then(response => {
-    console.log(response.data);
-  })
-  .catch(error => {
-    console.error(error);
+    name: '',
+    lastName: '',
+    ci: '',
+    email: '',
+    phone: '',
+    address: '',
+    file:'',
+    nationality: '',
   });
-}
-
+  const [image, setImage] = useState<File | null>(null)
+  const [previewfile, setPreviewfile] = useState<string | null>(null)
+  
 
   const toggleDrawer =
     (open: boolean) =>
@@ -152,10 +120,10 @@ const OnSubmit=async()=>{
 
       setState(open);
     };
+
   // ** Hooks
   const {
     reset,
-    handleSubmit,
     control,
     formState: { errors }
   } = useForm({
@@ -163,13 +131,76 @@ const OnSubmit=async()=>{
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
+  const convertBase64ToImageUrl = (base64String: string) => {
+    // console.log('AAAA', base64String )
 
+    return `data:image/png;base64,${base64String}`
+  }
+
+
+  const getData = async() => {
+    await axios
+    .get<UserData>(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`)
+    .then(response => {
+      setUser(response.data)
+      // console.log("edit user"+user.file)
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  };
+  
+  useEffect(() => {
+    if (userId) {
+      getData();
+    }
+  }, [userId]);
+
+  const  handleChange =(e: ChangeEvent<HTMLInputElement>)=>{
+    setUser({...user, [e.target.name]:e.target.value})
+  }
+
+
+  const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const reader = new FileReader()
+    reader.onload = function () {
+      if (reader.readyState === 2) {
+        const formattedDate = new Date().toISOString()
+
+        setUser
+        setUser({ ...user, file: reader.result as string })
+        //setPreviewfile(reader.result as string)
+      }
+    }
+    if (e.target.files && e.target.files.length > 0) {
+      console.log(e.target.files)
+      reader.readAsDataURL(e.target.files[0])
+      console.log('' + previewfile)
+    }
+  }
+
+  const handleSubmit= async (e: FormEvent )=>{
+    e.preventDefault();
+console.log('userrrrrrrrrrrrrrrrr', user)
+    try {
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}edit/${userId}`, user )
+      console.log(user)
+      console.log(response.data);
+      window.location.reload()
+    } catch ( error ) {
+      console.error(error);
+    }
+    
+  }
+  
 
   return (
     <>
     <Button
-    style={{backgroundColor:'#94bb68',color:'white',borderRadius:'10px'}}
-    onClick={toggleDrawer(true)}>EDITAR</Button>
+    style={{color:'#0074D9',borderRadius:'10px'}}
+    onClick={toggleDrawer(true)}>
+      <Icon icon='mdi:pencil-outline' fontSize={20} />
+    </Button>
     <Drawer
     style={{border:'2px solid white', margin:'theme.spacing(2)'}}
       open={state}
@@ -180,23 +211,49 @@ const OnSubmit=async()=>{
       sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800} } }}
     >
       <Header>
-        <Typography variant='h6'>{userId}</Typography>
+        <Typography variant='h6'>Editar Usuario</Typography>
         <IconButton size='small' onClick={toggleDrawer(false)} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Header>
       <Box sx={{ p: 5 }}>
-        <form onSubmit={()=>OnSubmit()}>
+        <form onSubmit={handleSubmit}>
           <FormControl fullWidth sx={{ mb: 4}}>
+          <Controller
+              name='file'
+              control={control}
+              render={({ field}) => (
+               <div>
+                <img
+          src={convertBase64ToImageUrl(user.file)}
+          alt='Imagen del activo'
+          width={35}
+          height={35}
+          style={{ borderRadius: '50%' }}/>
+               </div>
+              )}
+            />
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4}}>
+              <label htmlFor='file'>Imagen</label>
+              <input type='file' id='file' name='file' onChange={handlefileChange} />
+              <div style={{ textAlign: 'center' }}>
+                {previewfile && (
+                  <img src={previewfile} alt='Preview' style={{ maxWidth: '100%', maxHeight: '300px' }} />
+                )}
+              </div>
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }} style={{ borderRadius: '50%', textAlign: 'center' }}>
             <Controller
               name='name'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='Nombre'
-                  onChange={onInputChange}
-                  placeholder={user.name}
+                  value={ user.name }
+                  onChange={ handleChange } 
                   error={Boolean(errors.name)}
                   autoComplete='off'
                 />
@@ -209,11 +266,12 @@ const OnSubmit=async()=>{
               name='lastName'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='Apellido'
-                  onChange={onInputChange}
-                  placeholder={user.lastName}
+                  onChange={ handleChange }
+                  value={ user.lastName }
                   error={Boolean(errors.lastName)}
                   autoComplete='off'
                 />
@@ -226,12 +284,13 @@ const OnSubmit=async()=>{
               name='email'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   type='email'
                   label='Correo Electronico'
-                  onChange={onInputChange}
-                  placeholder={user.email}
+                  value={ user.email }
+                  onChange={ handleChange }
                   error={Boolean(errors.email)}
                   autoComplete='off'
                 />
@@ -244,11 +303,12 @@ const OnSubmit=async()=>{
               name='ci'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='CI'
-                  placeholder={user.ci}
-                  onChange={onInputChange}
+                  value={ user.ci }
+                  onChange={ handleChange }
                   error={Boolean(errors.ci)}
                   autoComplete='off'
                 />
@@ -261,11 +321,12 @@ const OnSubmit=async()=>{
               name='phone'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='Celular'
-                  placeholder={user.phone}
-                  onChange={onInputChange}
+                  value={ user.phone }
+                  onChange={ handleChange }
                   error={Boolean(errors.phone)}
                   autoComplete='off'
                 />
@@ -278,11 +339,12 @@ const OnSubmit=async()=>{
               name='address'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='direccion'
-                  onChange={onInputChange}
-                  placeholder={user.address}
+                  value={ user.address }
+                  onChange={ handleChange }
                   error={Boolean(errors.address)}
                   autoComplete='off'
                 />
@@ -295,11 +357,12 @@ const OnSubmit=async()=>{
               name='nationality'
               control={control}
               rules={{ required: false }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field}) => (
                 <TextField
+                {...field}
                   label='nacionalidad'
-                  onChange={onInputChange}
-                  placeholder={user.nationality}
+                  value={ user.nationality }
+                  onChange={ handleChange }
                   error={Boolean(errors.nationality)}
                   autoComplete='off'
                 />
@@ -308,7 +371,9 @@ const OnSubmit=async()=>{
             {errors.nationality && <FormHelperText sx={{ color: 'error.main' }}>{errors.nationality.message}</FormHelperText>}
           </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>
+            <Button 
+              size='large' type='submit' variant='contained' sx={{ mr: 6 }}
+            >
               Aceptar
             </Button>
             <Button size='large' variant='outlined' color='secondary' onClick={toggleDrawer(false)}>
@@ -318,7 +383,7 @@ const OnSubmit=async()=>{
         </form>
       </Box>
     </Drawer>
-    </> 
+  </>
   )
 }
 

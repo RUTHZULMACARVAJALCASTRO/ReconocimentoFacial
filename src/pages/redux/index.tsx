@@ -3,7 +3,7 @@
 import React, { ChangeEvent, FormEvent } from 'react'
 import { connect } from 'react-redux'
 import { setUsername } from 'src/redux/actions'
-import styled from 'styled-components'
+// import styled from 'styles-componest'
 
 interface Props {
   usernameFromRedux: string
@@ -23,35 +23,35 @@ interface State {
   }
 }
 
-const FormContainer = styled.div`
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-`
+// const FormContainer = styled.div`
+//   max-width: 400px;
+//   margin: 0 auto;
+//   padding: 20px;
+//   background-color: #f5f5f5;
+//   border-radius: 4px;
+// `
 
-const FormField = styled.div`
-  margin-bottom: 10px;
-`
+// const FormField = styled.div`
+//   margin-bottom: 10px;
+// `
 
-const Label = styled.label`
-  display: block;
-  font-weight: bold;
-`
+// const Label = styled.label`
+//   display: block;
+//   font-weight: bold;
+// `
 
-const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`
+// const Input = styled.input`
+//   width: 100%;
+//   padding: 8px;
+//   font-size: 16px;
+//   border: 1px solid #ccc;
+//   border-radius: 4px;
+// `
 
-const ErrorMsg = styled.p`
-  margin: 5px 0;
-  color: red;
-`
+// const ErrorMsg = styled.p`
+//   margin: 5px 0;
+//   color: red;
+// `
 
 class MyForm extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -143,9 +143,9 @@ class MyForm extends React.Component<Props, State> {
     const { usernameFromRedux } = this.props
 
     return (
-      <FormContainer>
+      <>
         <form onSubmit={this.handleSubmit}>
-          <FormField>
+          {/* <FormField>
             <Label>Username:</Label>
             <Input type='text' name='username' value={username} onChange={this.handleChange} />
             {errors.username && <ErrorMsg>{errors.username}</ErrorMsg>}
@@ -167,13 +167,13 @@ class MyForm extends React.Component<Props, State> {
             <Label>Password:</Label>
             <Input type='password' name='password' value={password} onChange={this.handleChange} />
             {errors.password && <ErrorMsg>{errors.password}</ErrorMsg>}
-          </FormField>
+          </FormField> */}
 
           <button type='submit'>Submit</button>
         </form>
 
         <p>Username from Redux: {usernameFromRedux}</p>
-      </FormContainer>
+      </>
     )
   }
 }

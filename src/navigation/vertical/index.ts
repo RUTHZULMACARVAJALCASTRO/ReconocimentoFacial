@@ -24,36 +24,29 @@ const navigation = (): VerticalNavItemsType => {
         title: 'Usuario',
         icon: 'mdi:account-outline',
         children: [
-          {
+        {
             title: 'Nuevo Usuario',
             path: '/user/usuario/userlist',
             icon: 'mdi:account-check',
           },
-          {
-            title: 'Vista de Usuario',
-            path: '/user/usuario/view',
-            icon: 'mdi:account-group',
-          },
+          // {
+          //   title: 'Vista de Usuario',
+          //   path: '/user/usuario/profile',
+          //   icon: 'mdi:account-group',
+          // },
         ]
     },
     {
-      title: 'Imagen',
+      title: 'Control de Asistencia',
       icon: 'mdi:account-outline',
       children: [
         {
-          title: 'Base64',
-          path: '/user/usuario/base64/base64',
-          icon: 'mdi:account-box-outline',
-        },
-        {
-          title: 'Archivo base64',
-          path: '/user/usuario/base64/imagen',
-          icon: 'mdi:account-box-multiple-outline',
+          title: 'Reconocimiento Facial',
+          path: '/user/usuario/camara/Camera',
+          icon: 'mdi:account-check',
         },
       ]
-    },
-    
-      
+  },  
   ]
 }
 

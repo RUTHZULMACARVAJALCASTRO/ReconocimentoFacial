@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "rootDir": "src",
     "target": "es6",

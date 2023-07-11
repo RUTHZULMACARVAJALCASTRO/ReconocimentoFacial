@@ -9,6 +9,7 @@ import Spinner from 'src/@core/components/spinner'
 
 // ** Hook Imports
 import { useAuth } from 'src/hooks/useAuth'
+import React from 'react';
 
 /**
  *  Set Home URL based on User Roles
@@ -20,7 +21,7 @@ import { useAuth } from 'src/hooks/useAuth'
 
 const Home = () => {
   // ** Hooks
-  const auth = useAuth()
+  
   const router = useRouter()
 
   useEffect(() => {

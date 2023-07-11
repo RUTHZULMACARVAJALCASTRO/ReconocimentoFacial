@@ -22,3 +22,20 @@ code:not([class*='language-']):after {
 code[class*='language-'] {
   padding: 0;
 }
+.text-container {
+  position: relative;
+  width: 200px; /* Ajusta el ancho según sea necesario */
+  height: 1.2em; /* Ajusta la altura según sea necesario */
+  overflow: hidden;
+}
+
+.text::after {
+  content: "...";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding-left: 2px;
+  background-color: white;
+}
+
+
