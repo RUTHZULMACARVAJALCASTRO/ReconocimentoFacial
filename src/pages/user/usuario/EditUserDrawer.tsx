@@ -2,15 +2,18 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 
 // ** MUI Imports
-import Drawer from '@mui/material/Drawer'
-import Button from '@mui/material/Button'
-import { styled } from '@mui/material/styles'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Box, { BoxProps } from '@mui/material/Box'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
+import Drawer from '@mui/material/Drawer';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Box, { BoxProps } from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import TextField from '@mui/material/TextField';
+import FormHelperText from '@mui/material/FormHelperText';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Grid from '@mui/material/Grid';
+import { styled } from '@mui/material/styles';
 
 // ** Third Party Imports
 import * as yup from 'yup'
@@ -38,8 +41,23 @@ interface UserData {
   address: string
   file: string
   nationality: string
+  unity: string
+  charge: string
+  schedule: string
 }
-
+const UploadButton = styled('label')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  border: '1px solid #ccc',
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(2),
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: '#626262',
+  },
+}));
 const showErrors = (field: string, valueLen: number, min: number) => {
   if (valueLen === 0) {
     return `${field} Se requiere campo`
@@ -86,11 +104,13 @@ const defaultValues = {
   phone: '',
   address: '',
   file:'',
-  nationality: ''
+  nationality: '',
+  unity: '',
+  charge: '',
+  schedule: ''
 }
 
   const SidebarEditUser = ( props: { userId: string } ) => {
-
   const [state,setState]=useState<boolean>(false)
   const userId=props.userId;
   const [user,setUser]=useState<UserData>({
@@ -102,6 +122,9 @@ const defaultValues = {
     address: '',
     file:'',
     nationality: '',
+    unity: '',
+    charge: '',
+    schedule: ''
   });
   const [image, setImage] = useState<File | null>(null)
   const [previewfile, setPreviewfile] = useState<string | null>(null)
@@ -161,27 +184,41 @@ const defaultValues = {
   }
 
 
+  // const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const reader = new FileReader()
+  //   reader.onload = function () {
+  //     if (reader.readyState === 2) {
+  //       const formattedDate = new Date().toISOString()
+
+  //       setUser
+  //       setUser({ ...user, file: reader.result as string })
+  //       //setPreviewfile(reader.result as string)
+  //     }
+  //   }
+  //   if (e.target.files && e.target.files.length > 0) {
+  //     console.log(e.target.files)
+  //     reader.readAsDataURL(e.target.files[0])
+  //     console.log('' + previewfile)
+  //   }
+  // }
   const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const reader = new FileReader()
+    console.log(e)
+    const reader = new FileReader();
     reader.onload = function () {
       if (reader.readyState === 2) {
-        const formattedDate = new Date().toISOString()
-
-        setUser
-        setUser({ ...user, file: reader.result as string })
-        //setPreviewfile(reader.result as string)
+        setImage(e.target.files![0]); // Actualizar el estado image con el archivo seleccionado
+        setPreviewfile(reader.result as string);
       }
-    }
+    };
     if (e.target.files && e.target.files.length > 0) {
-      console.log(e.target.files)
-      reader.readAsDataURL(e.target.files[0])
-      console.log('' + previewfile)
+      console.log(e.target.files);
+      reader.readAsDataURL(e.target.files[0]);
     }
-  }
+  };
 
   const handleSubmit= async (e: FormEvent )=>{
     e.preventDefault();
-console.log('userrrrrrrrrrrrrrrrr', user)
+    console.log('userrrrrrrrrrrrrrrrr', user)
     try {
       const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}edit/${userId}`, user )
       console.log(user)
@@ -208,7 +245,7 @@ console.log('userrrrrrrrrrrrrrrrr', user)
       anchor='right'
       variant='temporary'
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800} } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200} } }}
     >
       <Header>
         <Typography variant='h6'>Editar Usuario</Typography>
@@ -217,26 +254,53 @@ console.log('userrrrrrrrrrrrrrrrr', user)
         </IconButton>
       </Header>
       <Box sx={{ p: 5 }}>
-        <form onSubmit={handleSubmit}>
-          <FormControl fullWidth sx={{ mb: 4}}>
-          <Controller
-              name='file'
-              control={control}
-              render={({ field}) => (
-               <div>
-                <img
-          src={convertBase64ToImageUrl(user.file)}
-          alt='Imagen del activo'
-          width={35}
-          height={35}
-          style={{ borderRadius: '50%' }}/>
-               </div>
-              )}
-            />
+          <form onSubmit={handleSubmit}>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='file'
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    {user.file ? (
+                      <img
+                        src={convertBase64ToImageUrl(user.file)}
+                        alt='Imagen del activo'
+                        width={100}
+                        height={100}
+                        style={{ borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: '100px',
+                          height: '100px',
+                          borderRadius: '50%',
+                          backgroundColor: '#dcdcdc',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Typography> </Typography>
+                      </Box>
+                    )}
+                  </div>
+                )}
+              />
             </FormControl>
-            <FormControl fullWidth sx={{ mb: 4}}>
-              <label htmlFor='file'>Imagen</label>
-              <input type='file' id='file' name='file' onChange={handlefileChange} />
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <UploadButton htmlFor='file'>
+                <CloudUploadIcon fontSize='large' />
+                <Typography>Seleccionar Imagen</Typography>
+                <input
+                type='file'
+                id='file'
+                name='file'
+                style={{ display: 'none' }}
+                onChange={handlefileChange}
+              />
+              </UploadButton>
+              
               <div style={{ textAlign: 'center' }}>
                 {previewfile && (
                   <img src={previewfile} alt='Preview' style={{ maxWidth: '100%', maxHeight: '300px' }} />
@@ -369,6 +433,59 @@ console.log('userrrrrrrrrrrrrrrrr', user)
               )}
             />
             {errors.nationality && <FormHelperText sx={{ color: 'error.main' }}>{errors.nationality.message}</FormHelperText>}
+          </FormControl>
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='unity'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  label='Unidad'
+                  onChange={onChange}
+                  error={Boolean(errors.unity)}
+                  inputProps={{ autoComplete: "off"}}
+                />
+              )}
+            />
+            {errors.unity && <FormHelperText sx={{ color: 'error.main' }}>{errors.unity.message}</FormHelperText>}
+          </FormControl>
+          
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='charge'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  label='Cargos'
+                  onChange={onChange}
+                  error={Boolean(errors.charge)}
+                  inputProps={{ autoComplete: "off"}}
+                />
+              )}
+            />
+            {errors.charge && <FormHelperText sx={{ color: 'error.main' }}>{errors.charge.message}</FormHelperText>}
+          </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='schedule'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  label='Horarios'
+                  onChange={onChange}
+                  error={Boolean(errors.schedule)}
+                  inputProps={{ autoComplete: "off"}}
+                />
+              )}
+            />
+            {errors.schedule && <FormHelperText sx={{ color: 'error.main' }}>{errors.schedule.message}</FormHelperText>}
           </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button 

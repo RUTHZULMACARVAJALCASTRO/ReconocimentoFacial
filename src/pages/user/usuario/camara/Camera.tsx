@@ -1,7 +1,42 @@
 import axios from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
+import { Button, Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ThemeProvider, Typography, createTheme } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+
+const theme = createTheme();
+
+const useStyles = makeStyles((theme: { spacing: (arg0: number) => any; }) => ({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: theme.spacing(4),
+  },
+  videoContainer: {
+    position: 'relative',
+    maxWidth: '100%',
+    marginTop: theme.spacing(2),
+  },
+  video: {
+    width: '100%',
+    height: 'auto',
+    borderRadius: theme.spacing(1),
+  },
+  capturedImage: {
+    width: '100%',
+    height: 'auto',
+    marginTop: theme.spacing(2),
+    borderRadius: theme.spacing(1),
+  },
+  captureButton: {
+    marginTop: theme.spacing(2),
+  },
+}));
+
 
 const CaptureAndSend = () => {
+  const classes = useStyles();
   const[prueba,setPrueba]=useState("")
   const [imageData, setImageData] = useState<string | null>(null);
   const [attendanceTime, setAttendanceTime] = useState<string | null>(null);
@@ -90,23 +125,54 @@ const CaptureAndSend = () => {
   };
 
   return (
-    <div>
-      <h1>Capturar y enviar foto</h1>
-      <div>
-        <video ref={videoRef} autoPlay muted />
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="sm" className={classes.root}>
+        <Typography variant="h4" gutterBottom>
+          Capturar y enviar foto
+        </Typography>
+        <Paper className={classes.videoContainer}>
+          <div style={{ position: 'relative', width: '100%', height: 'auto' }}>
+            <video ref={videoRef} autoPlay muted className={classes.video} />
+          </div>
+        </Paper>
         {imageData ? (
-          <div>
-            <img src={imageData} alt="Captured Image" />
-            <p>Hora de asistencia: {attendanceTime}</p>
-            {attendanceRegistered && <p>Asistencia registrada</p>}
+          <div style={{ marginTop: theme.spacing(2) }}>
+            <img src={imageData} alt="Captured" className={classes.capturedImage} />
+            <Typography variant="body1">Hora de asistencia: {attendanceTime}</Typography>
           </div>
         ) : (
-          <button onClick={handleCaptureImage}>Capturar foto</button>
+          <div style={{ marginTop: theme.spacing(2), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Button variant="contained" color="primary" className={classes.captureButton} onClick={handleCaptureImage}>
+              Capturar foto
+            </Button>
+          </div>
         )}
-      </div>
-      <p>{prueba}</p>
-    </div>
+        {attendanceRegistered && (
+          <TableContainer component={Paper} style={{ marginTop: theme.spacing(2) }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Fecha</TableCell>
+                  <TableCell>Hora de asistencia</TableCell>
+                  <TableCell>Asistencia registrada</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>{new Date().toLocaleDateString()}</TableCell>
+                  <TableCell>{attendanceTime}</TableCell>
+                  <TableCell>Presente</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        <Typography variant="body1">{prueba}</Typography>
+      </Container>
+    </ThemeProvider>
   );
 };
 
+
 export default CaptureAndSend;
+

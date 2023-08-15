@@ -25,28 +25,40 @@ const navigation = (): VerticalNavItemsType => {
         icon: 'mdi:account-outline',
         children: [
         {
-            title: 'Nuevo Usuario',
+            title: 'Lista Usuario',
             path: '/user/usuario/userlist',
             icon: 'mdi:account-check',
           },
-          // {
-          //   title: 'Vista de Usuario',
-          //   path: '/user/usuario/profile',
-          //   icon: 'mdi:account-group',
-          // },
+          {
+            title: 'Cargos',
+            path: '/user/charges/ChargeList',
+            icon: 'mdi:account-group',
+          },
         ]
     },
     {
       title: 'Control de Asistencia',
-      icon: 'mdi:account-outline',
+      icon: 'mdi:account-circle-outline',
       children: [
         {
           title: 'Reconocimiento Facial',
           path: '/user/usuario/camara/Camera',
-          icon: 'mdi:account-check',
+          icon: 'mdi:account-arrow-right',
         },
       ]
   },  
+  {
+    title: 'Creacion de Horarios',
+    icon: 'mdi:account-clock',
+    children: [
+      {
+        title: 'Horarios',
+        path: '/user/horario/listHorario',
+        icon: 'mdi:account-clock-outline',
+      },
+      
+    ]
+}, 
   ]
 }
 

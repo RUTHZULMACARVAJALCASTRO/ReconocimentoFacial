@@ -2,18 +2,19 @@
 import { ChangeEvent, useEffect, useState, Children } from 'react';
 
 // ** MUI Imports
-import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
-import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
-import { styled } from '@mui/material/styles'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import Typography from '@mui/material/Typography'
-import Box, { BoxProps } from '@mui/material/Box'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
+import Drawer from '@mui/material/Drawer';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Box, { BoxProps } from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import TextField from '@mui/material/TextField';
+import FormHelperText from '@mui/material/FormHelperText';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Grid from '@mui/material/Grid';
+import { styled } from '@mui/material/styles';
+
 
 // ** Third Party Imports
 import * as yup from 'yup'
@@ -56,9 +57,24 @@ interface UserData {
   address: string
   file: string
   nationality: string
- 
+  unity: string
+  charge: string
+  schedule: string
 }
 
+const UploadButton = styled('label')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  border: '1px solid #ccc',
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(2),
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: '#626262',
+  },
+}));
 const showErrors = (field: string, valueLen: number, min: number) => {
   if (valueLen === 0) { 
     return `El campo ${field} es requerido`
@@ -119,13 +135,14 @@ const defaultValues = {
   phone: '',
   address: '',
   file: '',
-  nationality: ''
+  nationality: '',
+  unity: '',
+  charge: '',
+  schedule: ''
 }
 
-const SidebarAddUser = (props: SidebarAddUserType) => {
- 
+  const SidebarAddUser = (props: SidebarAddUserType) => {
   const { open, toggle } = props
-  
   const [previewfile, setPreviewfile]= useState<string | null>(null)
   const[children,setChildren]=useState<Children[]>([])
   const [user, setUser] = useState<UserData>({
@@ -136,7 +153,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     phone: '',
     address: '',
     file: '',
-    nationality: ''
+    nationality: '',
+    unity: '',
+    charge: '',
+    schedule: ''
   })
   const {
     reset,
@@ -176,6 +196,9 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
         phone: data.phone,
         address: data.address,
         nationality: data.nationality,
+        unity: data.unity,
+        charge: data.charge,
+        schedule: data.schedule,
         file:data.file,
       };
   await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`,{
@@ -185,7 +208,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     email: data.email,
     phone: data.phone,
     address: data.address,
-    nationality: data.nationality, 
+    nationality: data.nationality,
+    unity: data.unity,
+    charge: data.charge,
+    schedule: data.schedule, 
     file:previewfile,
   });
     toggle();
@@ -195,34 +221,81 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     console.log(error);
   }
 };
-useEffect(()=>{
-  fetchData()
-},[])
-const fetchData = async () => {
-  try {
-    const response = await axios.get<Children[]>('http://10.10.214.219:3000/main'); // Filtrar por isActive true
-    setChildren(response.data); // Actualiza el estado 'children' con los datos obtenidos
-  } catch (error) {
-    console.log(error);
-  }
-};
+// useEffect(()=>{
+//   fetchData()
+// },[])
+// const fetchData = async () => {
+//   try {
+//     const response = await axios.get<Children[]>('http://10.10.214.219:3000/main'); // Filtrar por isActive true
+//     setChildren(response.data); // Actualiza el estado 'children' con los datos obtenidos
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
-useEffect(() => {
-  if (children && children.length > 0) {
-    console.log("children: " + children[0]._id); // Accede a la propiedad '_id' del primer elemento
-  } else {
-    console.log("No se encontraron children");
-  }
-}, [children]);
+// useEffect(() => {
+//   if (children && children.length > 0) {
+//     console.log("children: " + children[0]._id); // Accede a la propiedad '_id' del primer elemento
+//   } else {
+//     console.log("No se encontraron children");
+//   }
+// }, [children]);
 
   const handleClose = () => {
-  
     toggle()
     reset()
   }
+  //lista de nacionalidades
+  const nationalities = [
+    { label: 'Argentina' },
+    { label: 'Brasil' },
+    { label: 'Chile' },
+    { label: 'Bolivia' },
+    { label: 'Peru' },
+    { label: 'Uruguay' },
+    { label: 'Colombia' },
+    { label: 'Ecuador' },
+    { label: 'Estados Unidos' },
+    { label: 'Canada' },
+    { label: 'Mexico' },
+  ];
+
+  const fetchCharges = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}`);
+      const charges = response.data;
+      console.log( charges )
+      return charges;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchCharges()
   
 
   return (
+    <>
+    <Button onClick={handleClose}
+     variant="contained"
+     color="primary"
+     sx={{
+       borderRadius: '8px', 
+       marginBottom: '15px',
+       fontSize: '12px', 
+       fontWeight: 'bold',
+       padding: '10px 20px',
+       boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)', 
+       '&:hover': {
+         backgroundColor: '#1565c0', 
+        
+       },
+     }}
+
+    >
+      Agregar Usuario
+    </Button>
     <Drawer
       open={open}
       anchor='right'
@@ -237,14 +310,32 @@ useEffect(() => {
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Header>
+      
       <Box sx={{ p: 5 }}>
-        <form onSubmit={handleSubmit(handleSave)}>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <label htmlFor='file'>Imagen</label>
-            <input type='file' id='file' name='file' onChange={handlefileChange} />
-            <div style={{ textAlign: 'center' }}>
-              {previewfile && <img src={previewfile} alt='Preview' style={{ maxWidth: '100%', maxHeight: '300px' }} />}
-            </div>
+      <form onSubmit={handleSubmit(handleSave)}>
+      <FormControl fullWidth sx={{ mb: 4 }}>
+            <Grid item xs={12} md={12}>
+              <UploadButton htmlFor='file'>
+                <CloudUploadIcon fontSize='large' />
+                <Typography>Seleccionar Imagen</Typography>
+                <input
+                  id='file'
+                  type='file'
+                  accept='image/*'
+                  style={{ display: 'none' }}
+                  onChange={handlefileChange}
+                />
+              </UploadButton>
+              {previewfile && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <img
+                    src={previewfile}
+                    alt='Preview'
+                    style={{ maxWidth: '100%', maxHeight: '300px' }}
+                  />
+                </div>
+              )}
+            </Grid>
           </FormControl>
           <FormControl fullWidth sx={{ mb: 4}}>
             <Controller
@@ -355,16 +446,96 @@ useEffect(() => {
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Nacionalidad'
-                  onChange={onChange}
-                  error={Boolean(errors.nationality)}
-                  inputProps={{ autoComplete: "on"}}
+                <Autocomplete
+                  options={nationalities} // Usa la lista de opciones de nacionalidades
+                  getOptionLabel={(option) => option.label}
+                  onChange={(event, newValue) => {
+                    onChange(newValue ? newValue.label : ''); // Actualiza el valor del campo de nacionalidad en el controlador
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label='Nacionalidad'
+                      onChange={onChange}
+                      error={Boolean(errors.nationality)}
+                      inputProps={{ ...params.inputProps, autoComplete: "on"}}
+                    />
+                  )}
                 />
               )}
             />
-            {errors.nationality && <FormHelperText sx={{ color: 'error.main' }}>{errors.nationality.message}</FormHelperText>}
+            {errors.nationality && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.nationality.message}
+              </FormHelperText>
+            )}
+          </FormControl>
+
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='unity'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  label='Unidad'
+                  onChange={onChange}
+                  error={Boolean(errors.unity)}
+                  inputProps={{ autoComplete: "off"}}
+                />
+              )}
+            />
+            {errors.unity && <FormHelperText sx={{ color: 'error.main' }}>{errors.unity.message}</FormHelperText>}
+          </FormControl>
+          
+          {/* <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='charge'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <Autocomplete
+                  options={ fetchCharges } // Usa la lista de opciones de nacionalidades
+                  getOptionLabel={(option) => option.label}
+                  onChange={(event, newValue) => {
+                    onChange(newValue ? newValue.label : ''); // Actualiza el valor del campo de nacionalidad en el controlador
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label='Cargos'
+                      onChange={onChange}
+                      error={Boolean(errors.charge)}
+                      inputProps={{ ...params.inputProps, autoComplete: "on"}}
+                    />
+                  )}
+                />
+              )}
+            />
+            {errors.nationality && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.nationality.message}
+              </FormHelperText>
+            )}
+          </FormControl> */}
+
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <Controller
+              name='schedule'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  value={value}
+                  label='Horarios'
+                  onChange={onChange}
+                  error={Boolean(errors.schedule)}
+                  inputProps={{ autoComplete: "off"}}
+                />
+              )}
+            />
+            {errors.schedule && <FormHelperText sx={{ color: 'error.main' }}>{errors.schedule.message}</FormHelperText>}
           </FormControl>
           {/* <FormControl> */}
           {children.map((id)=>(
@@ -398,6 +569,7 @@ useEffect(() => {
         </form>
       </Box>
     </Drawer>
+    </>
   )
 }
 

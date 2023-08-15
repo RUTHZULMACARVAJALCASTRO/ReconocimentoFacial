@@ -1,33 +1,15 @@
-
 import { useState, useCallback, useEffect } from 'react'
-
-// ** Next Imports
-import { GetStaticProps, InferGetStaticPropsType } from 'next/types'
-import Router, { useRouter } from 'next/router';
-
-// ** MUI Imports
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import { DataGrid } from '@mui/x-data-grid'
-import Image from 'next/image'
-
-// ** Store Imports
-
-// ** Custom Components Imports
-import CustomChip from 'src/@core/components/mui/chip'
-// ** Third Party Components
 import axios from 'axios'
-
-// ** Types Imports
-// ** Custom Table Components Imports
-
-import TableHeader from 'src/views/apps/user/list/TableHeader'
 import AddUserDrawer from 'src/pages/user/usuario/AddUserDrawer';
-import { Avatar, Box, Button, Dialog, DialogTitle, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, TableCell, TextField, Tooltip, Typography} from '@mui/material'
-import EditUserDrawer from './EditUserDrawer'
-import { blue } from '@mui/material/colors';
+import {Box, Button, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from '@mui/material'
+import EditUserDrawer from './EditUserDrawer';
 import Icon from 'src/@core/components/icon';
-import ViewComponent from 'src/components/view';
+import React from 'react';
+
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { capitalizeFirstLetter } from 'src/utilities';
+import { useTheme } from '@mui/material/styles';
 
 interface Docu {
   _id: string
@@ -38,297 +20,236 @@ interface Docu {
   phone: string
   address: string
   nationality: string
-  file: string
   unity: string
+  charge: string
+  schedule: string
+  file: string
   isActive:boolean
 }
 
 interface CellType {
   row: Docu
 }
-// Da de baja a un usuario 
 
+function Row(props: { row: Docu }) {
+  const { row } = props;
+  const [open, setOpen] = React.useState(false);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false);
+  const [userIdToDelete, setUserIdToDelete] = useState<string>('');
 
-
-const UserList = () => {
-  // ** State
-  const[data,setData]=useState<Docu[]>([])
-  const [value, setValue] = useState<string>('')
-  const [pageSize, setPageSize] = useState<number>(10)
-  const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
-  const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
-  useEffect(() => {  
-    fetchData();
-  }, []);
-
+  // Función para convertir una cadena base64 en una URL de imagen
   const convertBase64ToImageUrl = (base64String: string) => {
     return `data:image/png;base64,${base64String}`
-  }
+  };
 
+  // Función para obtener las iniciales del nombre y apellido
   const getInitials = (name: string, lastName: string) => {
     const initials = name.charAt(0) + lastName.charAt(0);
     return initials.toUpperCase();
   }
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL}`);
-      const filteredData = response.data.filter(user => user.isActive); // Filtrar por isActive true
-      
-      setData(filteredData); // Guarda los datos filtrados en el estado 'data'
-    } catch (error) {
-      console.log(error);
+function imgExist(user:Docu){
+  let imageSrc = convertBase64ToImageUrl(user.file);
+      let altText = 'Imagen del personal';
+      if(!user.file) {
+        const initials = getInitials(user.name, user.lastName);
+        imageSrc = '';
+        altText = initials;
     }
-  };
-  const handleDelete = async (_id: string) => {
-  
-    const isConfir = confirm('Deseas eliminar este usuario?');
-    
-    let apiData: any[] = []
-    
-    if( isConfir ) {
-      await axios
-      .delete(`${process.env.NEXT_PUBLIC_PERSONAL + _id}`)
-      .then(response => {
-          const responseData = response.data;
-          
-          if( Array.isArray( responseData )) {
-            apiData.filter((user: Docu) => user.isActive === true ) // Filtrar por estado activo
-            apiData.map((user: Docu) => ({ ...user, id: user._id })); //
-          }
-          fetchData()
-        })
-        .catch(error => {
-          console.error(error);
-      });
-    };
-  }
-  
-
-  /* const store = apiData || []; */
-
-  const handleFilter = useCallback((val: string) => {
-    setValue(val)
-  }, [])
-
-  const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-  const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
-  
-  const columns = [
-    {
-      flex: 0.1,
-      minWidth: 80,
-      field: 'options',
-      headerName: 'ELIMINAR',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Button onClick={ ()=> handleDelete(row._id) }
-          style={{color:'red',borderRadius:'150px'}}>
-            <Icon icon='mdi:delete-outline' fontSize={20} />
-          </Button>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 80,
-      field: 'edit',
-      headerName: 'EDITAR',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <>
-           <EditUserDrawer userId={row._id}/>
-          </> 
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 80,
-      field: 'file',
-      headerName: 'Imagen',
-      renderCell: ({ row }: CellType) => {
-        let imageSrc = convertBase64ToImageUrl(row.file);
-        let altText = 'Imagen del personal';
-        if(!row.file) {
-          const initials = getInitials(row.name, row.lastName);
-          imageSrc = '';
-          altText = initials;
-        }
-        return (
-          <div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: '#3E93DE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  return (
+    <div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: '#3E93DE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {imageSrc ? (
           <img src={imageSrc} alt={altText} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
         ) : (
           <span style={{ fontSize: 16 }}>{altText}</span>
         )}
-      </div>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'name',
-      headerName: 'Nombre',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.name}>
-                  <TableCell>{row.name != null ? row.name.substring(0) : row.name}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'lastName',
-      headerName: 'Apellido',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.lastName}>
-                  <TableCell>{row.lastName != null ? row.lastName.substring(0) : row.lastName}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'unity',
-      headerName: 'Unidad',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.unity}>
-                  <TableCell>{row.unity != null ? row.unity.substring(0) : row.unity}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'ci',
-      headerName: 'CI',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.ci}>
-                  <TableCell>{row.ci != null ? row.ci.substring(0) : row.ci}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'email',
-      headerName: 'correo electronico',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.email}>
-                  <TableCell>{row.email != null ? row.email.substring(10) : row.email}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'phone',
-      headerName: 'Celular',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.phone}>
-                  <TableCell>{row.phone != null ? row.phone.substring(3) : row.phone}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'address',
-      headerName: 'Direccion',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.address}>
-                  <TableCell>{row.address != null ? row.address.substring(0) : row.address}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 110,
-      field: 'nationality',
-      headerName: 'Nacionalidad',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Tooltip title={row.nationality}>
-                  <TableCell>{row.nationality != null ? row.nationality.substring(2) : row.nationality}...</TableCell>
-          </Tooltip>
-        )
-      }
-    },
-    
-    // {
-    //   flex: 0.1,
-    //   minWidth: 80,
-    //   field: 'edit',
-    //   headerName: 'EDITAR',
-    //   renderCell: ({ row }: CellType) => {
-    //     return (
-    //       <>
-    //        <ViewComponent userId={row._id}/>
-    //       </> 
-    //     )
-    //   }
-    // },
-    
-  ]
-  return (
-   <>
-   <Grid container spacing={50}>
-      <Grid item xs={12}>
-        <Card>
-          <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
-          <DataGrid
-            getRowId={ row => row._id }
-            autoHeight
-            rows={data}
-            columns={columns}
-            checkboxSelection
-            pageSize={pageSize}   
-            disableSelectionOnClick
-            rowsPerPageOptions={[10, 25, 50]}
-            sx={{ '& .MuiDataGrid-columnHeaders': { borderRadius: 0 } }}
-            onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
-          />
-        </Card>
-      </Grid>
-      
-      <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer}  />
-    </Grid>
-    
-   </> 
+    </div>
   )
 }
 
-/* export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}`);
-  let apiData: any[] = []; // Definir un arreglo vacío por defecto
-  console.log(res)
-  if (Array.isArray(res.data)) {
-    apiData = res.data
-      .filter((user: Docu) => user.isActive === true ) // Filtrar por estado activo
-      .map((user: Docu) => ({ ...user, id: user._id })); // Agregar la propiedad 'id' con el mismo valor que '_id'
+const handleDeleteCancelled = () => {
+  setIsDeleteConfirmationOpen(false);
+};
+const handleDelete = (userId: string) => {
+  setUserIdToDelete(userId);
+  setIsDeleteConfirmationOpen(true);
+};
+
+// Funcion para dar de baja a un personal
+const handleDeleteConfirmed = async () => {
+  setIsDeleteConfirmationOpen(false);
+  try {
+    await axios.delete(`${process.env.NEXT_PUBLIC_PERSONAL}/${userIdToDelete}`);
+  } catch (error) {
+    console.error(error);
   }
+};
+  // Obtén el tema actual para el cambio de color
+  const theme = useTheme();
 
-  return {
-    props: {
-      apiData,
-    },
+  return (
+  <>
+  
+  <React.Fragment>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell align="center">{imgExist(row)}</TableCell>
+        <TableCell align="center">{ capitalizeFirstLetter( row.name ) }</TableCell>
+        <TableCell align="center">{capitalizeFirstLetter( row.lastName )}</TableCell>
+        <TableCell align="center">{row.email.toLowerCase() }</TableCell>
+        <TableCell align="center">{ row.unity }</TableCell>
+        <TableCell align="center">{ capitalizeFirstLetter( row.charge ) }</TableCell>
+        <TableCell align="center">{ capitalizeFirstLetter( row.schedule )}</TableCell>
+      </TableRow>
+      <TableRow  >
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10} >
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ margin: 1 }}>
+            <Typography variant="h6" gutterBottom component="div" style={{ fontWeight: 'bold' }}>
+              LISTA
+            </Typography>
+ 
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                <TableRow sx={{
+                      '&:nth-of-type(odd)': {
+                        backgroundColor: open ? theme.palette.mode === 'dark' ? '#5c6bc0' : '#E0F2FE' : theme.palette.mode === 'dark' ? '#5c6bc0' : '#ffffff',
+                      },
+                    }}>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Acciones</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Nombre</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Apellido</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>CI</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Email</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Celular</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Direccion</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Nacionalidad</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Unidad</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Cargo</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario</TableCell>
+                </TableRow>
+                </TableHead>
+                <TableBody>
+                    <TableRow >
+                                  
+                      <TableCell align="center">
+                        <EditUserDrawer userId={row._id}/>
+                        <Button onClick={ ()=> handleDelete(row._id) }
+                          style={{color:'red',borderRadius:'150px'}} >
+                            <Icon icon='mdi:delete-outline' fontSize={20} />
+                          </Button>
+                      </TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter( row.name )}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter( row.lastName )}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter( row.ci )}</TableCell>
+                      <TableCell align="center">{row.email.toLowerCase()}</TableCell>
+                      <TableCell align="center">{row.phone}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter( row.address )}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter( row.nationality )}</TableCell>
+                      <TableCell align="center">{row.unity}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>
+                    </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+    <Dialog open={isDeleteConfirmationOpen} onClose={handleDeleteCancelled}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro que deseas eliminar este usuario?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancelled} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleDeleteConfirmed} color="primary">
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+  </>  
+  );
+}
+
+
+export default function CollapsibleTable() {
+  const[data,setData]=useState<Docu[]>([])
+  const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
+  const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
+  const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
+  const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
+  const theme = useTheme();
+  useEffect(() => {  
+    fetchData();
+  }, []);
+
+  // await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`)
+  
+  const fetchData = async () => {
+    try {
+      const response = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL}`);
+      // const filteredData = response.data.filter( async user => user.isActive );
+
+      // console.log( filteredData );
+
+      // const enhancedData = await Promise.all(filteredData.map(async user => {
+      //   const schedulePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`);
+      //   const chargePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${user.charge}`);
+      //   // const unityPerson = await axios.get(`${process.env.NEXT_PUBLIC_UNITYS}${user.unity}`);
+      //   const enhancedUser = { ...user, schedule: schedulePerson.data.name, charge: chargePerson.data.name };
+      //   console.log("afjalskñdfj", enhancedUser )
+      //   return enhancedUser;
+      // }));
+      
+      setData(response.data); // Guarda los datos filtrados en el estado 'data'
+
+    } catch (error) {
+      console.log(error);
+    }
   };
-}; */
-
-export default UserList
+  return (
+    <>
+    <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer}  />
+    <TableContainer component={Paper}>
+      
+      <Table aria-label="collapsible table">
+        <TableHead>
+          <TableRow sx={{
+          '&:nth-of-type(odd)': {
+            backgroundColor: open ? theme.palette.mode === 'dark' ? '#5c6bc0' : '#E0F2FE' : theme.palette.mode === 'dark' ? '#616161' : '#795548',
+          },
+        }}>
+            <TableCell />
+            <TableCell>IMAGEN</TableCell>
+            <TableCell align="center">NOMBRE</TableCell>
+            <TableCell align="center">APELLIDO</TableCell>
+            <TableCell align="center">EMAIL</TableCell>
+            <TableCell align="center">UNIDAD</TableCell>
+            <TableCell align="center">CARGO</TableCell>
+            <TableCell align="center">HORARIO</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.map((row) => (
+            <Row key={row.name} row={row} />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+    </>
+  );
+}
