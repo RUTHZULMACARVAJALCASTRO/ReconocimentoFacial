@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import TextField from '@mui/material/TextField';
+import React, { useState } from 'react';
+import TextField, { FilledTextFieldProps, OutlinedTextFieldProps, StandardTextFieldProps, TextFieldVariants } from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import { styled } from '@mui/material/styles';
@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import Box, { BoxProps } from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Icon from 'src/@core/components/icon';
-import { FormHelperText, Grid, MenuItem, Select } from '@mui/material';
+import { Grid } from '@mui/material';
 import axios from 'axios';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -15,19 +15,26 @@ import { useForm, Controller } from 'react-hook-form';
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import Fade from '@mui/material/Fade';
+import DateRangePicker, { DateRange } from '@mui/lab/DateRangePicker';
+import {DatePicker, KeyboardDatePicker} from '@mui/lab'
 
 interface ScheduleData {
-  day: boolean[]; // Array of booleans for selected days
+  dias: number;
   morningEntry: string;
   morningExit: string;
   afternoonEntry: string;
   afternoonExit: string;
-  entranceTolerance: number;
+  entryTolerance: number;
+  startDate?: Date | null; // New field for start date
+  endDate?: Date | null;   // New field for end date
 }
 
 interface UserData {
   name: string;
   schedules: ScheduleData[];
+  isPermanent: boolean;
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
@@ -42,63 +49,54 @@ const schema = yup.object().shape({
   name: yup.string().required(),
   schedules: yup.array().of(
     yup.object().shape({
-      day: yup.array().of(yup.boolean()).required(),
+      dias: yup.number().required(),
       morningEntry: yup.string().required(),
       morningExit: yup.string().required(),
       afternoonEntry: yup.string().required(),
       afternoonExit: yup.string().required(),
-      entranceTolerance: yup.number().required(),
+      entryTolerance: yup.number().required(),
     })
   ),
+  isPermanent: yup.boolean().required(),
 });
 
 const defaultDaySchedule: ScheduleData = {
-  day: [false, false, false, false, false, false, false],
+  dias: 0,
   morningEntry: '',
   morningExit: '',
   afternoonEntry: '',
   afternoonExit: '',
-  entranceTolerance: 0,
+  entryTolerance: 0,
 };
 
 const defaultValues: UserData = {
   name: '',
   schedules: [
     {
-      day: [false, false, false, false, false, false, false],
+      dias: 0,
       morningEntry: '',
       morningExit: '',
       afternoonEntry: '',
       afternoonExit: '',
-      entranceTolerance: 0,
+      entryTolerance: 0,
     },
   ],
+  isPermanent: false,
 };
 
 const dias = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
 
-type SidebarAddHorarioType = {
+type SidebarAddScheduleType = {
   open: boolean;
   toggle: () => void;
 };
 
-const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
+const SidebarAddSchedule = ({ open, toggle }: SidebarAddScheduleType) => {
   const [scheduleData, setScheduleData] = useState<UserData>(defaultValues);
-  const [specialSchedules, setSpecialSchedules] = useState<UserData[]>([]);
+  const [showDateRange, setShowDateRange] = useState(false); // State for showing date range picker
+  const [currentDayIndex, setCurrentDayIndex] = useState<number>(0); // Index of the current day being edited
 
-  // Fetch special schedules when the component mounts
-  useEffect(() => {
-    fetchSpecialSchedules();
-  }, []);
 
-  const fetchSpecialSchedules = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SPECIAL_SCHEDULES}`);
-      setSpecialSchedules(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
   const {
     reset,
     handleSubmit,
@@ -110,6 +108,19 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
     resolver: yupResolver(schema),
   });
 
+  const currentSchedule = scheduleData.schedules[currentDayIndex];
+
+  const handleDateRangeChange = (dates: Date[]) => {
+    const [startDate, endDate] = dates;
+    setScheduleData((prevData) => ({
+      ...prevData,
+      schedules: prevData.schedules.map((schedule, index) =>
+        index === currentDayIndex
+          ? { ...schedule, startDate, endDate }
+          : schedule
+      ),
+    }));
+  };
   const [LUNES, setLUNES] = useState<ScheduleData>(defaultDaySchedule);
   const [MARTES, setMARTES] = useState<ScheduleData>(defaultDaySchedule);
   const [MIERCOLES, setMIERCOLES] = useState<ScheduleData>(defaultDaySchedule);
@@ -131,6 +142,7 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
           SABADO,
           DOMINGO,
         ],
+        isPermanent: data.isPermanent,
       };
 
       await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`, transformedData);
@@ -142,7 +154,6 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
       console.log(error);
     }
   };
-
 
   const handleClose = () => {
     toggle();
@@ -167,7 +178,7 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
           },
         }}
       >
-        Agregar Horario
+        Agregar Horario Especial
       </Button>
       <Drawer
         open={open}
@@ -182,7 +193,7 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
       >
         <Header>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Crear Horario
+            Crear Horario Especial
           </Typography>
           <IconButton size="small" onClick={handleClose} sx={{ color: 'text.primary' }}>
             <Icon icon="mdi:close" fontSize={20} />
@@ -208,7 +219,7 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
             />
             <Box sx={{ marginTop: 4 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                Horarios
+                Horarios Especiales
               </Typography>
               <Grid container spacing={2}>
                 {dias.map((nombreDia, diaIndex) => (
@@ -281,54 +292,55 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
                           />
                         </Grid>
                         <Grid item xs={2}>
-                        <Typography variant="subtitle2">Tolerancia</Typography>
-                        <Controller
-                          name={`schedules[${diaIndex}].entranceTolerance`}
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              type="number"
-                              {...field}
-                              fullWidth
-                              error={Boolean(errors.schedules?.[diaIndex]?.entranceTolerance)}
-                              inputProps={{ min: 0, step: 1 }}
-                            />
-                          )}
-                        />
-                      </Grid>
+                          <Typography variant="subtitle2">Tolerancia</Typography>
+                          <Controller
+                            name={`schedules[${diaIndex}].entryTolerance`}
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                type="number"
+                                {...field}
+                                fullWidth
+                                error={Boolean(errors.schedules?.[diaIndex]?.entryTolerance)}
+                                inputProps={{ min: 0, step: 1 }}
+                              />
+                            )}
+                          />
+                        </Grid>
                       </Grid>
                     </FormGroup>
                   </Grid>
                 ))}
               </Grid>
-
             </Box>
-            <Box sx={{ marginTop: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                Horario Especial
-              </Typography>
-              <Controller
-                name="specialSchedule"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Horario Especial"
-                    {...field}
-                    fullWidth
-                  >
-                    <MenuItem value="">
-                      <em>Seleccione un horario especial</em>
-                    </MenuItem>
-                    {specialSchedules.map((schedule) => (
-                      <MenuItem key={schedule.name} value={schedule.name}>
-                        {schedule.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Box>
-
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDateRange}
+                  onChange={() => setShowDateRange((prev) => !prev)}
+                />
+              }
+              label="Horario Temporal"
+              sx={{ marginTop: 2 }}
+            />
+            {showDateRange && !scheduleData.isPermanent && (
+              <Fade in={showDateRange}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 2 }}>
+                  <DatePicker
+                    label="Fecha de inicio"
+                    value={currentSchedule.startDate || null}
+                    onChange={(date: Date) => handleDateRangeChange([date, currentSchedule.endDate])}
+                    renderInput={(params: JSX.IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<FilledTextFieldProps | OutlinedTextFieldProps | StandardTextFieldProps, "variant">) => <TextField {...params} variant="outlined" size="small" margin="normal" />}
+                  />
+                  <DatePicker
+                    label="Fecha de fin"
+                    value={currentSchedule.endDate || null}
+                    onChange={(date: Date) => handleDateRangeChange([currentSchedule.startDate, date])}
+                    renderInput={(params: JSX.IntrinsicAttributes & { variant?: TextFieldVariants | undefined; } & Omit<OutlinedTextFieldProps | FilledTextFieldProps | StandardTextFieldProps, "variant">) => <TextField {...params} variant="outlined" size="small" margin="normal" />}
+                  />
+                </Box>
+              </Fade>
+            )}
             <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
               <Button
                 size="large"
@@ -355,4 +367,4 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
   );
 };
 
-export default SidebarAddHorario;
+export default SidebarAddSchedule;

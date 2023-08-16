@@ -56,6 +56,12 @@ const navigation = (): VerticalNavItemsType => {
         path: '/user/horario/listHorario',
         icon: 'mdi:account-clock-outline',
       },
+      {
+        title: 'Horarios Especiales',
+        path: '/user/horariosEspeciales/listSchedule',
+        icon: 'mdi:account-clock-outline',
+      },
+
       
     ]
 }, 
