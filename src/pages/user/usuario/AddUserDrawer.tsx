@@ -10,33 +10,17 @@ import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import FormHelperText from '@mui/material/FormHelperText';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
-
-
-// ** Third Party Imports
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
-// ** Store Imports
-import { useDispatch } from 'react-redux'
-
-// ** Actions Imports
-import { addUser } from 'src/store/apps/user'
-
-// ** Types Imports
-import { AppDispatch } from 'src/store'
-import { Direction } from '@mui/material';
 import axios from 'axios'
 import Autocomplete from '@mui/material/Autocomplete';
-import { AsyncThunkAction } from '@reduxjs/toolkit'
-import user from 'src/store/apps/user';
+import SidebarAddSpecialSchedule from '../horariosEspeciales/AddSpecialSchedule';
+
 
 interface SidebarAddUserType {
   open: boolean
@@ -60,6 +44,11 @@ interface UserData {
   unity: string
   charge: string
   schedule: string
+}
+interface AddUserDrawerProps {
+  open: boolean;
+  toggle: () => void;
+  onOpenSpecialSchedule: () => void;  // Agrega esta prop para abrir SidebarAddSpecialSchedule
 }
 
 const UploadButton = styled('label')(({ theme }) => ({
@@ -143,9 +132,11 @@ const defaultValues = {
 
   const SidebarAddUser = (props: SidebarAddUserType) => {
   const { open, toggle } = props
+  const [addSpecialScheduleOpen, setAddSpecialScheduleOpen] = useState<boolean>(false)
   const [previewfile, setPreviewfile]= useState<string | null>(null)
   const[children,setChildren]=useState<Children[]>([])
-  const [user, setUser] = useState<UserData>({
+  const toggleAddSpecialSchedule = () => setAddSpecialScheduleOpen(!addSpecialScheduleOpen)
+    const [user, setUser] = useState<UserData>({
     name: '',
     lastName: '',
     ci: '',
@@ -158,6 +149,7 @@ const defaultValues = {
     charge: '',
     schedule: ''
   })
+  
   const {
     reset,
     control,
@@ -275,6 +267,10 @@ const defaultValues = {
   fetchCharges()
   
 
+    function handleOpenAddSpecialSchedule(): void {
+     
+    }
+
   return (
     <>
     <Button onClick={handleClose}
@@ -296,6 +292,7 @@ const defaultValues = {
     >
       Agregar Usuario
     </Button>
+    
     <Drawer
       open={open}
       anchor='right'
@@ -309,7 +306,9 @@ const defaultValues = {
         <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
+        
       </Header>
+      
       
       <Box sx={{ p: 5 }}>
       <form onSubmit={handleSubmit(handleSave)}>
@@ -488,7 +487,7 @@ const defaultValues = {
             />
             {errors.unity && <FormHelperText sx={{ color: 'error.main' }}>{errors.unity.message}</FormHelperText>}
           </FormControl>
-          
+
           {/* <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='charge'
@@ -558,7 +557,8 @@ const defaultValues = {
               ))}
             </ul>
           ))} 
-         
+        <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  />
+          
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button 
               size='large' type='submit' variant='contained' sx={{ mr: 6 }}

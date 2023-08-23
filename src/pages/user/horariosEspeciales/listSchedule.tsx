@@ -16,12 +16,12 @@ import {
   TableBody,
   TableContainer,
   Icon,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import axios from 'axios';
 import { makeStyles } from '@mui/styles';
-import SidebarAddSchedule from './AddSchedule';
 import EditSchedule from './EditSchedule';
 
 interface Schedule {
@@ -60,10 +60,10 @@ const dias = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DO
 
 function Row(props: RowProps) {
   const { row } = props;
-  const [open, setOpen] = React.useState(false);
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false);
   const [userIdToDelete, setUserIdToDelete] = useState<string>('');
   const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
 
   const handleDeleteCancelled = () => {
     setIsDeleteConfirmationOpen(false);
@@ -89,15 +89,19 @@ function Row(props: RowProps) {
         className={row.isActive ? classes.tableRowLight : classes.tableRowDark}
         sx={{ '& > *': { borderBottom: 'unset', border: '1px solid #e0e0e0' } }}
       >
-        <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{row.name}</TableCell>
+        <TableCell>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
         {row.schedules.map((schedule, index) => (
           <React.Fragment key={index}>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{dias[schedule.day]}</TableCell>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{schedule.morningEntry}</TableCell>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{schedule.morningExit}</TableCell>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{schedule.afternoonEntry}</TableCell>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{schedule.afternoonExit}</TableCell>
-            <TableCell style={{ border: '1px solid #e0e0e0' }} align="center">{schedule.entranceTolerance}</TableCell>
+            <TableCell align="center">{dias[schedule.day]}</TableCell>
+            <TableCell align="center">{schedule.morningEntry}</TableCell>
+            <TableCell align="center">{schedule.morningExit}</TableCell>
+            <TableCell align="center">{schedule.afternoonEntry}</TableCell>
+            <TableCell align="center">{schedule.afternoonExit}</TableCell>
+            <TableCell align="center">{schedule.entranceTolerance}</TableCell>
           </React.Fragment>
         ))}
       </TableRow>
@@ -108,11 +112,11 @@ function Row(props: RowProps) {
 
 export default function CollapsibleTable() {
   const [data, setData] = useState<Docu[]>([]);
-  const [addScheduleOpen, setAddScheduleOpen] = useState<boolean>(false);
   const [editScheduleOpen, setEditScheduleOpen] = useState<boolean>(false);
-  const toggleAddSchedule = () => setAddScheduleOpen(!addScheduleOpen);
   const toggleEditHorario = () => setEditScheduleOpen(!editScheduleOpen);
   const classes = useStyles();
+  const theme = useTheme()
+  const [open, setOpen] = React.useState(false);
 
   useEffect(() => {
     fetchData();
@@ -129,31 +133,33 @@ export default function CollapsibleTable() {
 
   return (
     <>
-      <SidebarAddSchedule open={addScheduleOpen} toggle={toggleAddSchedule} />
-      <TableContainer component={Paper}>
-        <Table aria-label="collapsible table" style={{ borderCollapse: 'collapse', border: '1px solid #e0e0e0' }}>
+        <TableContainer component={Paper}>
+        <Table aria-label="collapsible table" >
           <TableHead>
-            <TableRow className={classes.tableRowLight}
-            sx={{ '& > *': { borderBottom: 'unset', border: '1px solid #e0e0e0' } }}>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
-                NOMBRE HORARIO ESPERCIAL
+            <TableRow sx={{
+              '&:nth-of-type(odd)': {
+                backgroundColor: open ? (theme.palette.mode === 'dark' ? '#5c6bc0' : '#E0F2FE') : (theme.palette.mode === 'dark' ? '#5c6bc0' : '#ffffff'),
+              },
+            }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
+                NOMBRE HORARIO
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 DÍA
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 MAÑANA ENTRADA
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 MAÑANA SALIDA
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 TARDE ENTRADA
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 TARDE SALIDA
               </TableCell>
-              <TableCell className={classes.tableCell} align="center"  style={{ fontWeight: 'bold' }}>
+              <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold' }}>
                 TOLERANCIA
               </TableCell>
               {/* <TableCell align="center">Acciones</TableCell> */}

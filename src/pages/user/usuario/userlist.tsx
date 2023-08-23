@@ -105,9 +105,9 @@ const handleDeleteConfirmed = async () => {
         <TableCell align="center">{ capitalizeFirstLetter( row.name ) }</TableCell>
         <TableCell align="center">{capitalizeFirstLetter( row.lastName )}</TableCell>
         <TableCell align="center">{row.email.toLowerCase() }</TableCell>
-        <TableCell align="center">{ row.unity }</TableCell>
-        <TableCell align="center">{ capitalizeFirstLetter( row.charge ) }</TableCell>
-        <TableCell align="center">{ capitalizeFirstLetter( row.schedule )}</TableCell>
+        {/* <TableCell align="center">{ row.unity }</TableCell> */}
+        {/* <TableCell align="center">{ capitalizeFirstLetter( row.charge ) }</TableCell> */}
+        {/* <TableCell align="center">{ capitalizeFirstLetter( row.schedule )}</TableCell> */}
       </TableRow>
       <TableRow  >
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10} >
@@ -134,7 +134,9 @@ const handleDeleteConfirmed = async () => {
                   <TableCell align="center" style={{ fontWeight: 'bold' }}>Nacionalidad</TableCell>
                   <TableCell align="center" style={{ fontWeight: 'bold' }}>Unidad</TableCell>
                   <TableCell align="center" style={{ fontWeight: 'bold' }}>Cargo</TableCell>
-                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario Normal</TableCell>
+                  <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario Especial</TableCell>
+
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -154,9 +156,10 @@ const handleDeleteConfirmed = async () => {
                       <TableCell align="center">{row.phone}</TableCell>
                       <TableCell align="center">{capitalizeFirstLetter( row.address )}</TableCell>
                       <TableCell align="center">{capitalizeFirstLetter( row.nationality )}</TableCell>
-                      <TableCell align="center">{row.unity}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>
+                      {/* <TableCell align="center">{row.unity}</TableCell> */}
+                      {/* <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell> */}
+                      {/* <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>  */}
                     </TableRow>
                 </TableBody>
               </Table>
@@ -193,6 +196,7 @@ export default function CollapsibleTable() {
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
   const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
   const theme = useTheme();
+  const [open, setOpen] = React.useState(false);
   useEffect(() => {  
     fetchData();
   }, []);
@@ -230,17 +234,19 @@ export default function CollapsibleTable() {
         <TableHead>
           <TableRow sx={{
           '&:nth-of-type(odd)': {
-            backgroundColor: open ? theme.palette.mode === 'dark' ? '#5c6bc0' : '#E0F2FE' : theme.palette.mode === 'dark' ? '#616161' : '#795548',
+            backgroundColor: open ? theme.palette.mode === 'dark' ? '#5c6bc0' : '' : theme.palette.mode === 'dark' ? '#616161' : '',
           },
         }}>
             <TableCell />
-            <TableCell>IMAGEN</TableCell>
-            <TableCell align="center">NOMBRE</TableCell>
-            <TableCell align="center">APELLIDO</TableCell>
-            <TableCell align="center">EMAIL</TableCell>
-            <TableCell align="center">UNIDAD</TableCell>
-            <TableCell align="center">CARGO</TableCell>
-            <TableCell align="center">HORARIO</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>IMAGEN</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>NOMBRE</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>APELLIDO</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>EMAIL</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>UNIDAD</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>CARGO</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>HORARIO NORMAL</TableCell>
+            <TableCell align="center" style={{ fontWeight: 'bold' }}>HORARIO ESPECIAL</TableCell>
+
           </TableRow>
         </TableHead>
         <TableBody>

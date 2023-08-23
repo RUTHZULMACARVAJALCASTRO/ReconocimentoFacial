@@ -10,9 +10,7 @@ import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import FormHelperText from '@mui/material/FormHelperText';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 
 // ** Third Party Imports
@@ -25,7 +23,6 @@ import Icon from 'src/@core/components/icon'
 
 // ** Types Imports
 import axios from 'axios'
-import { dividerClasses } from '@mui/material'
 
 interface SidebarEditUserType {
   open: boolean

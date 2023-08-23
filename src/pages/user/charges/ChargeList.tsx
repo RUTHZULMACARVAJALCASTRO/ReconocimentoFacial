@@ -137,6 +137,8 @@ export default function CollapsibleTable() {
   const toggleAddCharge = () => setAddChargeOpen(!addChargeOpen)
   const toggleEditCharge = () => setEditChargeOpen(!editChargeOpen)
   const theme = useTheme();
+  const [open, setOpen] = React.useState(false);
+
   useEffect(() => {  
     fetchData();
   }, []);

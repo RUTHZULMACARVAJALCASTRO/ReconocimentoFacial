@@ -1,158 +1,168 @@
-import React, { useEffect, useState } from 'react';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Drawer from '@mui/material/Drawer';
-import { styled } from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
-import Box, { BoxProps } from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Icon from 'src/@core/components/icon';
-import { FormHelperText, Grid, MenuItem, Select } from '@mui/material';
-import axios from 'axios';
-import * as yup from 'yup';
+// Importaciones
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm, Controller } from 'react-hook-form';
-import Checkbox from '@mui/material/Checkbox';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import { Button, Checkbox, Collapse, Drawer, FormControlLabel, FormGroup, Grid, IconButton, List, ListItemButton, ListItemIcon, ListItemText, ListSubheader, TextField, Typography } from '@mui/material';
+import Box, { BoxProps } from '@mui/material/Box';
+import { styled } from '@mui/material/styles';
+import { useState } from 'react';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import StarBorder from '@mui/icons-material/StarBorder';
+import axios from 'axios';
 
-interface ScheduleData {
-  day: boolean[]; // Array of booleans for selected days
-  morningEntry: string;
-  morningExit: string;
-  afternoonEntry: string;
-  afternoonExit: string;
-  entranceTolerance: number;
+import { Controller, useForm, useFormContext } from 'react-hook-form';
+
+import Icon from 'src/@core/components/icon'
+
+import * as yup from 'yup';
+
+// Creacion de Interfaces
+interface SidebarAddScheduleType {
+  open: boolean
+  toggle: () => void
 }
 
-interface UserData {
-  name: string;
-  schedules: ScheduleData[];
+interface Schedule {
+  day: number,
+  morningEntry: string,
+  morningExit: string,
+  afternoonEntry: string,
+  afternoonExit: string,
+  entryTolerance: number,
+  exitTolerance: number,
+}
+
+interface ScheduleData {
+  name: string,
+  schedules: Schedule[],
+  [index: number]: Schedule;
+}
+
+// Variables  -  Constantes
+const showErrors = (field: string, valueLen: number, min: number) => {
+  if (valueLen === 0) {
+    return `El campo ${field} es requerido`
+  } else if (valueLen > 0 && valueLen < min) {
+    return `${field} debe tener al menos ${min} caracteres`
+  } else {
+    return ''
+  }
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: theme.spacing(3, 4),
+  padding: theme.spacing(3, 4, '4', '5'),
   justifyContent: 'space-between',
   backgroundColor: theme.palette.background.default,
-}));
+}))
 
 const schema = yup.object().shape({
-  name: yup.string().required(),
-  schedules: yup.array().of(
-    yup.object().shape({
-      day: yup.array().of(yup.boolean()).required(),
-      morningEntry: yup.string().required(),
-      morningExit: yup.string().required(),
-      afternoonEntry: yup.string().required(),
-      afternoonExit: yup.string().required(),
-      entranceTolerance: yup.number().required(),
-    })
-  ),
-});
+  name: yup
+    .string()
+    .min(4, obj => showErrors('Nombre', obj.value.length, obj.min))
+    .required(),
 
-const defaultDaySchedule: ScheduleData = {
-  day: [false, false, false, false, false, false, false],
-  morningEntry: '',
-  morningExit: '',
-  afternoonEntry: '',
-  afternoonExit: '',
-  entranceTolerance: 0,
-};
+  schedules: yup
+    .array().of(
+      yup.object().shape({
+        day: yup.number().required(),
+        morningEntry: yup.string().required(),
+        morningExit: yup.string().required(),
+        afternoonEntry: yup.string().required(),
+        afternoonExit: yup.string().required(),
+        entryTolerance: yup.number().required(),
+        exitTolerance: yup.number().required(),
+      })
+    ),
+})
 
-const defaultValues: UserData = {
+const defaultValues = {
   name: '',
   schedules: [
-    {
-      day: [false, false, false, false, false, false, false],
-      morningEntry: '',
-      morningExit: '',
-      afternoonEntry: '',
-      afternoonExit: '',
-      entranceTolerance: 0,
-    },
-  ],
+    // {
+    //   day: 0,
+    //   morningEntry: '',
+    //   morningExit: '',
+    //   afternoonEntry: '',
+    //   afternoonExit: '',
+    //   entryTolerance: 0,
+    //   exitTolerance: 0,
+    // } 
+  ]
 };
 
-const dias = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+const SidebarAddHorario = (props: SidebarAddScheduleType) => {
+  const { open, toggle } = props;
 
-type SidebarAddHorarioType = {
-  open: boolean;
-  toggle: () => void;
-};
-
-const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
-  const [scheduleData, setScheduleData] = useState<UserData>(defaultValues);
-  const [specialSchedules, setSpecialSchedules] = useState<UserData[]>([]);
-
-  // Fetch special schedules when the component mounts
-  useEffect(() => {
-    fetchSpecialSchedules();
-  }, []);
-
-  const fetchSpecialSchedules = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SPECIAL_SCHEDULES}`);
-      setSpecialSchedules(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const {
-    reset,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<UserData>({
-    defaultValues,
-    mode: 'onChange',
-    resolver: yupResolver(schema),
+  const [schedule, setSchedule] = useState<ScheduleData>({
+    name: '',
+    schedules: [],
   });
 
-  const [LUNES, setLUNES] = useState<ScheduleData>(defaultDaySchedule);
-  const [MARTES, setMARTES] = useState<ScheduleData>(defaultDaySchedule);
-  const [MIERCOLES, setMIERCOLES] = useState<ScheduleData>(defaultDaySchedule);
-  const [JUEVES, setJUEVES] = useState<ScheduleData>(defaultDaySchedule);
-  const [VIERNES, setVIERNES] = useState<ScheduleData>(defaultDaySchedule);
-  const [SABADO, setSABADO] = useState<ScheduleData>(defaultDaySchedule);
-  const [DOMINGO, setDOMINGO] = useState<ScheduleData>(defaultDaySchedule);
+  const [openList, setOpenList] = useState(true);
 
-  const handleSave = async (data: UserData) => {
+  const { reset, control, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
+    defaultValues,
+    mode: 'onChange',
+    resolver: yupResolver(schema)
+  });
+
+
+
+  const handleSave = async (data: ScheduleData) => {
     try {
-      const transformedData: UserData = {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULES}`, {
         name: data.name,
-        schedules: [
-          LUNES,
-          MARTES,
-          MIERCOLES,
-          JUEVES,
-          VIERNES,
-          SABADO,
-          DOMINGO,
-        ],
-      };
-
-      await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`, transformedData);
-
-      toggle();
-      reset();
-      window.location.reload();
+        schedules: data.schedules.map(schedule => ({
+          day: schedule.day,
+          morningEntry: schedule.morningEntry,
+          morningExit: schedule.morningExit,
+          afternoonEntry: schedule.afternoonEntry,
+          afternoonExit: schedule.afternoonExit,
+          entryTolerance: schedule.entryTolerance,
+          exitTolerance: schedule.exitTolerance,
+        })),
+      });
+      if( response.status === 200 ) {
+        toggle();
+        reset();
+        // Realiar cualquier otra acccion al momento de crear un horario
+      }
     } catch (error) {
-      console.log(error);
+      console.log('Error al crear un horario',error);
     }
   };
 
-
   const handleClose = () => {
-    toggle();
-    reset();
+    toggle()
+    reset()
+  }
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULES}`);
+      const schedules = response.data;
+      return schedules;
+    } catch (error) {
+      return [];
+    }
   };
+
+  fetchSchedules();
+
+
+  const handleClick = () => {
+    setOpenList(!openList);
+  };
+
+  function handleScheduleChange(index: number, arg1: string, value: string): void {
+    
+  }
 
   return (
     <>
-      <Button
-        onClick={handleClose}
+      <Button onClick={handleClose}
         variant="contained"
         color="primary"
         sx={{
@@ -164,41 +174,39 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
           boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
           '&:hover': {
             backgroundColor: '#1565c0',
+
           },
         }}
       >
-        Agregar Horario
+        Crear Horario
       </Button>
+
       <Drawer
         open={open}
-        anchor="right"
-        variant="temporary"
+        anchor='right'
+        variant='temporary'
         onClose={handleClose}
         ModalProps={{ keepMounted: true }}
-        sx={{
-          '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200 } },
-          backgroundColor: '#f5f5f5', // Drawer background color
-        }}
-      >
+        sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', sm: '90%', md: '80%', lg: '70%' } } }} >
         <Header>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Crear Horario
-          </Typography>
-          <IconButton size="small" onClick={handleClose} sx={{ color: 'text.primary' }}>
-            <Icon icon="mdi:close" fontSize={20} />
+          <Typography variant='h6'> Crear Horario</Typography>
+          <IconButton size='large' onClick={handleClose} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Header>
-        <Box sx={{ p: 4 }}>
+
+        <Box sx={{ p: { xs: 2, sm: 4, md: 6 }  }}>
           <form onSubmit={handleSubmit(handleSave)}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
               Nombre
             </Typography>
+
             <Controller
               name="name"
               control={control}
               render={({ field }) => (
                 <TextField
-                  label="Nombre"
+                  label="Nombre de Horario"
                   {...field}
                   error={Boolean(errors.name)}
                   helperText={errors.name ? 'El nombre es requerido' : ''}
@@ -206,153 +214,323 @@ const SidebarAddHorario = ({ open, toggle }: SidebarAddHorarioType) => {
                 />
               )}
             />
+
             <Box sx={{ marginTop: 4 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                 Horarios
               </Typography>
               <Grid container spacing={2}>
-                {dias.map((nombreDia, diaIndex) => (
-                  <Grid item xs={12} key={diaIndex}>
-                    <Typography variant="subtitle2">{nombreDia}</Typography>
-                    <FormGroup>
+                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day, index) => (
+                    <Grid item xs={12} key={index}>
+                      <FormControlLabel
+                        control={<Checkbox name={`schedules[${index}].selected`} />}
+                        label={day}
+                      />
                       <Grid container spacing={2}>
-                        <Grid item xs={2.5}>
+                        <Grid item xs={2}>
                           <Typography variant="subtitle2">Entrada mañana</Typography>
-                          <Controller
-                            name={`schedules[${diaIndex}].morningEntry`}
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                type="time"
-                                {...field}
-                                fullWidth
-                                error={Boolean(errors.schedules?.[diaIndex]?.morningEntry)}
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={2.5}>
-                          <Typography variant="subtitle2">Salida mañana</Typography>
-                          <Controller
-                            name={`schedules[${diaIndex}].morningExit`}
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                type="time"
-                                {...field}
-                                fullWidth
-                                error={Boolean(errors.schedules?.[diaIndex]?.morningExit)}
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={2.5}>
-                          <Typography variant="subtitle2">Entrada Tarde</Typography>
-                          <Controller
-                            name={`schedules[${diaIndex}].afternoonEntry`}
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                type="time"
-                                {...field}
-                                fullWidth
-                                error={Boolean(errors.schedules?.[diaIndex]?.afternoonEntry)}
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={2.5}>
-                          <Typography variant="subtitle2">Salida Tarde</Typography>
-                          <Controller
-                            name={`schedules[${diaIndex}].afternoonExit`}
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                type="time"
-                                {...field}
-                                fullWidth
-                                error={Boolean(errors.schedules?.[diaIndex]?.afternoonExit)}
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                            )}
+                          <TextField
+                            type="time"
+                            value={schedule[index]?.morningEntry}
+                            onChange={(e) => handleScheduleChange(index, 'morningEntry', e.target.value)}
+                            fullWidth
                           />
                         </Grid>
                         <Grid item xs={2}>
-                        <Typography variant="subtitle2">Tolerancia</Typography>
-                        <Controller
-                          name={`schedules[${diaIndex}].entranceTolerance`}
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              type="number"
-                              {...field}
-                              fullWidth
-                              error={Boolean(errors.schedules?.[diaIndex]?.entranceTolerance)}
-                              inputProps={{ min: 0, step: 1 }}
-                            />
-                          )}
-                        />
-                      </Grid>
-                      </Grid>
-                    </FormGroup>
-                  </Grid>
-                ))}
-              </Grid>
+                          <Typography variant="subtitle2">Salida mañana</Typography>
+                          <TextField
+                            type="time"
+                            value={schedule[index]?.morningExit}
+                            onChange={(e) => handleScheduleChange(index, 'morningExit', e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Typography variant="subtitle2">Entrada Tarde</Typography>
+                          <TextField
+                            type="time"
+                            value={schedule[index]?.afternoonEntry}
+                            onChange={(e) => handleScheduleChange(index, 'afternoonEntry', e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Typography variant="subtitle2">Salida Tarde</Typography>
+                          <TextField
+                            type="time"
+                            value={schedule[index]?.afternoonExit}
+                            onChange={(e) => handleScheduleChange(index, 'afternoonExit', e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Typography variant="subtitle2"> Tolerancia entrada</Typography>
+                          <TextField
+                            type="number"
+                            value={schedule[index]?.entryTolerance}
+                            onChange={(e) => handleScheduleChange(index, 'entryTolerance', e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Typography variant="subtitle2">Tolerancia Salida</Typography>
+                          <TextField
+                            type="number"
+                            value={schedule[index]?.exitTolerance}
+                            onChange={(e) => handleScheduleChange(index, 'exitTolerance', e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
 
-            </Box>
-            <Box sx={{ marginTop: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                Horario Especial
-              </Typography>
-              <Controller
-                name="specialSchedule"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Horario Especial"
-                    {...field}
-                    fullWidth
-                  >
-                    <MenuItem value="">
-                      <em>Seleccione un horario especial</em>
-                    </MenuItem>
-                    {specialSchedules.map((schedule) => (
-                      <MenuItem key={schedule.name} value={schedule.name}>
-                        {schedule.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
+                        {/* Repite el mismo patrón para los otros campos de horario y tolerancia */}
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>
               <Button
-                size="large"
-                type="submit"
-                variant="contained"
-                sx={{ marginRight: 2, backgroundColor: '#1976d2', color: 'white', '&:hover': { backgroundColor: '#1565c0' } }}
-              >
-                Aceptar
-              </Button>
-              <Button
-                size="large"
-                variant="outlined"
-                color="secondary"
-                onClick={handleClose}
-                sx={{ borderColor: '#f44336', color: '#f44336', '&:hover': { backgroundColor: '#fdecec' } }}
-              >
-                Cancelar
-              </Button>
+                size='large' type='submit' variant='contained' sx={{ mr: 6 }}
+              > Aceptar </Button>
+              <Button size='large' variant='outlined' color='secondary' onClick={handleClose}
+              > Cancelar </Button>
             </Box>
           </form>
         </Box>
       </Drawer>
     </>
-  );
+  )
 };
+export default SidebarAddHorario
 
-export default SidebarAddHorario;
+
+
+
+
+
+
+// import { Button, Checkbox, Drawer, FormControlLabel, FormGroup, Grid, IconButton, TextField, Typography } from '@mui/material';
+// import Box from '@mui/material/Box';
+// import { styled } from '@mui/material/styles';
+// import { useState } from 'react';
+// import axios from 'axios';
+
+// import Icon from 'src/@core/components/icon'
+// import * as yup from 'yup';
+
+// // Creacion de Interfaces
+// interface SidebarAddScheduleType {
+//   open: boolean;
+//   toggle: () => void;
+// }
+
+// interface Schedule {
+//   day: number;
+//   morningEntry: string;
+//   morningExit: string;
+//   afternoonEntry: string;
+//   afternoonExit: string;
+//   entryTolerance: number;
+//   exitTolerance: number;
+// }
+
+// interface ScheduleData {
+//   name: string;
+//   schedules: Schedule[];
+// }
+
+// // Variables  -  Constantes
+// const showErrors = (field: string, valueLen: number, min: number) => {
+//   if (valueLen === 0) {
+//     return `El campo ${field} es requerido`;
+//   } else if (valueLen > 0 && valueLen < min) {
+//     return `${field} debe tener al menos ${min} caracteres`;
+//   } else {
+//     return '';
+//   }
+// };
+
+// const Header = styled(Box)(({ theme }) => ({
+//   display: 'flex',
+//   alignItems: 'center',
+//   padding: theme.spacing(3, 4, '4', '5'),
+//   justifyContent: 'space-between',
+//   backgroundColor: theme.palette.background.default,
+// }));
+
+// const schema = yup.object().shape({
+//   name: yup
+//     .string()
+//     .min(4, obj => showErrors('Nombre', obj.value.length, obj.min))
+//     .required(),
+
+//   schedules: yup
+//     .array().of(
+//       yup.object().shape({
+//         day: yup.number().required(),
+//         morningEntry: yup.string().required(),
+//         morningExit: yup.string().required(),
+//         afternoonEntry: yup.string().required(),
+//         afternoonExit: yup.string().required(),
+//         entryTolerance: yup.number().required(),
+//         exitTolerance: yup.number().required(),
+//       })
+//     ),
+// });
+
+// const defaultSchedule: Schedule = {
+//   day: 0,
+//   morningEntry: '',
+//   morningExit: '',
+//   afternoonEntry: '',
+//   afternoonExit: '',
+//   entryTolerance: 0,
+//   exitTolerance: 0,
+// };
+
+// const SidebarAddHorario = (props: SidebarAddScheduleType)=> {
+//   const { open, toggle } = props;
+
+//   const [name, setName] = useState('');
+//   const [schedules, setSchedules] = useState<Schedule[]>([defaultSchedule]);
+//   const handleScheduleChange = (index: number, field: keyof Schedule, value: any) => {
+//   const handleScheduleChange = (index: number, field: keyof Schedule, value: any) => {
+//     const updatedSchedules: Schedule[] = [...schedules]; // Anotación de tipos aquí
+//       updatedSchedules[index] = {
+//         ...updatedSchedules[index],
+//         [field]: value,
+//       };
+//       setSchedules(updatedSchedules);
+//     };
+
+//   const [openList, setOpenList] = useState(true);
+
+//   const handleSave = async () => {
+//     try {
+//       const response = await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULES}`, {
+//         name: name,
+//         schedules: schedules.map(schedule => ({
+//           day: schedule.day,
+//           morningEntry: schedule.morningEntry,
+//           morningExit: schedule.morningExit,
+//           afternoonEntry: schedule.afternoonEntry,
+//           afternoonExit: schedule.afternoonExit,
+//           entryTolerance: schedule.entryTolerance,
+//           exitTolerance: schedule.exitTolerance,
+//         })),
+//       });
+      
+//       if (response.status === 200) {
+//         toggle();
+//         setName('');
+//         setSchedules([defaultSchedule]);
+//         // Realizar cualquier otra acción después de crear el horario
+//       }
+//     } catch (error) {
+//       console.log('Error al crear un horario', error);
+//     }
+  
+//   };
+
+//   const handleClose = () => {
+//     toggle();
+//     setName('');
+//     setSchedules([defaultSchedule]);
+//   };
+
+//   const handleClick = () => {
+//     setOpenList(!openList);
+//   };
+  
+//   return (
+//     <>
+//       <Button onClick={handleClose} variant="contained" color="primary"
+//         sx={{
+//           borderRadius: '8px',
+//           marginBottom: '15px',
+//           fontSize: '12px',
+//           fontWeight: 'bold',
+//           padding: '10px 20px',
+//           boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
+//           '&:hover': {
+//             backgroundColor: '#1565c0',
+//           },
+//         }}
+//       >
+//         Crear Horario
+//       </Button>
+
+//       <Drawer
+//         open={open}
+//         anchor='right'
+//         variant='temporary'
+//         onClose={handleClose}
+//         ModalProps={{ keepMounted: true }}
+//         sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', sm: '90%', md: '80%', lg: '70%' } } }} >
+//         <Header>
+//           <Typography variant='h6'> Crear Horario</Typography>
+//           <IconButton size='large' onClick={handleClose} sx={{ color: 'text.primary' }}>
+//             <Icon icon='mdi:close' fontSize={20} />
+//           </IconButton>
+//         </Header>
+
+//         <Box sx={{ p: { xs: 2, sm: 4, md: 6 }  }}>
+//           <form onSubmit={handleSave}>
+//             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
+//               Nombre
+//             </Typography>
+//             <TextField
+//               label="Nombre de Horario"
+//               value={name}
+//               onChange={(e) => setName(e.target.value)}
+//               fullWidth
+              
+//             />
+
+//             <Box sx={{ marginTop: 4 }}>
+//               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
+//                 Horarios
+//               </Typography>
+//               Copy code
+                // <Grid container spacing={2}>
+                //   {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day, index) => (
+                //     <Grid item xs={12} key={index}>
+                //       <FormControlLabel
+                //         control={<Checkbox name={`schedules[${index}].selected`} />}
+                //         label={day}
+                //       />
+                //       <Grid container spacing={2}>
+                //         <Grid item xs={6}>
+                //           <Typography variant="subtitle2">Entrada mañana</Typography>
+                //           <TextField
+                //             type="time"
+                //             value={schedules[index]?.morningEntry}
+                //             onChange={(e) => handleScheduleChange(index, 'morningEntry', e.target.value)}
+                //             fullWidth
+                //           />
+                //         </Grid>
+                //         {/* Repite el mismo patrón para los otros campos de horario y tolerancia */}
+                //       </Grid>
+                //     </Grid>
+                //   ))}
+                // </Grid>
+//             </Box>
+
+//             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 10 }}>
+//               <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>
+//                 Aceptar
+//               </Button>
+//               <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
+//                 Cancelar
+//               </Button>
+//             </Box>
+//           </form>
+//         </Box>
+//       </Drawer>
+//     </>
+//   );
+// };
+// }
+
+// export default SidebarAddHorario;
