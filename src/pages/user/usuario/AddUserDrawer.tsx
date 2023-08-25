@@ -26,10 +26,9 @@ interface SidebarAddUserType {
   open: boolean
   toggle: () => void
 }
-interface Children {
-  _id: string,
-  name: string,
-  children:Children[]
+interface Charge {
+  id: string;
+  label: string;
 }
 
 interface UserData {
@@ -134,7 +133,7 @@ const defaultValues = {
   const { open, toggle } = props
   const [addSpecialScheduleOpen, setAddSpecialScheduleOpen] = useState<boolean>(false)
   const [previewfile, setPreviewfile]= useState<string | null>(null)
-  const[children,setChildren]=useState<Children[]>([])
+  const [charges, setCharges] = useState<Charge[]>([]);
   const toggleAddSpecialSchedule = () => setAddSpecialScheduleOpen(!addSpecialScheduleOpen)
     const [user, setUser] = useState<UserData>({
     name: '',
@@ -213,25 +212,6 @@ const defaultValues = {
     console.log(error);
   }
 };
-// useEffect(()=>{
-//   fetchData()
-// },[])
-// const fetchData = async () => {
-//   try {
-//     const response = await axios.get<Children[]>('http://10.10.214.219:3000/main'); // Filtrar por isActive true
-//     setChildren(response.data); // Actualiza el estado 'children' con los datos obtenidos
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
-// useEffect(() => {
-//   if (children && children.length > 0) {
-//     console.log("children: " + children[0]._id); // Accede a la propiedad '_id' del primer elemento
-//   } else {
-//     console.log("No se encontraron children");
-//   }
-// }, [children]);
 
   const handleClose = () => {
     toggle()
@@ -251,13 +231,29 @@ const defaultValues = {
     { label: 'Canada' },
     { label: 'Mexico' },
   ];
+  
+  useEffect(() => {
+    const fetchChargesData = async () => {
+      try {
+        const chargesResponse = await fetchCharges();
+        setCharges(chargesResponse);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchChargesData();
+  }, []);
+  const apiResponse = [
+    { id: 1, label: 'Cargo 1' },
+    { id: 2, label: 'Cargo 2' },
+    // ...
+  ];
 
   const fetchCharges = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}`);
-      const charges = response.data;
-      console.log( charges )
-      return charges;
+      return response.data; // Asegúrate de que response.data tenga la estructura correcta
     } catch (error) {
       console.log(error);
       return [];
@@ -487,37 +483,38 @@ const defaultValues = {
             />
             {errors.unity && <FormHelperText sx={{ color: 'error.main' }}>{errors.unity.message}</FormHelperText>}
           </FormControl>
-
-          {/* <FormControl fullWidth sx={{ mb: 4 }}>
+          <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='charge'
               control={control}
               rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
+              render={({ field, fieldState, formState }) => (
                 <Autocomplete
-                  options={ fetchCharges } // Usa la lista de opciones de nacionalidades
+                  options={charges} // Usar la lista de cargos obtenida del estado local
                   getOptionLabel={(option) => option.label}
                   onChange={(event, newValue) => {
-                    onChange(newValue ? newValue.label : ''); // Actualiza el valor del campo de nacionalidad en el controlador
+                    field.onChange(newValue ? newValue.label : ''); // Actualizar el valor del campo de cargos en el controlador
                   }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label='Cargos'
-                      onChange={onChange}
-                      error={Boolean(errors.charge)}
-                      inputProps={{ ...params.inputProps, autoComplete: "on"}}
+                      onChange={field.onChange}
+                      error={Boolean(formState.errors.charge)}
+                      inputProps={{ ...params.inputProps, autoComplete: 'on' }}
                     />
                   )}
                 />
               )}
             />
-            {errors.nationality && (
+            {errors.charge && (
               <FormHelperText sx={{ color: 'error.main' }}>
-                {errors.nationality.message}
+                {errors.charge.message}
               </FormHelperText>
             )}
-          </FormControl> */}
+          </FormControl>
+
+
 
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
@@ -536,27 +533,7 @@ const defaultValues = {
             />
             {errors.schedule && <FormHelperText sx={{ color: 'error.main' }}>{errors.schedule.message}</FormHelperText>}
           </FormControl>
-          {/* <FormControl> */}
-          {children.map((id)=>(
-            <ul>
-              { children.map((item) => (
-                <li key={item._id}>
-                  <p>ID: {item._id}</p>
-                  <p>Nombre: {item.name}</p>
-                  {item.children.length > 0 && (
-                    <ul>
-                      {item.children.map((child) => (
-                        <li key={child._id}>
-                          <p>ID del hijo: {child._id}</p>
-                          <p>Nombre del hijo: {child.name}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ))} 
+           
         <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  />
           
           <Box sx={{ display: 'flex', alignItems: 'center' }}>

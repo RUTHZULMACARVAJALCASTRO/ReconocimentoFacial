@@ -59,7 +59,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }));
 
-const dias = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'];
 
 function Row(props: RowProps) {
   const { row } = props;

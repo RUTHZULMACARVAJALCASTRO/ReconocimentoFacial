@@ -220,7 +220,7 @@ const SidebarAddHorario = (props: SidebarAddScheduleType) => {
                 Horarios
               </Typography>
               <Grid container spacing={2}>
-                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day, index) => (
+                  {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((day, index) => (
                     <Grid item xs={12} key={index}>
                       <FormControlLabel
                         control={<Checkbox name={`schedules[${index}].selected`} />}

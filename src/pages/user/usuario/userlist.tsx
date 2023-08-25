@@ -105,9 +105,9 @@ const handleDeleteConfirmed = async () => {
         <TableCell align="center">{ capitalizeFirstLetter( row.name ) }</TableCell>
         <TableCell align="center">{capitalizeFirstLetter( row.lastName )}</TableCell>
         <TableCell align="center">{row.email.toLowerCase() }</TableCell>
-        {/* <TableCell align="center">{ row.unity }</TableCell> */}
-        {/* <TableCell align="center">{ capitalizeFirstLetter( row.charge ) }</TableCell> */}
-        {/* <TableCell align="center">{ capitalizeFirstLetter( row.schedule )}</TableCell> */}
+        <TableCell align="center">{ capitalizeFirstLetter(row.unity)}</TableCell>
+        <TableCell align="center">{ capitalizeFirstLetter( row.charge ) }</TableCell>
+        <TableCell align="center">{ capitalizeFirstLetter( row.schedule )}</TableCell>
       </TableRow>
       <TableRow  >
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10} >
@@ -156,10 +156,10 @@ const handleDeleteConfirmed = async () => {
                       <TableCell align="center">{row.phone}</TableCell>
                       <TableCell align="center">{capitalizeFirstLetter( row.address )}</TableCell>
                       <TableCell align="center">{capitalizeFirstLetter( row.nationality )}</TableCell>
-                      {/* <TableCell align="center">{row.unity}</TableCell> */}
-                      {/* <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell> */}
-                      {/* <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>  */}
+                      <TableCell align="center">{capitalizeFirstLetter(row.unity)}</TableCell> 
+                      <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
+                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>
+                      <TableCell > </TableCell> 
                     </TableRow>
                 </TableBody>
               </Table>
@@ -206,20 +206,20 @@ export default function CollapsibleTable() {
   const fetchData = async () => {
     try {
       const response = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL}`);
-      // const filteredData = response.data.filter( async user => user.isActive );
+      const filteredData = response.data.filter( async user => user.isActive );
 
       // console.log( filteredData );
 
-      // const enhancedData = await Promise.all(filteredData.map(async user => {
-      //   const schedulePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`);
-      //   const chargePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${user.charge}`);
+      const enhancedData = await Promise.all(filteredData.map(async user => {
+      const schedulePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`);
+      const chargePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${user.charge}`);
       //   // const unityPerson = await axios.get(`${process.env.NEXT_PUBLIC_UNITYS}${user.unity}`);
-      //   const enhancedUser = { ...user, schedule: schedulePerson.data.name, charge: chargePerson.data.name };
+      const enhancedUser = { ...user, schedule: schedulePerson.data.name, charge: chargePerson.data.name };
       //   console.log("afjalskñdfj", enhancedUser )
-      //   return enhancedUser;
-      // }));
+      return enhancedUser;
+      }));
       
-      setData(response.data); // Guarda los datos filtrados en el estado 'data'
+      setData(enhancedData); // Guarda los datos filtrados en el estado 'data'
 
     } catch (error) {
       console.log(error);
