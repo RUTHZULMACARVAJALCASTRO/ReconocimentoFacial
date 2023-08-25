@@ -171,8 +171,6 @@ const defaultValues = {
     fetchChargesData();
   }, []);
 
-  
-  
   const {
     reset,
     control,
@@ -184,22 +182,23 @@ const defaultValues = {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
+  
   const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = function () {
       if (reader.readyState === 2) {
-        const formattedDate = new Date().toISOString()
-        setUser({ ...user, file: reader.result as string })
-        setPreviewfile( reader.result as string )
+        const base64Data = reader.result as string;
+        setUser({ ...user, file: base64Data });
+        setPreviewfile(base64Data);
       }
-    }
-    
+    };
+
     if (e.target.files && e.target.files.length > 0) {
-      console.log(e.target.files)
-      reader.readAsDataURL(e.target.files[0])
-      console.log('' + previewfile)
+      reader.readAsDataURL(e.target.files[0]);
     }
-  }
+  };
+  
+    
 
   useEffect(() => {
     const fetchSchedulesData = async () => {
@@ -242,7 +241,7 @@ const defaultValues = {
         unity: data.unity,
         charge: data.charge,
         schedule: data.schedule,
-        file:data.file,
+        file: data.file,
       };
   await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`,{
     name: data.name,
@@ -255,7 +254,7 @@ const defaultValues = {
     unity: data.unity,
     charge: data.charge,
     schedule: data.schedule, 
-    file:previewfile,
+    file:user.file,
   });
     toggle();
     reset();
@@ -616,11 +615,8 @@ const defaultValues = {
               </FormHelperText>
             )}
           </FormControl>
-
-
-
            
-        <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  />
+        {/* <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  /> */}
           
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button 

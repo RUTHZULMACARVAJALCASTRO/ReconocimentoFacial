@@ -28,6 +28,18 @@ interface SidebarEditUserType {
   open: boolean
   toggle: () => void
 }
+interface Charge {
+  id: string;
+  name: string;
+}
+interface Schedule {
+  id: string;
+  name: string;
+}
+interface Unit {
+  _id: string;
+  name: string;
+}
 
 interface UserData {
   name: string
@@ -41,6 +53,12 @@ interface UserData {
   unity: string
   charge: string
   schedule: string
+}
+
+interface AddUserDrawerProps {
+  open: boolean;
+  toggle: () => void;
+  onOpenSpecialSchedule: () => void;  // Agrega esta prop para abrir SidebarAddSpecialSchedule
 }
 const UploadButton = styled('label')(({ theme }) => ({
   display: 'flex',
@@ -109,7 +127,10 @@ const defaultValues = {
 
   const SidebarEditUser = ( props: { userId: string } ) => {
   const [state,setState]=useState<boolean>(false)
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const userId=props.userId;
+  const [charges, setCharges] = useState<Charge[]>([]);
   const [user,setUser]=useState<UserData>({
     name: '',
     lastName: '',
@@ -125,6 +146,21 @@ const defaultValues = {
   });
   const [image, setImage] = useState<File | null>(null)
   const [previewfile, setPreviewfile] = useState<string | null>(null)
+  
+
+  useEffect(() => {
+    const fetchChargesData = async () => {
+      try {
+        const chargesResponse = await fetchCharges();
+        setCharges(chargesResponse); // La respuesta ya contiene la propiedad "name"
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchChargesData();
+  }, []);
+
   
 
   const toggleDrawer =
@@ -226,6 +262,56 @@ const defaultValues = {
     }
     
   }
+
+  const nationalities = [
+    { label: 'Argentina' },
+    { label: 'Brasil' },
+    { label: 'Chile' },
+    { label: 'Bolivia' },
+    { label: 'Peru' },
+    { label: 'Uruguay' },
+    { label: 'Colombia' },
+    { label: 'Ecuador' },
+    { label: 'Estados Unidos' },
+    { label: 'Canada' },
+    { label: 'Mexico' },
+  ];
+
+  const fetchCharges = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}`);
+      return response.data; // Asegúrate de que response.data tenga la estructura correcta
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchCharges()
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}`);
+      return response.data; // Asegúrate de que response.data tenga la estructura correcta
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchSchedules()
+
+  const fetchUnits = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_UNITYS}`);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchUnits()
   
 
   return (
@@ -442,7 +528,7 @@ const defaultValues = {
                   label='Unidad'
                   onChange={onChange}
                   error={Boolean(errors.unity)}
-                  inputProps={{ autoComplete: "off"}}
+                  autoComplete='off'
                 />
               )}
             />
@@ -460,7 +546,7 @@ const defaultValues = {
                   label='Cargos'
                   onChange={onChange}
                   error={Boolean(errors.charge)}
-                  inputProps={{ autoComplete: "off"}}
+                  autoComplete='off'
                 />
               )}
             />
@@ -478,7 +564,7 @@ const defaultValues = {
                   label='Horarios'
                   onChange={onChange}
                   error={Boolean(errors.schedule)}
-                  inputProps={{ autoComplete: "off"}}
+                  autoComplete='off'
                 />
               )}
             />
