@@ -163,10 +163,10 @@ export default function CollapsibleTable() {
             <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 50px' }}>
               NOMBRE HORARIO
             </TableCell>
-            <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 110px' }}>
+            <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 120px' }}>
               DÍA
             </TableCell>
-            <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 40px' }}>
+            <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 50px' }}>
               MAÑANA ENTRADA
             </TableCell>
             <TableCell className={classes.tableCell} align="center" style={{ fontWeight: 'bold', padding: '12px 24px' }}>

@@ -28,7 +28,15 @@ interface SidebarAddUserType {
 }
 interface Charge {
   id: string;
-  label: string;
+  name: string;
+}
+interface Schedule {
+  id: string;
+  name: string;
+}
+interface Unit {
+  _id: string;
+  name: string;
 }
 
 interface UserData {
@@ -132,8 +140,10 @@ const defaultValues = {
   const SidebarAddUser = (props: SidebarAddUserType) => {
   const { open, toggle } = props
   const [addSpecialScheduleOpen, setAddSpecialScheduleOpen] = useState<boolean>(false)
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [previewfile, setPreviewfile]= useState<string | null>(null)
   const [charges, setCharges] = useState<Charge[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const toggleAddSpecialSchedule = () => setAddSpecialScheduleOpen(!addSpecialScheduleOpen)
     const [user, setUser] = useState<UserData>({
     name: '',
@@ -148,6 +158,20 @@ const defaultValues = {
     charge: '',
     schedule: ''
   })
+  useEffect(() => {
+    const fetchChargesData = async () => {
+      try {
+        const chargesResponse = await fetchCharges();
+        setCharges(chargesResponse); // La respuesta ya contiene la propiedad "name"
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchChargesData();
+  }, []);
+
+  
   
   const {
     reset,
@@ -176,6 +200,34 @@ const defaultValues = {
       console.log('' + previewfile)
     }
   }
+
+  useEffect(() => {
+    const fetchSchedulesData = async () => {
+      try {
+        const schedulesResponse = await fetchSchedules();
+        setSchedules(schedulesResponse);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
+    fetchSchedulesData();
+  }, []);
+
+  useEffect(() => {
+    const fetchUnitsData = async () => {
+      try {
+        const unitsResponse = await fetchUnits();
+        setUnits(unitsResponse);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
+    fetchUnitsData();
+  }, []);
+  
+
 
   const handleSave = async (data: UserData) => {
     try {
@@ -231,24 +283,7 @@ const defaultValues = {
     { label: 'Canada' },
     { label: 'Mexico' },
   ];
-  
-  useEffect(() => {
-    const fetchChargesData = async () => {
-      try {
-        const chargesResponse = await fetchCharges();
-        setCharges(chargesResponse);
-      } catch (error) {
-        console.log(error);
-      }
-    };
 
-    fetchChargesData();
-  }, []);
-  const apiResponse = [
-    { id: 1, label: 'Cargo 1' },
-    { id: 2, label: 'Cargo 2' },
-    // ...
-  ];
 
   const fetchCharges = async () => {
     try {
@@ -261,6 +296,30 @@ const defaultValues = {
   };
 
   fetchCharges()
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}`);
+      return response.data; // Asegúrate de que response.data tenga la estructura correcta
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchSchedules()
+
+  const fetchUnits = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_UNITYS}`);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  fetchUnits()
   
 
     function handleOpenAddSpecialSchedule(): void {
@@ -465,24 +524,38 @@ const defaultValues = {
               </FormHelperText>
             )}
           </FormControl>
-
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='unity'
               control={control}
               rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Unidad'
-                  onChange={onChange}
-                  error={Boolean(errors.unity)}
-                  inputProps={{ autoComplete: "off"}}
+              render={({ field, fieldState, formState }) => (
+                <Autocomplete
+                  options={units}
+                  getOptionLabel={(option) => option.name}
+                  onChange={(event, newValue) => {
+                    field.onChange(newValue ? newValue.name : '');
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label='Unidad'
+                      onChange={field.onChange}
+                      error={Boolean(formState.errors.unity)}
+                      inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+                    />
+                  )}
                 />
               )}
             />
-            {errors.unity && <FormHelperText sx={{ color: 'error.main' }}>{errors.unity.message}</FormHelperText>}
+            {errors.unity && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.unity.message}
+              </FormHelperText>
+            )}
           </FormControl>
+
+          
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='charge'
@@ -491,9 +564,9 @@ const defaultValues = {
               render={({ field, fieldState, formState }) => (
                 <Autocomplete
                   options={charges} // Usar la lista de cargos obtenida del estado local
-                  getOptionLabel={(option) => option.label}
+                  getOptionLabel={(option) => option.name}
                   onChange={(event, newValue) => {
-                    field.onChange(newValue ? newValue.label : ''); // Actualizar el valor del campo de cargos en el controlador
+                    field.onChange(newValue ? newValue.name : ''); // Actualizar el valor del campo de cargos en el controlador
                   }}
                   renderInput={(params) => (
                     <TextField
@@ -513,26 +586,39 @@ const defaultValues = {
               </FormHelperText>
             )}
           </FormControl>
-
-
-
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
               name='schedule'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Horarios'
-                  onChange={onChange}
-                  error={Boolean(errors.schedule)}
-                  inputProps={{ autoComplete: "off"}}
+                <Autocomplete
+                  options={schedules}
+                  getOptionLabel={(option) => option.name}
+                  onChange={(event, newValue) => {
+                    onChange(newValue ? newValue.name : '');
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label='Horarios'
+                      onChange={onChange}
+                      error={Boolean(errors.schedule)}
+                      inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+                    />
+                  )}
                 />
               )}
             />
-            {errors.schedule && <FormHelperText sx={{ color: 'error.main' }}>{errors.schedule.message}</FormHelperText>}
+            {errors.schedule && (
+              <FormHelperText sx={{ color: 'error.main' }}>
+                {errors.schedule.message}
+              </FormHelperText>
+            )}
           </FormControl>
+
+
+
            
         <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  />
           
