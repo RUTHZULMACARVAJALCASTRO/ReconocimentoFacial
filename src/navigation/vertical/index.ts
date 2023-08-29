@@ -37,6 +37,24 @@ const navigation = (): VerticalNavItemsType => {
         ]
     },
     {
+      title: 'Creacion de Horarios',
+      icon: 'mdi:account-clock',
+      children: [
+        {
+          title: 'Horarios',
+          path: '/user/horario/listHorario',
+          icon: 'mdi:account-clock-outline',
+        },
+        // {
+        //   title: 'Horarios Especiales',
+        //   path: '/user/horariosEspeciales/listSchedule',
+        //   icon: 'mdi:account-clock-outline',
+        // },
+  
+        
+      ]
+  }, 
+    {
       title: 'Control de Asistencia',
       icon: 'mdi:account-circle-outline',
       children: [
@@ -47,24 +65,7 @@ const navigation = (): VerticalNavItemsType => {
         },
       ]
   },  
-  {
-    title: 'Creacion de Horarios',
-    icon: 'mdi:account-clock',
-    children: [
-      {
-        title: 'Horarios',
-        path: '/user/horario/listHorario',
-        icon: 'mdi:account-clock-outline',
-      },
-      // {
-      //   title: 'Horarios Especiales',
-      //   path: '/user/horariosEspeciales/listSchedule',
-      //   icon: 'mdi:account-clock-outline',
-      // },
-
-      
-    ]
-}, 
+ 
   ]
 }
 

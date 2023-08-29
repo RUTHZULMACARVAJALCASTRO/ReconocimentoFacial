@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, useEffect, useState, Children } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 // ** MUI Imports
 import Drawer from '@mui/material/Drawer';
@@ -21,17 +21,17 @@ import axios from 'axios'
 import Autocomplete from '@mui/material/Autocomplete';
 import SidebarAddSpecialSchedule from '../horariosEspeciales/AddSpecialSchedule';
 
-
 interface SidebarAddUserType {
   open: boolean
   toggle: () => void
 }
+
 interface Charge {
-  id: string;
+  _id: string;
   name: string;
 }
 interface Schedule {
-  id: string;
+  _id: string;
   name: string;
 }
 interface Unit {
@@ -52,6 +52,7 @@ interface UserData {
   charge: string
   schedule: string
 }
+
 interface AddUserDrawerProps {
   open: boolean;
   toggle: () => void;
@@ -71,8 +72,9 @@ const UploadButton = styled('label')(({ theme }) => ({
     backgroundColor: '#626262',
   },
 }));
+
 const showErrors = (field: string, valueLen: number, min: number) => {
-  if (valueLen === 0) { 
+  if (valueLen === 0) {
     return `El campo ${field} es requerido`
   } else if (valueLen > 0 && valueLen < min) {
     return `${field} debe tener al menos ${min} caracteres`
@@ -137,15 +139,16 @@ const defaultValues = {
   schedule: ''
 }
 
-  const SidebarAddUser = (props: SidebarAddUserType) => {
+const SidebarAddUser = (props: SidebarAddUserType) => {
   const { open, toggle } = props
   const [addSpecialScheduleOpen, setAddSpecialScheduleOpen] = useState<boolean>(false)
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [previewfile, setPreviewfile]= useState<string | null>(null)
+  const [previewfile, setPreviewfile] = useState<string | null>(null)
   const [charges, setCharges] = useState<Charge[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const toggleAddSpecialSchedule = () => setAddSpecialScheduleOpen(!addSpecialScheduleOpen)
-    const [user, setUser] = useState<UserData>({
+  const [message, setMessage] = useState<string | null>(null);
+  const [user, setUser] = useState<UserData>({
     name: '',
     lastName: '',
     ci: '',
@@ -162,12 +165,12 @@ const defaultValues = {
     const fetchChargesData = async () => {
       try {
         const chargesResponse = await fetchCharges();
-        setCharges(chargesResponse); // La respuesta ya contiene la propiedad "name"
+        setCharges(chargesResponse);
+        console.log(chargesResponse)
       } catch (error) {
         console.log(error);
       }
     };
-
     fetchChargesData();
   }, []);
 
@@ -182,23 +185,57 @@ const defaultValues = {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
-  
+
+  // const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const reader = new FileReader()
+  //   reader.onload = function () {
+  //     if (reader.readyState === 2) {
+  //       const formattedDate = new Date().toISOString()
+  //       console.log(formattedDate)
+  //       setUser({ ...user, file: reader.result as string })
+  //       setPreviewfile(reader.result as string)
+  //       console.log(previewfile);
+  //     }
+  //   }
+
+  //   if (e.target.files && e.target.files.length > 0) {
+  //     console.log(e.target.files)
+  //     reader.readAsDataURL(e.target.files[0])
+  //   }
+  // }
+
   const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const reader = new FileReader();
+
     reader.onload = function () {
       if (reader.readyState === 2) {
-        const base64Data = reader.result as string;
-        setUser({ ...user, file: base64Data });
-        setPreviewfile(base64Data);
+        setUser(prevState => ({ ...prevState, file: reader.result as string }));
+        setPreviewfile(reader.result as string);
       }
     };
 
+    reader.onerror = (error) => {
+      alert('Ocurrió un error al leer el archivo. Por favor, inténtalo de nuevo.');
+      console.error("Error reading file:", error);
+    };
+
     if (e.target.files && e.target.files.length > 0) {
-      reader.readAsDataURL(e.target.files[0]);
+      const file = e.target.files[0];
+
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecciona una imagen válida.');
+        return;
+      }
+
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        alert('El tamaño del archivo es demasiado grande. Por favor, selecciona una imagen más pequeña.');
+        return;
+      }
+
+      reader.readAsDataURL(file);
     }
   };
-  
-    
 
   useEffect(() => {
     const fetchSchedulesData = async () => {
@@ -209,7 +246,7 @@ const defaultValues = {
         console.log(error);
       }
     };
-  
+
     fetchSchedulesData();
   }, []);
 
@@ -222,47 +259,63 @@ const defaultValues = {
         console.log(error);
       }
     };
-  
+
     fetchUnitsData();
   }, []);
-  
 
+  // const handleSave = async (data: UserData) => {
+  //   try {
+  //     await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`, {
+  //       name: data.name,
+  //       lastName: data.lastName,
+  //       ci: data.ci,
+  //       email: data.email,
+  //       phone: data.phone,
+  //       address: data.address,
+  //       nationality: data.nationality,
+  //       unity: data.unity,
+  //       charge: data.charge,
+  //       schedule: data.schedule,
+  //       file: previewfile,
+  //     });
+  //     toggle();
+  //     reset();
+  //     window.location.reload()
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const handleSave = async (data: UserData) => {
+
+    console.log("Data enviada al servidor:", data);
+
     try {
-      const transformedData: { [key: string]: string | number } = {
-        name: data.name,
-        lastName: data.lastName,
-        ci: data.ci,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        nationality: data.nationality,
-        unity: data.unity,
-        charge: data.charge,
-        schedule: data.schedule,
-        file: data.file,
-      };
-  await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`,{
-    name: data.name,
-    lastName: data.lastName,
-    ci: data.ci,
-    email: data.email,
-    phone: data.phone,
-    address: data.address,
-    nationality: data.nationality,
-    unity: data.unity,
-    charge: data.charge,
-    schedule: data.schedule, 
-    file:user.file,
-  });
-    toggle();
-    reset();
-    window.location.reload()
-  } catch (error) {
-    console.log(error);
-  }
-};
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`, {
+        ...data,
+        file: previewfile,
+      });
+
+      // Si la operación fue exitosa:
+      if (response.status === 200 || response.status === 201) {
+        // Opcionalmente, puedes revisar la respuesta del backend para mensajes adicionales o confirmación.
+        setMessage("Usuario agregado con éxito.");
+
+        toggle();
+        reset(defaultValues);
+        setPreviewfile(null);
+        
+      } else {
+        // Si el servidor retorna un código que no es de éxito, maneja el error.
+        setMessage(`Error: ${response.data?.message || "No se pudo agregar al usuario."}`);
+      }
+    } catch (error) {
+      console.log(error);
+      // En caso de error, muestra un mensaje al usuario.
+      // Mostrar el error con el error del servidor.
+      setMessage(`Error: "Ocurrió un error al agregar al usuario."}`);
+    }
+  };
 
   const handleClose = () => {
     toggle()
@@ -294,7 +347,7 @@ const defaultValues = {
     }
   };
 
-  fetchCharges()
+  // fetchCharges()
 
   const fetchSchedules = async () => {
     try {
@@ -306,7 +359,7 @@ const defaultValues = {
     }
   };
 
-  fetchSchedules()
+  // fetchSchedules()
 
   const fetchUnits = async () => {
     try {
@@ -318,316 +371,333 @@ const defaultValues = {
     }
   };
 
-  fetchUnits()
-  
+  useEffect(() => {
+    fetchCharges();
+    fetchSchedules();
+    fetchUnits();
+  }, []);
 
-    function handleOpenAddSpecialSchedule(): void {
-     
-    }
+  // fetchUnits()
+
+
+  function handleOpenAddSpecialSchedule(): void {
+
+  }
 
   return (
     <>
-    <Button onClick={handleClose}
-     variant="contained"
-     color="primary"
-     sx={{
-       borderRadius: '8px', 
-       marginBottom: '15px',
-       fontSize: '12px', 
-       fontWeight: 'bold',
-       padding: '10px 20px',
-       boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)', 
-       '&:hover': {
-         backgroundColor: '#1565c0', 
-        
-       },
-     }}
+      <Button onClick={handleClose}
+        variant="contained"
+        color="primary"
+        sx={{
+          borderRadius: '8px',
+          marginBottom: '15px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          padding: '10px 20px',
+          boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
+          '&:hover': {
+            backgroundColor: '#1565c0',
 
-    >
-      Agregar Usuario
-    </Button>
-    
-    <Drawer
-      open={open}
-      anchor='right'
-      variant='temporary'
-      onClose={handleClose}
-      ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200} } }}
-    >
-      <Header>
-        <Typography variant='h6'>Agregar Usuario</Typography>
-        <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
-          <Icon icon='mdi:close' fontSize={20} />
-        </IconButton>
-        
-      </Header>
-      
-      
-      <Box sx={{ p: 5 }}>
-      <form onSubmit={handleSubmit(handleSave)}>
-      <FormControl fullWidth sx={{ mb: 4 }}>
-            <Grid item xs={12} md={12}>
-              <UploadButton htmlFor='file'>
-                <CloudUploadIcon fontSize='large' />
-                <Typography>Seleccionar Imagen</Typography>
-                <input
-                  id='file'
-                  type='file'
-                  accept='image/*'
-                  style={{ display: 'none' }}
-                  onChange={handlefileChange}
-                />
-              </UploadButton>
-              {previewfile && (
-                <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                  <img
-                    src={previewfile}
-                    alt='Preview'
-                    style={{ maxWidth: '100%', maxHeight: '300px' }}
+          },
+        }}
+
+      >
+        Agregar Usuario
+      </Button>
+
+      <Drawer
+        open={open}
+        anchor='right'
+        variant='temporary'
+        onClose={handleClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200 } } }}
+      >
+        <Header>
+          <Typography variant='h6'>Agregar Usuario</Typography>
+          <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+
+        </Header>
+
+
+        <Box sx={{ p: 5 }}>
+          <form onSubmit={handleSubmit(handleSave)}>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Grid item xs={5} md={5}>
+                <UploadButton htmlFor='file'>
+                  <CloudUploadIcon fontSize='large' />
+                  <Typography>Seleccionar Imagen</Typography>
+                  <input
+                    id='file'
+                    type='file'
+                    accept='image/*'
+                    style={{ display: 'none' }}
+                    onChange={handlefileChange}
                   />
-                </div>
+                </UploadButton>
+                {previewfile && (
+                  <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                    <img
+                        src={previewfile}
+                        alt='Preview'
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '200px',
+                          borderRadius: '100%', // Aplicar el borde circular
+                          objectFit: 'cover', // Ajustar la imagen para cubrir el círculo
+                        }}
+                      />
+                  </div>
+                )}
+              </Grid>
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='name'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Nombre'
+                    onChange={onChange}
+                    error={Boolean(errors.name)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='lastName'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Apellido'
+                    onChange={onChange}
+                    error={Boolean(errors.lastName)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.lastName && <FormHelperText sx={{ color: 'error.main' }}>{errors.lastName.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='email'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    type='email'
+                    value={value}
+                    label='Correo Electronico'
+                    onChange={onChange}
+                    error={Boolean(errors.email)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='ci'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='CI'
+                    onChange={onChange}
+                    error={Boolean(errors.ci)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.ci && <FormHelperText sx={{ color: 'error.main' }}>{errors.ci.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='phone'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Celular'
+                    onChange={onChange}
+                    error={Boolean(errors.phone)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.phone && <FormHelperText sx={{ color: 'error.main' }}>{errors.phone.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='address'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Direccion'
+                    onChange={onChange}
+                    error={Boolean(errors.address)}
+                    inputProps={{ autoComplete: "off" }}
+                  />
+                )}
+              />
+              {errors.address && <FormHelperText sx={{ color: 'error.main' }}>{errors.address.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='nationality'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    options={nationalities} // Usa la lista de opciones de nacionalidades
+                    getOptionLabel={(option) => option.label}
+                    onChange={(_, newValue: { label: string } | null) => {
+                      onChange(newValue ? newValue.label : ''); // Actualiza el valor del campo de nacionalidad en el controlador
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        value={value}
+                        {...params}
+                        label='Nacionalidad'
+                        onChange={onChange}
+                        error={Boolean(errors.nationality)}
+                        inputProps={{ ...params.inputProps, autoComplete: "on" }}
+                      />
+                    )}
+                  />
+                )}
+              />
+              {errors.nationality && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors.nationality.message}
+                </FormHelperText>
               )}
-            </Grid>
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4}}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Nombre'
-                  onChange={onChange}
-                  error={Boolean(errors.name)}
-                  inputProps={{ autoComplete: "off"}}
-                />
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='unity'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    options={units}
+                    getOptionLabel={option => option.name}
+                    // getOptionSelected
+                    isOptionEqualToValue={(option: Unit, value: Unit) => option._id === value._id}
+                    onChange={(_, newValue: Unit | null) => {
+                      onChange(newValue ? newValue._id : null)
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        value={value}
+                        {...params}
+                        label='Unidad'
+                        error={Boolean(errors.unity)}
+                        helperText={errors.unity ? errors.unity.message : ''}
+                        inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+                      />
+                    )}
+                  />
+                )}
+              />
+              {errors.unity && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors.unity.message}
+                </FormHelperText>
               )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='lastName'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Apellido'
-                  onChange={onChange}
-                  error={Boolean(errors.lastName)}
-                  inputProps={{ autoComplete: "off"}}
-                />
-              )}
-            />
-            {errors.lastName && <FormHelperText sx={{ color: 'error.main' }}>{errors.lastName.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='email'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  type='email'
-                  value={value}
-                  label='Correo Electronico'
-                  onChange={onChange}
-                  error={Boolean(errors.email)}
-                  inputProps={{ autoComplete: "off"}}
-                />
-              )}
-            />
-            {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='ci'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='CI'
-                  onChange={onChange}
-                  error={Boolean(errors.ci)}
-                  inputProps={{ autoComplete: "off"}}
-                />
-              )}
-            />
-            {errors.ci && <FormHelperText sx={{ color: 'error.main' }}>{errors.ci.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='phone'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Celular'
-                  onChange={onChange}
-                  error={Boolean(errors.phone)}
-                  inputProps={{ autoComplete: "off"}}
-                />
-              )}
-            />
-            {errors.phone && <FormHelperText sx={{ color: 'error.main' }}>{errors.phone.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='address'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Direccion'
-                  onChange={onChange}
-                  error={Boolean(errors.address)}
-                  inputProps={{ autoComplete: "off"}}
-                />
-              )}
-            />
-            {errors.address && <FormHelperText sx={{ color: 'error.main' }}>{errors.address.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='nationality'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <Autocomplete
-                  options={nationalities} // Usa la lista de opciones de nacionalidades
-                  getOptionLabel={(option) => option.label}
-                  onChange={(event, newValue) => {
-                    onChange(newValue ? newValue.label : ''); // Actualiza el valor del campo de nacionalidad en el controlador
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label='Nacionalidad'
-                      onChange={onChange}
-                      error={Boolean(errors.nationality)}
-                      inputProps={{ ...params.inputProps, autoComplete: "on"}}
-                    />
-                  )}
-                />
-              )}
-            />
-            {errors.nationality && (
-              <FormHelperText sx={{ color: 'error.main' }}>
-                {errors.nationality.message}
-              </FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='unity'
-              control={control}
-              rules={{ required: true }}
-              render={({ field, fieldState, formState }) => (
-                <Autocomplete
-                  options={units}
-                  getOptionLabel={(option) => option.name}
-                  onChange={(event, newValue) => {
-                    field.onChange(newValue ? newValue.name : '');
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label='Unidad'
-                      onChange={field.onChange}
-                      error={Boolean(formState.errors.unity)}
-                      inputProps={{ ...params.inputProps, autoComplete: 'off' }}
-                    />
-                  )}
-                />
-              )}
-            />
-            {errors.unity && (
-              <FormHelperText sx={{ color: 'error.main' }}>
-                {errors.unity.message}
-              </FormHelperText>
-            )}
-          </FormControl>
+            </FormControl>
 
-          
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='charge'
-              control={control}
-              rules={{ required: true }}
-              render={({ field, fieldState, formState }) => (
-                <Autocomplete
-                  options={charges} // Usar la lista de cargos obtenida del estado local
-                  getOptionLabel={(option) => option.name}
-                  onChange={(event, newValue) => {
-                    field.onChange(newValue ? newValue.name : ''); // Actualizar el valor del campo de cargos en el controlador
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label='Cargos'
-                      onChange={field.onChange}
-                      error={Boolean(formState.errors.charge)}
-                      inputProps={{ ...params.inputProps, autoComplete: 'on' }}
-                    />
-                  )}
-                />
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='charge'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    options={charges} // Usar la lista de cargos obtenida del estado local
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option: Charge, value: Charge) => option._id === value._id}
+                    onChange={(_, newValue: Charge | null) => {
+                      onChange(newValue ? newValue._id : null);
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        value={value}
+                        {...params}
+                        label='Cargos'
+                        error={Boolean(errors.charge)}
+                        helperText={errors.charge ? errors.charge.message : ''}
+                        inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+                      />
+                    )}
+                  />
+                )}
+              />
+              {errors.charge && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors.charge.message}
+                </FormHelperText>
               )}
-            />
-            {errors.charge && (
-              <FormHelperText sx={{ color: 'error.main' }}>
-                {errors.charge.message}
-              </FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='schedule'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <Autocomplete
-                  options={schedules}
-                  getOptionLabel={(option) => option.name}
-                  onChange={(event, newValue) => {
-                    onChange(newValue ? newValue.name : '');
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label='Horarios'
-                      onChange={onChange}
-                      error={Boolean(errors.schedule)}
-                      inputProps={{ ...params.inputProps, autoComplete: 'off' }}
-                    />
-                  )}
-                />
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='schedule'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    options={schedules}
+                    getOptionLabel={(option) => option.name}
+                    onChange={(_, newValue: Schedule | null) => {
+                      onChange(newValue ? newValue._id : null);
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        value={value}
+                        {...params}
+                        label='Horarios'
+                        error={Boolean(errors.schedule)}
+                        helperText={errors.schedule ? errors.schedule.message : ''}
+                        inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+                      />
+                    )}
+                  />
+                )}
+              />
+              {errors.schedule && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors.schedule.message}
+                </FormHelperText>
               )}
-            />
-            {errors.schedule && (
-              <FormHelperText sx={{ color: 'error.main' }}>
-                {errors.schedule.message}
-              </FormHelperText>
-            )}
-          </FormControl>
-           
-        {/* <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule}  /> */}
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button 
-              size='large' type='submit' variant='contained' sx={{ mr: 6 }}
-            > Aceptar </Button>
-            <Button size='large' variant='outlined' color='secondary' onClick={handleClose}
-            > Cancelar </Button>
-          </Box>
-        </form>
-      </Box>
-    </Drawer>
+            </FormControl>
+
+            <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                size='large' type='submit' variant='contained' sx={{ mr: 6 }}
+              > Aceptar </Button>
+              <Button size='large' variant='outlined' color='secondary' onClick={handleClose}
+              > Cancelar </Button>
+            </Box>
+          </form>
+        </Box>
+      </Drawer>
     </>
   )
 }

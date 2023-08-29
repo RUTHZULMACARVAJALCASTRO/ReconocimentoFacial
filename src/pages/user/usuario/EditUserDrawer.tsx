@@ -338,39 +338,40 @@ const defaultValues = {
       </Header>
       <Box sx={{ p: 5 }}>
           <form onSubmit={handleSubmit}>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='file'
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    {user.file ? (
-                      <img
-                        src={convertBase64ToImageUrl(user.file)}
-                        alt='Imagen del activo'
-                        width={100}
-                        height={100}
-                        style={{ borderRadius: '50%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: '100px',
-                          height: '100px',
-                          borderRadius: '50%',
-                          backgroundColor: '#dcdcdc',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Typography> </Typography>
-                      </Box>
-                    )}
-                  </div>
-                )}
-              />
-            </FormControl>
+          <FormControl fullWidth sx={{ mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Controller
+              name='file'
+              control={control}
+              render={({ field }) => (
+                <div>
+                  {user.file ? (
+                    <img
+                      src={convertBase64ToImageUrl(user.file)}
+                      alt='Imagen'
+                      width={150} 
+                      height={150} 
+                      style={{ borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: '150px', 
+                        height: '150px', 
+                        borderRadius: '50%',
+                        backgroundColor: '#dcdcdc',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography> </Typography>
+                    </Box>
+                  )}
+                </div>
+              )}
+            />
+          </FormControl>
+
             <FormControl fullWidth sx={{ mb: 4 }}>
               <UploadButton htmlFor='file'>
                 <CloudUploadIcon fontSize='large' />

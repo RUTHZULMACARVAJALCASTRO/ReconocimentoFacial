@@ -66,34 +66,34 @@ const schema = yup.object().shape({
 const defaultValues = {
   name: '',
   description: '',
-  
+
 }
 
-  const SidebarEditUser = ( props: { userId: string } ) => {
+const SidebarEditUser = (props: { userId: string }) => {
 
-  const [state,setState]=useState<boolean>(false)
-  const userId=props.userId;
-  const [user,setUser]=useState<UserData>({
+  const [state, setState] = useState<boolean>(false)
+  const userId = props.userId;
+  const [user, setUser] = useState<UserData>({
     name: '',
     description: '',
   });
   const [image, setImage] = useState<File | null>(null)
   const [previewfile, setPreviewfile] = useState<string | null>(null)
-  
+
 
   const toggleDrawer =
     (open: boolean) =>
-    (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event.type === 'keydown' &&
-        ((event as React.KeyboardEvent).key === 'Tab' ||
-          (event as React.KeyboardEvent).key === 'Shift')
-      ) {
-        return;
-      }
+      (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (
+          event.type === 'keydown' &&
+          ((event as React.KeyboardEvent).key === 'Tab' ||
+            (event as React.KeyboardEvent).key === 'Shift')
+        ) {
+          return;
+        }
 
-      setState(open);
-    };
+        setState(open);
+      };
 
   // ** Hooks
   const {
@@ -105,81 +105,81 @@ const defaultValues = {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
-  
 
 
-  const getData = async() => {
+
+  const getData = async () => {
     await axios
-    .get<UserData>(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`)
-    .then(response => {
-      setUser(response.data)
-      // console.log("edit user"+user.file)
-    })
-    .catch(error => {
-      console.error(error);
-    });
+      .get<UserData>(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${userId}`)
+      .then(response => {
+        setUser(response.data)
+        // console.log("edit user"+user.file)
+      })
+      .catch(error => {
+        console.error(error);
+      });
   };
-  
+
   useEffect(() => {
     if (userId) {
       getData();
     }
   }, [userId]);
 
-  const  handleChange =(e: ChangeEvent<HTMLInputElement>)=>{
-    setUser({...user, [e.target.name]:e.target.value})
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUser({ ...user, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit= async (e: FormEvent )=>{
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     console.log('userrrrrrrrrrrrrrrrr', user)
     try {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL}edit/${userId}`, user )
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}edit/${userId}`, user)
       console.log(user)
       console.log(response.data);
       window.location.reload()
-    } catch ( error ) {
+    } catch (error) {
       console.error(error);
     }
-    
+
   }
-  
+
 
   return (
     <>
-    <Button
-    style={{color:'#0074D9',borderRadius:'10px'}}
-    onClick={toggleDrawer(true)}>
-      <Icon icon='mdi:pencil-outline' fontSize={20} /> EDITAR
-    </Button>
-    <Drawer
-    style={{border:'2px solid white', margin:'theme.spacing(2)'}}
-      open={state}
-      onClose={toggleDrawer(false)}
-      anchor='right'
-      variant='temporary'
-      ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800} } }}
-    >
-      <Header>
-        <Typography variant='h6'>Editar Cargo</Typography>
-        <IconButton size='small' onClick={toggleDrawer(false)} sx={{ color: 'text.primary' }}>
-          <Icon icon='mdi:close' fontSize={20} /> 
-        </IconButton>
-      </Header>
-      <Box sx={{ p: 5 }}>
-        
-            <FormControl fullWidth sx={{ mb: 4 }} style={{ borderRadius: '50%', textAlign: 'center' }}>
+      <Button
+        style={{ color: '#0074D9', borderRadius: '10px' }}
+        onClick={toggleDrawer(true)}>
+        <Icon icon='mdi:pencil-outline' fontSize={20} /> EDITAR
+      </Button>
+      <Drawer
+        style={{ border: '2px solid white', margin: 'theme.spacing(2)' }}
+        open={state}
+        onClose={toggleDrawer(false)}
+        anchor='right'
+        variant='temporary'
+        ModalProps={{ keepMounted: true }}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 400, sm: 800 } } }}
+      >
+        <Header>
+          <Typography variant='h6'>Editar Cargo</Typography>
+          <IconButton size='small' onClick={toggleDrawer(false)} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Header>
+        <Box sx={{ p: 5 }}>
+
+          <FormControl fullWidth sx={{ mb: 4 }} style={{ borderRadius: '50%', textAlign: 'center' }}>
             <Controller
               name='name'
               control={control}
               rules={{ required: false }}
-              render={({ field}) => (
+              render={({ field }) => (
                 <TextField
-                {...field}
+                  {...field}
                   label='Nombre'
-                  value={ user.name }
-                  onChange={ handleChange } 
+                  value={user.name}
+                  onChange={handleChange}
                   error={Boolean(errors.name)}
                   autoComplete='off'
                 />
@@ -192,12 +192,12 @@ const defaultValues = {
               name='description'
               control={control}
               rules={{ required: false }}
-              render={({ field}) => (
+              render={({ field }) => (
                 <TextField
-                {...field}
+                  {...field}
                   label='Descripcion'
-                  onChange={ handleChange }
-                  value={ user.description }
+                  onChange={handleChange}
+                  value={user.description}
                   error={Boolean(errors.description)}
                   autoComplete='off'
                 />
@@ -205,9 +205,9 @@ const defaultValues = {
             />
             {errors.description && <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>}
           </FormControl>
-         
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button 
+            <Button
               size='large' type='submit' variant='contained' sx={{ mr: 6 }}
             >
               Aceptar
@@ -216,9 +216,9 @@ const defaultValues = {
               Cancelar
             </Button>
           </Box>
-      </Box>
-    </Drawer>
-  </>
+        </Box>
+      </Drawer>
+    </>
   )
 }
 
