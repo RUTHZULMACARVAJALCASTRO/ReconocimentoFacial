@@ -13,13 +13,14 @@ import IconButton from '@mui/material/IconButton';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller } from 'react-hook-form'
-import Icon from 'src/@core/components/icon'
-import axios from 'axios'
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm, Controller } from 'react-hook-form';
+import Icon from 'src/@core/components/icon';
+import axios from 'axios';
 import Autocomplete from '@mui/material/Autocomplete';
 import SidebarAddSpecialSchedule from '../horariosEspeciales/AddSpecialSchedule';
+import SpecialScheduleForm from '../horariosEspeciales/AddSpecialSchedule';
 
 interface SidebarAddUserType {
   open: boolean
@@ -148,6 +149,11 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
   const [units, setUnits] = useState<Unit[]>([]);
   const toggleAddSpecialSchedule = () => setAddSpecialScheduleOpen(!addSpecialScheduleOpen)
   const [message, setMessage] = useState<string | null>(null);
+  // special schedule
+  const [showSpecialScheduleForm, setShowSpecialScheduleForm] = useState(false);
+  const [isSpecialScheduleOpen, setIsSpecialScheduleOpen] = useState(false);
+  // const [specialSchedule, setSpecialSchedule] = useState(null);
+
   const [user, setUser] = useState<UserData>({
     name: '',
     lastName: '',
@@ -161,6 +167,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     charge: '',
     schedule: ''
   })
+
   useEffect(() => {
     const fetchChargesData = async () => {
       try {
@@ -185,24 +192,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
-
-  // const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const reader = new FileReader()
-  //   reader.onload = function () {
-  //     if (reader.readyState === 2) {
-  //       const formattedDate = new Date().toISOString()
-  //       console.log(formattedDate)
-  //       setUser({ ...user, file: reader.result as string })
-  //       setPreviewfile(reader.result as string)
-  //       console.log(previewfile);
-  //     }
-  //   }
-
-  //   if (e.target.files && e.target.files.length > 0) {
-  //     console.log(e.target.files)
-  //     reader.readAsDataURL(e.target.files[0])
-  //   }
-  // }
 
   const handlefileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const reader = new FileReader();
@@ -263,29 +252,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     fetchUnitsData();
   }, []);
 
-  // const handleSave = async (data: UserData) => {
-  //   try {
-  //     await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL}`, {
-  //       name: data.name,
-  //       lastName: data.lastName,
-  //       ci: data.ci,
-  //       email: data.email,
-  //       phone: data.phone,
-  //       address: data.address,
-  //       nationality: data.nationality,
-  //       unity: data.unity,
-  //       charge: data.charge,
-  //       schedule: data.schedule,
-  //       file: previewfile,
-  //     });
-  //     toggle();
-  //     reset();
-  //     window.location.reload()
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const handleSave = async (data: UserData) => {
 
     console.log("Data enviada al servidor:", data);
@@ -304,7 +270,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
         toggle();
         reset(defaultValues);
         setPreviewfile(null);
-        
+
       } else {
         // Si el servidor retorna un código que no es de éxito, maneja el error.
         setMessage(`Error: ${response.data?.message || "No se pudo agregar al usuario."}`);
@@ -359,7 +325,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     }
   };
 
-  // fetchSchedules()
 
   const fetchUnits = async () => {
     try {
@@ -377,12 +342,28 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     fetchUnits();
   }, []);
 
-  // fetchUnits()
+  const handleOpenSpecialSchedule = () => {
+    setIsSpecialScheduleOpen(true);
+  };
 
+  const handleCloseSpecialSchedule = () => {
+    setIsSpecialScheduleOpen(false);
+  };
 
-  function handleOpenAddSpecialSchedule(): void {
+  const handleSaveSpecialSchedule = (data: any) => {
+    // Aquí puedes manejar la data del horario especial
+    console.log(data);
+    handleCloseSpecialSchedule();
+  };
 
+  const handletoggle = () => {
+    console.log('toggle');
   }
+
+  // const handleSpecialSchedule = (newSchedule) => {
+  //   setSpecialSchedule(newSchedule);
+  //   setShowSpecialScheduleForm(false);
+  // };
 
   return (
     <>
@@ -422,11 +403,10 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 
         </Header>
 
-
         <Box sx={{ p: 5 }}>
           <form onSubmit={handleSubmit(handleSave)}>
             <FormControl fullWidth sx={{ mb: 4 }}>
-              <Grid item xs={5} md={5}>
+              <Grid item xs={12} md={12}>
                 <UploadButton htmlFor='file'>
                   <CloudUploadIcon fontSize='large' />
                   <Typography>Seleccionar Imagen</Typography>
@@ -439,17 +419,12 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
                   />
                 </UploadButton>
                 {previewfile && (
-                  <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                  <div style={{ textAlign: 'center', marginTop: '16px' }}>
                     <img
-                        src={previewfile}
-                        alt='Preview'
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '200px',
-                          borderRadius: '100%', // Aplicar el borde circular
-                          objectFit: 'cover', // Ajustar la imagen para cubrir el círculo
-                        }}
-                      />
+                      src={previewfile}
+                      alt='Preview'
+                      style={{ maxWidth: '100%', maxHeight: '300px' }}
+                    />
                   </div>
                 )}
               </Grid>
@@ -686,7 +661,30 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
               )}
             </FormControl>
 
-            <SidebarAddSpecialSchedule open={addSpecialScheduleOpen} toggle={toggleAddSpecialSchedule} />
+            <Button onClick={handleOpenSpecialSchedule}
+              variant="contained"
+              color="primary"
+              sx={{
+                borderRadius: '8px',
+                marginBottom: '15px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                padding: '10px 20px',
+                boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
+                '&:hover': {
+                  backgroundColor: '#1565c0',
+
+                },
+              }}
+            > Asignar Horario Especial </Button>
+
+            <SpecialScheduleForm
+              open={isSpecialScheduleOpen}
+              onClose={handleCloseSpecialSchedule}
+              // onSave={handleSaveSpecialSchedule}
+              onCancel={handleCloseSpecialSchedule}
+              toggle={handletoggle}
+            />
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Button
@@ -701,5 +699,4 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
     </>
   )
 }
-
 export default SidebarAddUser

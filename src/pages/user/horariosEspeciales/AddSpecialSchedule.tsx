@@ -1,341 +1,250 @@
-// Importaciones
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Checkbox, Collapse, Drawer, FormControlLabel, FormGroup, Grid, Grow, IconButton, List, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Paper, Switch, TextField, Typography } from '@mui/material';
 import Box, { BoxProps } from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
+import Icon from 'src/@core/components/icon'
 import axios from 'axios';
 import React, { useState, Children } from 'react';
+import { Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
-import { Controller, useForm, useFormContext } from 'react-hook-form';
-
-import Icon from 'src/@core/components/icon'
-
-import * as yup from 'yup';
-
-// Creacion de Interfaces
-interface SidebarAddSpecialScheduleType {
-  open: boolean
+// onSave: (data: any) => void;
+type SpecialScheduleFormProps = {
+  onCancel: () => void;
+  open: boolean;
+  onClose: () => void;
   toggle: () => void
-}
-
-interface Children {
-  _id: string,
-  name: string,
-  children: Children[]
-}
-interface Schedule {
-  day?: number,
-  morningEntry?: string,
-  morningExit?: string,
-  afternoonEntry?: string,
-  afternoonExit?: string,
-  entryTolerance?: number,
-  exitTolerance?: number,
-}
-
-interface ScheduleData {
-  name: string,
-  schedules: Schedule[],
-  specialSchedule?: string
-}
-
-// Variables  -  Constantes
-
-const showErrors = (field: string, valueLen: number, min: number) => {
-  if (valueLen === 0) {
-    return `El campo ${field} es requerido`
-  } else if (valueLen > 0 && valueLen < min) {
-    return `${field} debe tener al menos ${min} caracteres`
-  } else {
-    return ''
-  }
-}
-
-const Header = styled(Box)<BoxProps>(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(3, 4, '4', '5'),
-  justifyContent: 'space-between',
-  backgroundColor: theme.palette.background.default,
-}))
-
-const schema = yup.object().shape({
-  name: yup
-    .string()
-    .min(4, obj => showErrors('Nombre', obj.value.length, obj.min))
-    .required(),
-
-  schedules: yup
-    .array().of(
-      yup.object().shape({
-        day: yup.number().required(),
-        morningEntry: yup.string().required(),
-        morningExit: yup.string().required(),
-        afternoonEntry: yup.string().required(),
-        afternoonExit: yup.string().required(),
-        entryTolerance: yup.number().required(),
-        exitTolerance: yup.number().required(),
-      })
-    ),
-  specialSchedule: yup.string().notRequired(),
-})
-
-const defaultValues = {
-  name: '',
-  schedules: [{
-    day: 0,
-    morningEntry: '',
-    morningExit: '',
-    afternoonEntry: '',
-    afternoonExit: '',
-    entryTolerance: 0,
-    exitTolerance: 0,
-  }],
-  specialSchedule: ''
 };
 
-const SidebarAddSpecialSchedule = (props: SidebarAddSpecialScheduleType) => {
-  const { open, toggle } = props;
-  const [checked, setChecked] = React.useState(false);  
-  const[lunes,setLunes]=useState<Schedule>();
-  const [children, setChildren] = useState<Children[]>([])
-  const [schedule, setSchedule] = useState<ScheduleData>({
-    name: '',
-    schedules: [],
-    specialSchedule: ''
+const SpecialScheduleForm: React.FC<SpecialScheduleFormProps> = ({ onCancel, open, onClose }) => {
+
+  const { control, handleSubmit, setValue, formState: { errors }, watch } = useForm({
+    defaultValues: {
+      name: '',
+      schedules: Array(7).fill({ entryTolerance: 0, exitTolerance: 0 }),
+      isPermanent: true,
+      temporalDateRange: [],
+      startDate: null,  // Agregado
+      endDate: null     // Agregado
+    }
   });
+
+  const handleSave = (data: any) => {
+    console.log('Data del formulario', data);
+
+    if (!checked) {
+      delete data.startDate;
+      delete data.endDate;
+    }
+
+    const filteredSchedules = data.schedules.filter((schedule: any) => schedule.day !== null);
+    const finalData = {
+      ...data,
+      schedules: filteredSchedules
+    };
+    onSave(finalData);
+  };
+
+  const onSave = async (data: any) => {
+    try {
+      await axios.post(`https://khaki-mirrors-shop.loca.lt/api/special-schedule`, data);
+      alert('Horario especial creado con éxito!');
+      onClose();  // Cierra el formulario
+    } catch (error) {
+      console.error('Error al crear el horario especial:', error);
+      alert('Error al crear el horario especial. Intente nuevamente.');
+    }
+  };
+
+  const [checked, setChecked] = useState(false);
 
   const handleChange = () => {
     setChecked((prev) => !prev);
   };
-  const updateLunes = (field:string, value:any) => {
-    if(field==="day")value.string
-    setLunes((prevLunes) => ({
-      ...prevLunes,
-      [field]: value,
-    }));
-  };
-
-  const [openList, setOpenList] = useState(true);
-
-  const { reset, control, setValue, handleSubmit, formState: { errors }, getValues } = useForm({
-    defaultValues,
-    mode: 'onChange',
-    resolver: yupResolver(schema)
-  });
-
-
-
-  const handleSave = async (data: ScheduleData) => {
-    try {
-      await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULES}`, {
-        name: data.name,
-        schedules: data.schedules,
-        specialSchedule: data.specialSchedule
-      });
-      toggle();
-      reset();
-      setSchedule(defaultValues)
-    } catch (error) {
-      // console.log(error);
-    }
-  };
-
-  const handleClose = () => {
-    toggle()
-    reset()
-  }
-
-  const fetchSchedules = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULES}`);
-      const schedules = response.data;
-      return schedules;
-    } catch (error) {
-      return [];
-    }
-  };
-
-  fetchSchedules();
-
-
-  const handleClick = () => {
-    setOpenList(!openList);
-  };
 
   const icon = (
-    <Paper sx={{ m: 1 }} elevation={10}>
-      <Box sx={{ display: 'flex' }}>
-        <Box component="div" sx={{ width: 300, height: 60, marginRight: '10px' }}>
-          <TextField
-            id="date"
-            label="Fecha de inicio"
-            type="date"
-            defaultValue="2017-05-24"
-            InputLabelProps={{
-              shrink: true,
-            }}  
-            sx={{ width: '100%', height: '100%' }} // Añadido para ajustar el TextField al tamaño del Box
-          /> 
-        </Box>
-        <Box component="div" sx={{ width: 300, height: 60 }}>
-          <TextField
-            id="date"
-            label="Fecha Final"
-            type="date"
-            defaultValue="2017-05-24"
-            InputLabelProps={{
-              shrink: true,
-            }}  
-            sx={{ width: '100%', height: '100%' }} // Añadido para ajustar el TextField al tamaño del Box
-          /> 
-        </Box>
+    <Paper elevation={3}>
+      <Box>
+        <Controller
+          name="startDate"
+          control={control}
+          rules={{
+            required: checked ? "La fecha de inicio es obligatoria" : false,
+          }}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              type="date"
+              label="Fecha de inicio"
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
+        />
+        {errors.startDate && <Typography variant="caption" color="error">{errors.startDate.message}</Typography>}
+
+        {/* validate: value => */}
+        {/* !value || new Date(value) > new Date(watch("startDate")) || "La fecha de fin debe ser posterior a la fecha de inicio", */}
+        <Controller
+          name="endDate"
+          control={control}
+          rules={{
+            required: checked ? "La fecha de fin es obligatoria" : false,
+
+          }}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              type="date"
+              label="Fecha de fin"
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
+        />
+        {errors.endDate && <Typography variant="caption" color="error">{errors.endDate.message}</Typography>}
       </Box>
     </Paper>
+
   );
-  
-  
+
+  const Header = styled(Box)<BoxProps>(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(3, 4, '4', '5'),
+    justifyContent: 'space-between',
+    backgroundColor: theme.palette.background.default,
+  }))
+
+  const dias = [
+    { nombre: 'Lunes', value: 1 },
+    { nombre: 'Martes', value: 2 },
+    { nombre: 'Miercoles', value: 3 },
+    { nombre: 'Jueves', value: 4 },
+    { nombre: 'Viernes', value: 5 },
+    { nombre: 'Sabado', value: 6 },
+    { nombre: 'Domingo', value: 0 },
+  ]
+
   return (
     <>
-      <Button onClick={handleClose}
-        variant="contained"
-        color="primary"
-        sx={{
-          borderRadius: '8px',
-          marginBottom: '15px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          padding: '10px 20px',
-          boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
-          '&:hover': {
-            backgroundColor: '#1565c0',
-
-          },
-        }}
-      >
-        Crear Horario Especial
-      </Button>
-
       <Drawer
         open={open}
         anchor='right'
         variant='temporary'
-        onClose={handleClose}
+        onClose={onClose}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200 } } }}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', sm: '90%', md: '80%', lg: '70%' } } }} >
-
+      >
         <Header>
-          <Typography variant='h6'>Agregar Horario Especial</Typography>
-          <IconButton size='large' onClick={handleClose} sx={{ color: 'text.primary' }}>
+          <Typography variant='h6'>Horario Especial</Typography>
+          <IconButton size='large' onClick={onCancel} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Header>
 
-        <Box sx={{ p: 4 }}>
+        <Box sx={{ p: 5 }}>
           <form onSubmit={handleSubmit(handleSave)}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
               Nombre
             </Typography>
 
             <Controller
-              name="name"
+              name='name'
               control={control}
-              render={({ field }) => (
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
                 <TextField
-                  label="Nombre"
-                  {...field}
+                  value={value}
+                  label='Nombre'
+                  onChange={onChange}
                   error={Boolean(errors.name)}
-                  helperText={errors.name ? 'El nombre es requerido' : ''}
-                  fullWidth
+                  inputProps={{ autoComplete: "off" }}
                 />
               )}
             />
 
-            <Box sx={{ marginTop: 4 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                Horarios
-              </Typography>
-              <Grid container spacing={2}>
-                {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day, index) => (
+            <Box sx={{ marginTop: 3 }}>
+              {dias.map((dia, index) => (
+                <Box key={index} sx={{ marginBottom: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Controller
+                        name={`schedules.${index}.day`}
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <Checkbox
+                            checked={value === dia.value}
+                            onChange={e => onChange(e.target.checked ? dia.value : null)}
+                            color="primary"
+                          />
+                        )}
+                      />
+                    }
+                    label={dia.nombre}
+                  />
 
-                  <Grid item xs={12} key={index}>
-                    <FormControlLabel
-                      key={index}
-                      control={<Checkbox name={`schedules[${index}].selected`} />}
-                      label={day}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: 2 }}>
+                    {['morningEntry', 'morningExit', 'afternoonEntry', 'afternoonExit'].map((fieldKey) => (
+                      <Controller
+                        key={fieldKey}
+                        name={`schedules.${index}.${fieldKey}` as any}
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                          <TextField
+                            type="time"
+                            label={fieldKey.replace(/[A-Z]/g, match => ` ${match.toLowerCase()}`)}
+                            {...field}
+                            sx={{ marginBottom: 1 }}
+                            fullWidth
+                          />
+                        )}
+                      />
+                    ))}
+                    <Controller
+                      name={`schedules.${index}.entryTolerance`}
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <TextField
+                          type="number"
+                          label="Tolerancia de Entrada (min)"
+                          {...field}
+                          sx={{ marginBottom: 1 }}
+                          fullWidth
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              step: 1
+                            }
+                          }}
+                        />
+                      )}
                     />
-                    <FormGroup>
-                      <Grid container spacing={2}>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Entrada mañana</Typography>
-                          <TextField
-                          value={lunes?.morningEntry}
-                          onChange={(e) => updateLunes('morningEntry', e.target.value)}
-                                type="time"
-                                fullWidth
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Salida mañana</Typography>
-                          <TextField
-                          value={lunes?.morningExit}
-                          onChange={(e) => updateLunes('morningExit', e.target.value)}
-                                type="time"
-                                fullWidth
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Entrada Tarde</Typography>
-                          <TextField
-                          value={lunes?.afternoonEntry}
-                          onChange={(e) => updateLunes('afternoonEntry', e.target.value)}
-                                type="time"
-                                fullWidth
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Salida Tarde</Typography>
-                          <TextField
-                          value={lunes?.afternoonExit}
-                          onChange={(e) => updateLunes('afternoonExit', e.target.value)}
-                                type="time"
-                                fullWidth
-                                inputProps={{ step: 300, autoComplete: 'off' }}
-                              />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Tolerancia Entrada</Typography>
-                          <TextField
-                          value={lunes?.entryTolerance}
-                          onChange={(e) => updateLunes('entryTolerance', e.target.value)}
-                              type="number"
-                              fullWidth
-                              inputProps={{ min: 0, step: 1 }}
-                              />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography variant="subtitle2">Tolerancia Salida</Typography>
-                          <TextField
-                          value={lunes?.exitTolerance}
-                          onChange={(e) => updateLunes('exitTolerance', e.target.value)}
-                              type="number"
-                              fullWidth
-                              inputProps={{ min: 0, step: 1 }}
-                              />
-                        </Grid>
-                      </Grid>
-                    </FormGroup>
-                  </Grid>
-                ))}
-              </Grid>
+                    <Controller
+                      name={`schedules.${index}.exitTolerance`}
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <TextField
+                          type="number"
+                          label="Tolerancia de Salida (min)"
+                          {...field}
+                          sx={{ marginBottom: 1 }}
+                          fullWidth
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              step: 1
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+                </Box>
+              ))}
             </Box>
 
-            {/* Agregar funcionalidad de fechas  */}
-
-            <Box sx={{ height: 100, marginTop: 5  }}>
+            <Box sx={{ height: 100, marginTop: 5 }}>
               <FormControlLabel
                 control={<Switch checked={checked} onChange={handleChange} />}
                 label="Temporal"
@@ -345,11 +254,11 @@ const SidebarAddSpecialSchedule = (props: SidebarAddSpecialScheduleType) => {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
-              <Button size='large' type='submit' variant='contained' sx={{ marginRight: 6 }}>
-                Aceptar
+            <Box sx={{ mt: 4 }}>
+              <Button variant="contained" color="primary" onClick={handleSubmit(handleSave)}>
+                Guardar
               </Button>
-              <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
+              <Button color="secondary" onClick={onCancel}>
                 Cancelar
               </Button>
             </Box>
@@ -357,6 +266,7 @@ const SidebarAddSpecialSchedule = (props: SidebarAddSpecialScheduleType) => {
         </Box>
       </Drawer>
     </>
-  )
-};
-export default SidebarAddSpecialSchedule
+  );
+}
+
+export default SpecialScheduleForm
