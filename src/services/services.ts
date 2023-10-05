@@ -39,7 +39,7 @@ export async function Redirect (id:string,token:string){
           const tokenExist = localStorage.getItem('token');
           // delete router.query.id
           // delete router.query.token
-          router.replace('http://10.10.214.219:3006/home/');
+         router.replace('http://10.10.214.188:3006/home/');
           if( !tokenExist ) {
             router.push(`${process.env.NEXT_PUBLIC_URL_CENTRAL}/login`)
           }

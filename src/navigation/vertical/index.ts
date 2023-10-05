@@ -3,69 +3,91 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 
 const navigation = (): VerticalNavItemsType => {
   return [
+    // {
+    //   title: 'Hogar',
+    //   path: '/home',
+    //   icon: 'mdi:home-outline',
+    // },
+    // {
+    //   title: 'Mensajes',
+    //   path: '/second-page',
+    //   icon: 'mdi:email-outline',
+    // },
+    // {
+    //   path: '/acl',
+    //   action: 'read',
+    //   subject: 'acl-page',
+    //   title: 'Control de Acceso',
+    //   icon: 'mdi:shield-outline',
+    // },
     {
-      title: 'Hogar',
-      path: '/home',
-      icon: 'mdi:home-outline',
-    },
-    {
-      title: 'Mensajes',
-      path: '/second-page',
-      icon: 'mdi:email-outline',
-    },
-    {
-      path: '/acl',
-      action: 'read',
-      subject: 'acl-page',
-      title: 'Control de Acceso',
-      icon: 'mdi:shield-outline',
-    },
-    {
-        title: 'Usuario',
-        icon: 'mdi:account-outline',
-        children: [
-        {
-            title: 'Lista Usuario',
-            path: '/user/usuario/userlist',
-            icon: 'mdi:account-check',
-          },
-          {
-            title: 'Cargos',
-            path: '/user/charges/ChargeList',
-            icon: 'mdi:account-group',
-          },
-        ]
-    },
-    {
-      title: 'Creacion de Horarios',
-      icon: 'mdi:account-clock',
+      title: 'Personal',
+      icon: 'mdi:account-group',
       children: [
         {
-          title: 'Horarios',
+          title: 'Lista de Persona',
+          path: '/user/usuario/userlist',
+          icon: 'mdi:account-card-details',
+        },
+      // {
+      //   title: 'Vista',
+      //   path: '/user/usuario/view/[id]',
+      //   icon: 'mdi:eye-outline',            
+      // },
+      ]
+    },
+    {
+      title: 'Cargos',
+      path: '/user/charges/ChargeList',
+      icon: 'mdi:clipboard-account',
+    },
+    {
+      title: 'Horarios',
+      children: [
+        {
+          title: 'Lista de Horario',
           path: '/user/horario/listHorario',
-          icon: 'mdi:account-clock-outline',
+          icon: 'mdi:timetable'
+          // children: [
+          //   {
+          //     title: '',
+          //     path: '/user/horario/listHorario',
+          //     icon: 'mdi:timetable',
+          //   },
+          //   {
+          //     title: 'Detalle De Horario',
+          //     path: '/user/usuario/view/detalleHorario/',
+          //     icon: 'mdi:timetable',
+          //   }
+          // ]
         },
-        // {
-        //   title: 'Horarios Especiales',
-        //   path: '/user/horariosEspeciales/listSchedule',
-        //   icon: 'mdi:account-clock-outline',
-        // },
-  
-        
       ]
-  }, 
+    },
+
+    // title: 'Personal',
+    // icon: 'mdi:account-group',
+    // children: [
+    //   {
+    //     title: 'Lista de Persona',
+    //     path: '/user/usuario/userlist',
+    //     icon: 'mdi:account-card-details',
+    //   },
     {
-      title: 'Control de Asistencia',
-      icon: 'mdi:account-circle-outline',
-      children: [
-        {
-          title: 'Reconocimiento Facial',
-          path: '/user/usuario/camara/Camera',
-          icon: 'mdi:account-arrow-right',
-        },
-      ]
-  },  
- 
+      title: 'Marcar Asistencia',
+      path: '/user/Asistencia/controlFacial',
+      icon: 'mdi:face-recognition',
+    },
+    {
+      title: 'Planilla de Asistencia',
+      path: '/user/Asistencia/planillas',
+      icon: 'mdi:clipboard-list',
+    },
+     
+    {
+      title: 'Registro de Personal',
+      path: '/user/Asistencia/RegistroFacial',
+      icon: 'mdi:account-box-outline',
+    }
   ]
 }
 

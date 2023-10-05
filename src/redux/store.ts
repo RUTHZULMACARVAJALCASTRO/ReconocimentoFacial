@@ -1,9 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit'
-import counterReducer from '../redux/slices/counterSlice'
+import counterReducer from 'src/redux/slices/counterSlice'
+import userReducer from 'src/store/apps/user'
+import chargeReducer from 'src/store/apps/charge'
+import scheduleReducer from 'src/store/apps/schedule'
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer
+    counter: counterReducer,
+    users: userReducer,
+    charges: chargeReducer,
+    schedules: scheduleReducer
   }
 })
 

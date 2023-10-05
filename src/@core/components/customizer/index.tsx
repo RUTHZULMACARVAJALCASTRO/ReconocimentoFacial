@@ -113,9 +113,9 @@ const Customizer = () => {
           }}
         >
           <Typography variant='h6' sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-            Theme Customizer
+            PERSONALIZADOR DE TEMAS
           </Typography>
-          <Typography sx={{ color: 'text.secondary' }}>Customize & Preview in Real Time</Typography>
+          <Typography sx={{ color: 'text.secondary' }}>Personalice y obtenga una vista previa en tiempo real</Typography>
           <IconButton
             onClick={() => setOpen(false)}
             sx={{
@@ -136,43 +136,43 @@ const Customizer = () => {
               variant='caption'
               sx={{ mb: 4, color: 'text.disabled', textTransform: 'uppercase' }}
             >
-              Theming
+              TEMATIZACIÓN
             </Typography>
 
             {/* Skin */}
             <Box sx={{ mb: 4 }}>
-              <Typography>Skin</Typography>
+              <Typography>Piel</Typography>
               <RadioGroup
                 row
                 value={skin}
                 onChange={e => handleChange('skin', e.target.value as Settings['skin'])}
                 sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
               >
-                <FormControlLabel value='default' label='Default' control={<Radio />} />
-                <FormControlLabel value='bordered' label='Bordered' control={<Radio />} />
+                <FormControlLabel value='default' label='Por defecto' control={<Radio />} />
+                <FormControlLabel value='bordered' label='Bordeado' control={<Radio />} />
               </RadioGroup>
             </Box>
 
             {/* Mode */}
             <Box sx={{ mb: 4 }}>
-              <Typography>Mode</Typography>
+              <Typography>Modo</Typography>
               <RadioGroup
                 row
                 value={mode}
                 onChange={e => handleChange('mode', e.target.value as any)}
                 sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
               >
-                <FormControlLabel value='light' label='Light' control={<Radio />} />
-                <FormControlLabel value='dark' label='Dark' control={<Radio />} />
+                <FormControlLabel value='light' label='Luz' control={<Radio />} />
+                <FormControlLabel value='dark' label='Oscuro' control={<Radio />} />
                 {layout === 'horizontal' ? null : (
-                  <FormControlLabel value='semi-dark' label='Semi Dark' control={<Radio />} />
+                  <FormControlLabel value='semi-dark' label='Semi Oscuro' control={<Radio />} />
                 )}
               </RadioGroup>
             </Box>
 
             {/* Color Picker */}
             <div>
-              <Typography sx={{ mb: 2.5 }}>Primary Color</Typography>
+              <Typography sx={{ mb: 2.5 }}>Color Primario</Typography>
               <Box sx={{ display: 'flex' }}>
                 <ColorBox
                   onClick={() => handleChange('themeColor', 'primary')}
@@ -242,58 +242,58 @@ const Customizer = () => {
               variant='caption'
               sx={{ mb: 4, color: 'text.disabled', textTransform: 'uppercase' }}
             >
-              Layout
+              Disposición
             </Typography>
 
             {/* Content Width */}
             <Box sx={{ mb: 4 }}>
-              <Typography>Content Width</Typography>
+              <Typography>Ancho del contenido</Typography>
               <RadioGroup
                 row
                 value={contentWidth}
                 onChange={e => handleChange('contentWidth', e.target.value as Settings['contentWidth'])}
                 sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
               >
-                <FormControlLabel value='full' label='Full' control={<Radio />} />
-                <FormControlLabel value='boxed' label='Boxed' control={<Radio />} />
+                <FormControlLabel value='full' label='Lleno' control={<Radio />} />
+                <FormControlLabel value='boxed' label='En caja' control={<Radio />} />
               </RadioGroup>
             </Box>
 
             {/* AppBar */}
             <Box sx={{ mb: 4 }}>
-              <Typography>AppBar Type</Typography>
+              <Typography>Tipo de pie de pagina</Typography>
               <RadioGroup
                 row
                 value={appBar}
                 onChange={e => handleChange('appBar', e.target.value as Settings['appBar'])}
                 sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
               >
-                <FormControlLabel value='fixed' label='Fixed' control={<Radio />} />
-                <FormControlLabel value='static' label='Static' control={<Radio />} />
+                <FormControlLabel value='fixed' label='Fijado' control={<Radio />} />
+                <FormControlLabel value='static' label='Estático' control={<Radio />} />
                 {layout === 'horizontal' ? null : (
-                  <FormControlLabel value='hidden' label='Hidden' control={<Radio />} />
+                  <FormControlLabel value='hidden' label='Oculto' control={<Radio />} />
                 )}
               </RadioGroup>
             </Box>
 
             {/* Footer */}
             <Box sx={{ mb: 4 }}>
-              <Typography>Footer Type</Typography>
+              <Typography>Tipo de pie de Pagina</Typography>
               <RadioGroup
                 row
                 value={footer}
                 onChange={e => handleChange('footer', e.target.value as Settings['footer'])}
                 sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
               >
-                <FormControlLabel value='fixed' label='Fixed' control={<Radio />} />
-                <FormControlLabel value='static' label='Static' control={<Radio />} />
-                <FormControlLabel value='hidden' label='Hidden' control={<Radio />} />
+                <FormControlLabel value='fixed' label='Fijado' control={<Radio />} />
+                <FormControlLabel value='static' label='Estático' control={<Radio />} />
+                <FormControlLabel value='hidden' label='Oculto' control={<Radio />} />
               </RadioGroup>
             </Box>
 
             {/* AppBar Blur */}
             <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography>AppBar Blur</Typography>
+              <Typography>Desenfoque de la barra de aplicaciones</Typography>
               <Switch
                 name='appBarBlur'
                 checked={appBarBlur}
@@ -320,12 +320,12 @@ const Customizer = () => {
               variant='caption'
               sx={{ mb: 4, color: 'text.disabled', textTransform: 'uppercase' }}
             >
-              Menu
+              Menú
             </Typography>
 
             {/* Menu Layout */}
             <Box sx={{ mb: layout === 'horizontal' && appBar === 'hidden' ? {} : 4 }}>
-              <Typography>Menu Layout</Typography>
+              <Typography>Diseño del Menú</Typography>
               <RadioGroup
                 row
                 value={layout}
@@ -346,7 +346,7 @@ const Customizer = () => {
             {/* Menu Toggle */}
             {navHidden || layout === 'horizontal' ? null : (
               <Box sx={{ mb: 4 }}>
-                <Typography>Menu Toggle</Typography>
+                <Typography>Alternar menú</Typography>
                 <RadioGroup
                   row
                   value={verticalNavToggleType}
@@ -355,8 +355,8 @@ const Customizer = () => {
                   }
                   sx={{ '& .MuiFormControlLabel-label': { fontSize: '.875rem', color: 'text.secondary' } }}
                 >
-                  <FormControlLabel value='accordion' label='Accordion' control={<Radio />} />
-                  <FormControlLabel value='collapse' label='Collapse' control={<Radio />} />
+                  <FormControlLabel value='accordion' label='Acordeón' control={<Radio />} />
+                  <FormControlLabel value='collapse' label='Colapsar' control={<Radio />} />
                 </RadioGroup>
               </Box>
             )}
@@ -364,7 +364,7 @@ const Customizer = () => {
             {/* Menu Collapsed */}
             {navHidden || layout === 'horizontal' ? null : (
               <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography>Menu Collapsed</Typography>
+                <Typography>Menú Colapsado</Typography>
                 <Switch
                   name='navCollapsed'
                   checked={navCollapsed}
@@ -376,7 +376,7 @@ const Customizer = () => {
             {/* Menu Hidden */}
             {layout === 'horizontal' && appBar === 'hidden' ? null : (
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography>Menu Hidden</Typography>
+                <Typography>Menú oculto</Typography>
                 <Switch
                   name='navHidden'
                   checked={navHidden}

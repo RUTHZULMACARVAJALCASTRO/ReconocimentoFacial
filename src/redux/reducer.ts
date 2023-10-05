@@ -1,44 +1,45 @@
 // redux/reducer.ts
 
-interface State {
-  username: string
-  age: number | null
-  email: string
-  password: string
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+interface UserData {
+	name: string;
+	lastName: string;
+	ci: string;
+	email: string;
+	phone: string;
+	address: string;
+	file: string;
+	nationality: string;
+	unity: string;
+	charge: string;
+	schedule: string;
 }
 
-const initialState: State = {
-  username: '',
-  age: null,
-  email: '',
-  password: ''
+const initialState: UserData = {
+  name: '',
+	lastName: '',
+	ci: '',
+	email: '',
+	phone: '',
+	address: '',
+	nationality: '',
+	unity: '',
+	charge: '',
+	schedule: '',
+	file: ''
 }
 
-const rootReducer = (state = initialState, action: any) => {
-  switch (action.type) {
-    case 'SET_USERNAME':
-      return {
-        ...state,
-        username: action.payload
-      }
-    case 'SET_AGE':
-      return {
-        ...state,
-        age: action.payload
-      }
-    case 'SET_EMAIL':
-      return {
-        ...state,
-        email: action.payload
-      }
-    case 'SET_PASSWORD':
-      return {
-        ...state,
-        password: action.payload
-      }
-    default:
-      return state
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    setUser: (state, action: PayloadAction<UserData>) => {
+      // Esto simplemente reemplazará el estado actual con los datos del usuario proporcionados
+      return action.payload;
+    },
+	
   }
-}
-
-export default rootReducer
+});
+export const { setUser } = userSlice.actions;
+export default userSlice.reducer;

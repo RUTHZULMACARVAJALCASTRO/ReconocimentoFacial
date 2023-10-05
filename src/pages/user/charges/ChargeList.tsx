@@ -1,196 +1,363 @@
-import { useState, useCallback, useEffect } from 'react'
-import axios from 'axios'
 
-import TableHeader from 'src/views/apps/user/list/TableHeader'
-import EditCharge from './EditCharge';
-import AddCharge from 'src/pages/user/charges/AddCharge';
-import { Avatar, Box, Button, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography, useTheme } from '@mui/material';
-import { blue } from '@mui/material/colors';
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import Menu from '@mui/material/Menu'
+import Grid from '@mui/material/Grid'
+
+import { DataGrid } from '@mui/x-data-grid'
+import { styled } from '@mui/material/styles'
+import MenuItem from '@mui/material/MenuItem'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon';
-import React from 'react';
+import { useState, useEffect, MouseEvent, useCallback } from 'react'
+import charge, { fetchCharges } from 'src/store/apps/charge/index';
+import { useDispatch, useSelector } from 'react-redux'
+import { toggleChargeStatus } from 'src/store/apps/charge/index';
+import { RootState } from 'src/store';
+import { AppDispatch } from 'src/redux/store';
+import CustomChip from 'src/@core/components/mui/chip'
+import { ThemeColor } from 'src/@core/layouts/types'
+import TableHeader from 'src/views/apps/user/TableHeaderCharge'
+import SidebarAddCharge from 'src/views/apps/charge/AddCharge'
+import SidebarEditCharge from 'src/views/apps/charge/EditCharge'
+import Tooltip from '@mui/material/Tooltip';
+interface HTMLElement extends Element { }
+import Swal from 'sweetalert2';
+import { CircularProgress } from '@mui/material'
 
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import SidebarAddCharge from 'src/pages/user/charges/AddCharge';
-import { capitalizeFirstLetter } from 'src/utilities';
-
-interface Docu {
+export interface Docu {
   _id: string
   name: string
   description: string
+  isActive: boolean
+}
+
+interface ChargeData {
+  _id: string
+  name: string
+  description: string
+  isActive: boolean
 }
 
 interface CellType {
   row: Docu
 }
 
-function Row(props: { row: Docu }) {
-  const { row } = props;
-  const [open, setOpen] = React.useState(false);
-
-  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false);
-  const [userIdToDelete, setUserIdToDelete] = useState<string>('');
-
-
-  const handleDeleteCancelled = () => {
-    setIsDeleteConfirmationOpen(false);
-  };
-  const handleDelete = (userId: string) => {
-    setUserIdToDelete(userId);
-    setIsDeleteConfirmationOpen(true);
-  };
-
-  const handleDeleteConfirmed = async () => {
-    setIsDeleteConfirmationOpen(false);
-    // Aquí puedes ejecutar la lógica de eliminación del usuario usando el userIdToDelete
-    try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_PERSONAL}/${userIdToDelete}`);
-      // Actualizar la lista de usuarios después de eliminar uno
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const theme = useTheme();
-
-
-  return (
-    <>
-
-      <React.Fragment>
-        <TableRow sx={{ '& > *': { borderBottom: '1px solid #ccc', borderLeft: '1px solid #ccc', borderRight: '1px solid #ccc' } }}>
-          <TableCell>
-            <IconButton
-              aria-label="expand row"
-              size="small"
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.name)}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.description)}</TableCell>
-        </TableRow>
-
-        <TableRow sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f48fb1' } }}>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10} >
-            <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box sx={{ margin: 1 }}>
-                <Typography variant="h6" gutterBottom component="div" >
-                  LISTA DE CARGOS
-                </Typography>
-                <Table size="small" aria-label="purchases">
-                  <TableHead>
-                    <TableRow sx={{
-                      '&:nth-of-type(odd)': {
-                        backgroundColor: open ? theme.palette.mode === 'dark' ? '#64C623' : '#64C623' : theme.palette.mode === 'dark' ? '#64C623' : '#64C623',
-                      },
-                    }}>
-                      <TableCell align="center">Acciones</TableCell>
-                      <TableCell align="center">Nombre</TableCell>
-                      <TableCell align="center">Descripcion</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-
-                      <TableCell align="center">
-                        <EditCharge userId={row._id} />
-                        <Button onClick={() => handleDelete(row._id)}
-                          style={{ color: 'red', borderRadius: '150px' }} >
-                          <Icon icon='mdi:delete-outline' fontSize={20} />ELIMINAR
-                        </Button>
-                      </TableCell>
-                      <TableCell align="center">{row.name}</TableCell>
-                      <TableCell align="center">{row.description}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </Box>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      </React.Fragment>
-      <Dialog open={isDeleteConfirmationOpen} onClose={handleDeleteCancelled}>
-        <DialogTitle>Confirmar eliminación</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            ¿Estás seguro que deseas eliminar este cargo?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancelled} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={handleDeleteConfirmed} color="primary">
-            Eliminar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
+interface ChargeStatusType {
+  [key: string]: ThemeColor
 }
 
 
-export default function CollapsibleTable() {
+const ChargeList = () => {
+  // ** State
   const [data, setData] = useState<Docu[]>([])
+  const [value, setValue] = useState<string>('')
+  const [pageSize, setPageSize] = useState<number>(10)
   const [addChargeOpen, setAddChargeOpen] = useState<boolean>(false)
   const [editChargeOpen, setEditChargeOpen] = useState<boolean>(false)
+  const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null);
   const toggleAddCharge = () => setAddChargeOpen(!addChargeOpen)
-  const toggleEditCharge = () => setEditChargeOpen(!editChargeOpen)
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+
+  const dispatch = useDispatch<AppDispatch>()
+
+  const charges: Docu[] = useSelector((state: RootState) => state.charges.list);
+  const chargeStatus = useSelector((state: RootState) => state.charges.status);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    dispatch(fetchCharges());
+  }, [dispatch]);
 
-  const fetchData = async () => {
+
+  const toggleChargeActivation = async (chargeId: string, isActive: boolean) => {
+    console.log(`Setting charge with ID ${chargeId} active status to: ${isActive}`);
+
     try {
-      const { data } = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}`);
-      // const filteredData = response.data.filter(user => user.isActive);
+      await dispatch(toggleChargeStatus({ chargeId, isActive })).unwrap();
 
-      setData(data); // Guarda los datos filtrados en el estado 'data'
     } catch (error) {
-      console.log(error);
+      console.error("Error making the PUT request to update status:", error);
     }
   };
 
-  function toggleAddUserCharge(): void {
-    throw new Error('Function not implemented.');
+  const chargeStatusObj: ChargeStatusType = {
+    activo: 'success',
+    inactivo: 'secondary'
   }
 
+  const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+    const rowOptionsOpen = Boolean(anchorEl)
+
+
+    const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
+      console.log('click aqui')
+      setAnchorEl(event.currentTarget)
+    }
+    const handleRowOptionsClose = () => {
+      setAnchorEl(null)
+    }
+
+
+    const handleUpdate = (chargeId: string) => () => {
+      setSelectedChargeId(chargeId);
+      setEditChargeOpen(true);
+      console.log("handleUpdate called:", chargeId, editChargeOpen);
+    };
+
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+        confirmButton: 'btn btn-success',
+        cancelButton: 'btn btn-danger'
+      },
+      buttonsStyling: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33'
+    });
+
+
+    return (
+      <>
+        <IconButton size='small' onClick={handleRowOptionsClick}>
+          <Icon icon='mdi:dots-vertical' />
+        </IconButton>
+        <Menu
+          keepMounted
+          anchorEl={anchorEl}
+          open={rowOptionsOpen}
+          onClose={handleRowOptionsClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right'
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right'
+          }}
+          PaperProps={{ style: { minWidth: '8rem' } }}
+        >
+          <Tooltip
+            title={isActive ? '' : 'No se puede editar este cargo porque no está activo'}
+            arrow
+            placement="top"
+          >
+            <span>
+              <MenuItem
+                onClick={isActive ? handleUpdate(id.toString()) : undefined}
+                sx={{
+                  '& svg': { mr: 2 },
+                  pointerEvents: isActive ? 'auto' : 'none', // Deshabilita el clic si el usuario está inactivo.
+                  opacity: isActive ? 1 : 0.5, // Cambia la opacidad si el usuario está inactivo.
+                }}
+              >
+                <Icon icon='mdi:edit' fontSize={20} />
+                Editar
+              </MenuItem>
+            </span>
+          </Tooltip>
+          <MenuItem
+            onClick={() => {
+
+              swalWithBootstrapButtons.fire({
+                title: isActive ? '¿Dar de Baja?' : '¿Activar?',
+                text: isActive
+                  ? 'Realmente quieres dar de baja este cargo?'
+                  : 'Realmente quieres activar este cargo?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: isActive ? 'Sí, dar de baja' : 'Sí, activar',
+                cancelButtonText: 'No, cancelar',
+                reverseButtons: true
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // Desactivar o activar el cargo
+                  dispatch(
+                    toggleChargeStatus({
+                      chargeId: id.toString(),
+                      isActive: !isActive, // Invertir el estado actual
+                    })
+                  )
+                    .then(() => {
+                      swalWithBootstrapButtons.fire(
+                        isActive ? 'Baja Exitosa' : 'Activación Exitosa',
+                        isActive
+                          ? 'El cargo ha sido dado de baja.'
+                          : 'El cargo ha sido activado.',
+                        'success'
+                      );
+                    })
+                    .catch((error) => {
+                      swalWithBootstrapButtons.fire(
+                        'Error',
+                        'Hubo un error en la acción.',
+                        'error'
+                      );
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                  swalWithBootstrapButtons.fire(
+                    'Cancelado',
+                    'El cargo está seguro :)',
+                    'error'
+                  )
+                }
+              });
+
+              handleRowOptionsClose();
+            }}
+            sx={{ '& svg': { mr: 2 } }}
+          >
+            <Icon
+              icon={isActive ? 'mdi:delete-outline' : 'mdi:account-check-outline'}
+              fontSize={20}
+            />
+            {isActive ? 'Dar de Baja' : 'Activar'}
+          </MenuItem>
+        </Menu>
+      </>
+
+    )
+  }
+
+  const handleFilter = useCallback((val: string) => {
+    setValue(val)
+  }, [])
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const columns = [
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'status',
+      headerName: 'Estado',
+      renderCell: ({ row }: CellType) => {
+        const status = row.isActive ? 'activo' : 'inactivo';
+        return (
+          <CustomChip
+            skin='light'
+            size='small'
+            label={status}
+            color={chargeStatusObj[status]}
+            sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+          />
+        )
+      }
+    },
+
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'name',
+      headerName: 'Nombre',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Typography noWrap variant='body2'>
+            {row.name}
+          </Typography>
+        )
+      }
+    },
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'description',
+      headerName: 'Descripcion',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Tooltip title={row.description || ''}>
+            <div>
+              <Typography noWrap variant='body2'>
+                {row.description}
+              </Typography>
+            </div>
+          </Tooltip>
+        )
+      }
+    },
+
+    {
+      flex: 0.1,
+      minWidth: 90,
+      sortable: false,
+      field: 'actions',
+      headerName: 'Acciones',
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
+    }
+  ]
+  function CustomLoadingOverlay() {
+    return (
+      <div style={{ position: 'absolute', top: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.7)' }}>
+        <CircularProgress color="inherit" />
+      </div>
+    );
+  }
   return (
     <>
-      <SidebarAddCharge open={addChargeOpen} toggle={toggleAddCharge} />
-      <TableContainer component={Paper}>
+      <Grid container spacing={50}>
+        <Grid item xs={12}>
+          <Card>
+            <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddCharge} />
+            <DataGrid
+              loading={chargeStatus === 'loading'}
+              getRowId={row => row._id}
+              autoHeight
+              rows={[...charges].reverse()}
+              columns={columns}
+              pageSize={pageSize}
+              // rowsPerPageOptions={[10, 25, 50]}
+              disableSelectionOnClick
+              sx={{
+                '& .MuiDataGrid-columnHeaders': { borderRadius: 0 }, '& .MuiDataGrid-window': {
+                  overflow: 'hidden'
+                }
+              }}
+              components={{
+                LoadingOverlay: CustomLoadingOverlay
+              }}
+              onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
+              localeText={{
+                filterOperatorAfter: 'después de',
+                filterOperatorOnOrAfter: 'en o después de',
+                filterOperatorBefore: 'antes de',
+                filterOperatorOnOrBefore: 'en o antes de',
+                filterOperatorEquals: 'igual a',
+                filterOperatorStartsWith: 'comienza con',
+                filterOperatorEndsWith: 'termina con',
+                filterOperatorContains: 'contiene',
+                columnMenuLabel: 'Menú de columna',
+                columnMenuShowColumns: 'Mostrar columnas',
+                columnMenuFilter: 'Filtrar',
+                columnMenuHideColumn: 'Ocultar',
+                columnMenuUnsort: 'Desordenar',
+                columnMenuSortAsc: 'Ordenar Asc',
+                columnMenuSortDesc: 'Ordenar Desc',
+                toolbarDensity: 'Densidad',
+                toolbarDensityLabel: 'Densidad',
+                toolbarDensityCompact: 'Compacto',
+                toolbarDensityStandard: 'Estándar',
+                toolbarDensityComfortable: 'Cómodo',
+                noRowsLabel: 'No hay filas',
+                noResultsOverlayLabel: 'No se encontraron resultados.',
+                errorOverlayDefaultLabel: 'Ocurrió un error.'
+              }}
 
-        <Table aria-label="collapsible table">
-          <TableHead>
-            <TableRow sx={{
-              '&:nth-of-type(odd)': {
-                backgroundColor: open ? (theme.palette.mode === 'dark' ? '#64C623' : '#64C623') : (theme.palette.mode === 'dark' ? '#64C623' : '#64C623'),
-              },
-              boxShadow: 'inset 0px 0px 5px rgba(0, 0, 0, 0.5)',
-              color: '#ffffff', // Cambio de color de las letras a blanco
-            }}>
-              <TableCell sx={{
-                borderRight: '1px solid rgba(224, 224, 224, 1)',
-                borderBottom: '1px solid rgba(224, 224, 224, 1)',
-                boxShadow: 'none',
-                color: '#ffffff', // Cambio de color de las letras a blanco
-              }} />
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>NOMBRE</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>DESCRIPCION</TableCell>
-            </TableRow>
+            />
+          </Card>
+        </Grid>
 
-          </TableHead>
-          <TableBody>
-            {data.map((row) => (
-              <Row key={row.name} row={row} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <SidebarAddCharge open={addChargeOpen} toggle={toggleAddCharge} />
+        {selectedChargeId && <SidebarEditCharge chargeId={selectedChargeId} open={editChargeOpen} toggle={() => setEditChargeOpen(false)} />}
+      </Grid>
     </>
-  );
+  )
 }
+
+
+export default ChargeList

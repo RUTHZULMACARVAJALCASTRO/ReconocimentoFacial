@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment } from 'react'
+import { useState, SyntheticEvent, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -22,9 +22,24 @@ import { useAuth } from 'src/hooks/useAuth'
 
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
+import axios from 'axios'
 
 interface Props {
   settings: Settings
+}
+
+interface user {
+  _id: string
+  password: string
+  name: string
+  lastName: string
+  phone: string
+  email: string
+  ci: string
+  file: string
+  roles: string[]
+  createdAt: string
+  updatedAt: string
 }
 
 // ** Styled Components
@@ -37,30 +52,37 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = (props: Props) => {
-  // ** Props
+  const id = window.localStorage.getItem('id')
+  const [image, setImage] = useState<string>('')
   const { settings } = props
-
-  // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
-
-  // ** Hooks
   const router = useRouter()
   const { logout } = useAuth()
-
-  // ** Vars
   const { direction } = settings
-
+  const [user, setUser] = useState<user>()
+  useEffect(() => {
+    get()
+  }, [])
+  const get = async () => {
+    try {
+      const response = await axios.get<user>(`${process.env.NEXT_PUBLIC_API_CENTRAL}user/${id}`)
+      setUser(response.data)
+      const aux = 'data:image/png;base64,' + user?.file
+      setImage(aux)
+      console.log(response.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
   }
-
   const handleDropdownClose = (url?: string) => {
     if (url) {
       router.push(url)
     }
     setAnchorEl(null)
   }
-
   const styles = {
     py: 2,
     px: 4,
@@ -75,7 +97,6 @@ const UserDropdown = (props: Props) => {
       color: 'text.primary'
     }
   }
-
   const handleLogout = () => {
     logout()
     handleDropdownClose()
@@ -83,6 +104,7 @@ const UserDropdown = (props: Props) => {
 
   return (
     <Fragment>
+      {user?.name} {user?.lastName}
       <Badge
         overlap='circular'
         onClick={handleDropdownOpen}
@@ -93,12 +115,7 @@ const UserDropdown = (props: Props) => {
           horizontal: 'right'
         }}
       >
-        <Avatar
-          alt='John Doe'
-          onClick={handleDropdownOpen}
-          sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
-        />
+        <Avatar alt='John Doe' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={image} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -118,10 +135,12 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='John Doe' src={image} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>
+                {user?.name} {user?.lastName}
+              </Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 Admin
               </Typography>
@@ -132,7 +151,7 @@ const UserDropdown = (props: Props) => {
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
-            Profile
+            Perfil
           </Box>
         </MenuItem>
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
@@ -151,7 +170,7 @@ const UserDropdown = (props: Props) => {
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
-            Settings
+            Configuracion
           </Box>
         </MenuItem>
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
@@ -172,7 +191,7 @@ const UserDropdown = (props: Props) => {
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />
-          Logout
+          Salir
         </MenuItem>
       </Menu>
     </Fragment>

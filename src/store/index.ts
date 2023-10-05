@@ -1,25 +1,14 @@
 // ** Toolkit imports
-import { configureStore } from '@reduxjs/toolkit'
-
+import { combineReducers } from '@reduxjs/toolkit'
+import userReducer from 'src/store/apps/user';
+import chargeReducer from 'src/store/apps/charge'
+import scheduleReducer from 'src/store/apps/schedule'
 // ** Reducers
 
-import user from 'src/store/apps/user'
-
-import invoice from 'src/store/apps/invoice'
-
-import permissions from 'src/store/apps/permissions'
-
-export const store = configureStore({
-  reducer: {
-    user,
-    invoice,
-    permissions
-  },
-  middleware: getDefaultMiddleware =>
-    getDefaultMiddleware({
-      serializableCheck: false
-    })
+export const rootReducer = combineReducers({
+  users: userReducer,
+  charges: chargeReducer,
+  schedules: scheduleReducer
 })
 
-export type AppDispatch = typeof store.dispatch
-export type RootState = ReturnType<typeof store.getState>
+export type RootState = ReturnType<typeof rootReducer>;

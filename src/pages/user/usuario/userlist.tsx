@@ -1,294 +1,515 @@
-import { useState, useCallback, useEffect } from 'react'
-import axios from 'axios'
-import AddUserDrawer from 'src/pages/user/usuario/AddUserDrawer';
-import { Box, Button, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material'
-import EditUserDrawer from './EditUserDrawer';
+// ** Next Imports
+import Router, { useRouter } from 'next/router';
+
+// ** MUI Imports
+import Image from 'next/image'
+
+// ** MUI Imports
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import Menu from '@mui/material/Menu'
+import Grid from '@mui/material/Grid'
+
+import { DataGrid } from '@mui/x-data-grid'
+import { styled } from '@mui/material/styles'
+import MenuItem from '@mui/material/MenuItem'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon';
-import React from 'react';
+import { useState, useEffect, MouseEvent, useCallback } from 'react'
+import Link from 'next/link'
+import user, { fetchUsers, fetchUsersByPage, toggleUserStatus } from 'src/store/apps/user/index';
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store';
+import { AppDispatch } from 'src/redux/store';
+import CustomChip from 'src/@core/components/mui/chip'
+import CustomAvatar from 'src/@core/components/mui/avatar'
+import { getInitials } from 'src/@core/utils/get-initials'
+import { ThemeColor } from 'src/@core/layouts/types'
 
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { capitalizeFirstLetter } from 'src/utilities';
-import { useTheme, styled } from '@mui/material/styles';
-import { display } from '@mui/system';
+import TableHeader from 'src/views/apps/user/TableHeaderUser'
+import AddUserDrawer from 'src/views/apps/user/AddUserDrawer'
+import SidebarEditUser from 'src/views/apps/user/EditUserDrawer'
+import Swal from 'sweetalert2';
+import { Pagination, Select, Tooltip } from '@mui/material';
+import { toggleChargeStatus } from 'src/store/apps/charge';
+import CircularProgress from '@mui/material/CircularProgress';
+import Backdrop from '@mui/material/Backdrop';
+import SidebarAddUser from 'src/views/apps/user/AddUserDrawer';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 
-interface Docu {
-  _id: string
-  name: string
-  lastName: string
-  ci: string
-  email: string
-  phone: string
-  address: string
-  nationality: string
-  unity: string
-  charge: string
-  schedule: string
-  file: string
-  isActive: boolean
+// Interfaces
+export interface Docu {
+  _id: string;
+  name: string;
+  lastName: string;
+  ci: string;
+  email: string;
+  phone: string;
+  address: string;
+  nationality: string;
+  unity: string;
+  charge: string;
+  schedule: string;
+  file: string;
+  isActive: boolean;
+  avatarColor?: ThemeColor;
 }
 
 interface CellType {
   row: Docu
 }
 
-function Row(props: { row: Docu }) {
-  const { row } = props;
-  const [open, setOpen] = React.useState(false);
-  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState<boolean>(false);
-  const [userIdToDelete, setUserIdToDelete] = useState<string>('');
+interface UserStatusType {
+  [key: string]: ThemeColor
+}
 
-  // Función para convertir una cadena base64 en una URL de imagen
-  const convertBase64ToImageUrl = (base64String: string) => {
-    return `data:image/png;base64,${base64String}`
+// Componente Principal
+const UserList = () => {
+  // ** State
+  // const [data, setData] = useState<Docu[]>([])
+  const [value, setValue] = useState<string>('')
+  const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
+  const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>()
+  const users: Docu[] = useSelector((state: RootState) => state.users.list);
+  const userStatus = useSelector((state: RootState) => state.users.status);
+  const totalPages = useSelector((state: RootState) => state.users.totalPages);
+  const paginatedUsers = useSelector((state: RootState) => state.users.paginatedUsers);
+
+
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize,
+    page
+  });
+
+  const useStyles = makeStyles((theme: Theme) => ({
+    selectContainer: {
+      marginRight: theme.spacing(2),
+    },
+    selectControl: {
+      minWidth: 50,
+    },
+    customSelect: {
+      '& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input.MuiOutlinedInput-input': {
+        minWidth: 50,
+      },
+    },
+    menuPaper: {
+      border: 'none', // Elimina el borde
+      boxShadow: 'none', // Elimina la sombra
+    },
+  }));
+
+  const classes = useStyles();
+
+  const toggleUserActivation = async (userId: string, isActive: boolean) => {
+    console.log(`Setting charge with ID ${userId} active status to: ${isActive}`);
+
+    try {
+      await dispatch(toggleUserStatus({ userId, isActive })).unwrap();
+
+    } catch (error) {
+      console.error("Error making the PUT request to update status:", error);
+    }
   };
 
-  // Función para obtener las iniciales del nombre y apellido
-  const getInitials = (name: string, lastName: string) => {
-    const initials = name.charAt(0) + lastName.charAt(0);
-    return initials.toUpperCase();
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     await dispatch(fetchUsers());
+  //   };
+  //   fetchData();
+  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchUsersByPage({ page, pageSize }));
+    console.log(page)
+    console.log(pageSize)
+  }, [page, pageSize, dispatch]);
+
+  const userStatusObj: UserStatusType = {
+    activo: 'success',
+    inactivo: 'secondary'
   }
 
-  function imgExist(user: Docu) {
-    let imageSrc = convertBase64ToImageUrl(user.file);
-    let altText = 'Imagen del personal';
-    if (!user.file) {
-      const initials = getInitials(user.name, user.lastName);
-      imageSrc = '';
-      altText = initials;
+  const StyledLink = styled(Link)(({ theme }) => ({
+    fontWeight: 600,
+    fontSize: '1rem',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    color: theme.palette.text.secondary,
+    '&:hover': {
+      color: theme.palette.primary.main
     }
+  }))
+
+  const convertBase64ToImageUrl = (base64String: string) => {
+    return `data:image/png;base64,${base64String}`
+  }
+
+  const renderClient = (row: Docu) => {
+    let imageSrc = convertBase64ToImageUrl(row.file);
+
+    if (row.file) {
+      // return <img src={imageSrc} style={{ width: '34px', height: '34px' }} />;
+      return <CustomAvatar src={imageSrc} sx={{ mr: 3, width: 34, height: 34 }} />;
+    } else {
+      return (
+        <CustomAvatar
+          skin='light'
+          color={row.avatarColor || 'primary'}
+          sx={{ mr: 3, width: 34, height: 34, fontSize: '1rem' }}
+        >
+          {getInitials(row.name ? row.name : '')}
+        </CustomAvatar>
+      )
+    }
+  }
+
+  const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+    const rowOptionsOpen = Boolean(anchorEl)
+
+
+
+    const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
+      setAnchorEl(event.currentTarget)
+    }
+    const handleRowOptionsClose = () => {
+      setAnchorEl(null)
+    }
+
+
+    const handleUpdate = (userId: string) => () => {
+      setSelectedUserId(userId);
+      setEditUserOpen(true);
+    };
+
     return (
-      <div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: '#3E93DE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {imageSrc ? (
-          <img src={imageSrc} alt={altText} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
-        ) : (
-          <span style={{ fontSize: 16 }}>{altText}</span>
-        )}
-      </div>
+      <>
+        <IconButton size='small' onClick={handleRowOptionsClick}>
+          <Icon icon='mdi:dots-vertical' />
+        </IconButton>
+        <Menu
+          keepMounted
+          anchorEl={anchorEl}
+          open={rowOptionsOpen}
+          onClose={handleRowOptionsClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right'
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right'
+          }}
+          PaperProps={{ style: { minWidth: '8rem' } }}
+        >
+          <Tooltip
+            title={isActive ? '' : 'No se puede editar este personal porque no está activo'}
+            arrow
+            placement="top"
+          >
+            <span>
+              <MenuItem
+                onClick={isActive ? handleUpdate(id.toString()) : undefined}
+                sx={{
+                  '& svg': { mr: 2 },
+                  pointerEvents: isActive ? 'auto' : 'none', // Deshabilita el clic si el usuario está inactivo.
+                  opacity: isActive ? 1 : 0.5, // Cambia la opacidad si el usuario está inactivo.
+                }}
+              >
+                <Icon icon='mdi:edit' fontSize={20} />
+                Editar
+              </MenuItem>
+            </span>
+          </Tooltip>
+          <MenuItem
+            onClick={() => {
+              Swal.fire({
+                title: isActive ? '¿Dar de Baja?' : '¿Activar?',
+                text: isActive
+                  ? 'Realmente quieres dar de baja este Personal?'
+                  : 'Realmente quieres activar este Personal?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: isActive ? 'Sí, dar de baja' : 'Sí, activar',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // Desactivar o activar el cargo
+                  dispatch(
+                    toggleUserStatus({
+                      userId: id.toString(),
+                      isActive: !isActive, // Invertir el estado actual
+                    })
+                  )
+                    .then(() => {
+                      Swal.fire(
+                        isActive ? 'Baja Exitosa' : 'Activación Exitosa',
+                        isActive
+                          ? 'El personal ha sido dado de baja.'
+                          : 'El personal ha sido activado.',
+                        'success'
+                      );
+                    })
+                    .catch((error) => {
+                      Swal.fire('Error', 'Hubo un error en la acción.', 'error');
+                    });
+                }
+              });
+              handleRowOptionsClose();
+            }}
+            sx={{ '& svg': { mr: 2 } }}
+          >
+            <Icon
+              icon={isActive ? 'mdi:delete-outline' : 'mdi:account-check-outline'}
+              fontSize={20}
+            />
+            {isActive ? 'Dar de Baja' : 'Activar'}
+          </MenuItem>
+        </Menu>
+      </>
     )
   }
 
-  const handleDeleteCancelled = () => {
-    setIsDeleteConfirmationOpen(false);
-  };
-  const handleDelete = (userId: string) => {
-    setUserIdToDelete(userId);
-    setIsDeleteConfirmationOpen(true);
-  };
+  const handleFilter = useCallback((val: string) => {
+    setValue(val)
+  }, [])
 
-  // Funcion para dar de baja a un personal
-  const handleDeleteConfirmed = async () => {
-    setIsDeleteConfirmationOpen(false);
-    try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_PERSONAL}/${userIdToDelete}`);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // Obtén el tema actual para el cambio de color
-  const theme = useTheme();
-
-  // estados
-
-
-  return (
-    <>
-
-      <React.Fragment>
-        <TableRow sx={{ '& > *': { borderBottom: '1px solid #ccc', borderLeft: '1px solid #ccc', borderRight: '1px solid #ccc' } }}>
-          <TableCell>
-            <IconButton
-              aria-label="expand row"
-              size="small"
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          <TableCell align="center">{imgExist(row)}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.name)}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.lastName)}</TableCell>
-          <TableCell align="center">{row.email.toLowerCase()}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.unity)}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
-          <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>
-        </TableRow>
-        <TableRow  >
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10} >
-            <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box sx={{ margin: 1 }}>
-                <Typography variant="h6" gutterBottom component="div" style={{ fontWeight: 'bold' }}>
-                  LISTA
-                </Typography>
-
-                <Table size="small" aria-label="purchases">
-                  <TableHead>
-                    <TableRow sx={{
-                      '&:nth-of-type(odd)': {
-                        backgroundColor: open ? theme.palette.mode === 'dark' ? '#64C623' : '#64C623' : theme.palette.mode === 'dark' ? '#64C623' : '#64C623',
-                      },
-                    }}>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Acciones</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Nombre</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Apellido</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>CI</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Email</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Celular</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Direccion</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Nacionalidad</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Unidad</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Cargo</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario Normal</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Horario Especial</TableCell>
-                      <TableCell align="center" style={{ fontWeight: 'bold' }}>Estado</TableCell>
-
-
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow >
-
-                      <TableCell align="center">
-                        <EditUserDrawer userId={row._id} />
-                        <Button onClick={() => handleDelete(row._id)}
-                          style={{ color: 'red', borderRadius: '150px' }} >
-                          <Icon icon='mdi:delete-outline' fontSize={20} />
-                        </Button>
-                      </TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.name)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.lastName)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.ci)}</TableCell>
-                      <TableCell align="center">{row.email.toLowerCase()}</TableCell>
-                      <TableCell align="center">{row.phone}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.address)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.nationality)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.unity)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.charge)}</TableCell>
-                      <TableCell align="center">{capitalizeFirstLetter(row.schedule)}</TableCell>
-                      <TableCell align="center">{ }</TableCell>
-                      <TableCell align="center">{
-                        row.isActive ?
-                          <div style={{ fontWeight: 'bold', padding: '5px, 10px', textAlign: 'center', background: 'green', color: 'white' }}>
-                            Activo
-                          </div>
-                          : <div style={{ fontWeight: 'bold', padding: '5px, 10px', textAlign: 'center', background: 'red', color: 'white' }}>
-                            Inactivo
-                          </div>
-                      }</TableCell>
-                      <TableCell > </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </Box>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      </React.Fragment>
-      <Dialog open={isDeleteConfirmationOpen} onClose={handleDeleteCancelled}>
-        <DialogTitle>Confirmar eliminación</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            ¿Estás seguro que deseas eliminar este usuario?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancelled} color="primary">
-            Cancelar
-          </Button>
-          <Button onClick={handleDeleteConfirmed} color="primary">
-            Eliminar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
-}
-
-
-export default function CollapsibleTable() {
-  const [data, setData] = useState<Docu[]>([])
-  const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
-  const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
   const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [open, setOpen] = useState(false);
 
-  // await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`)
-
-  const fetchData = async () => {
-    try {
-      const response = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL}`);
-      // const userId = await axios.get<Docu[]>(`${process.env.NEXT_PUBLIC_PERSONAL}/64eca2567ffdadd54fc2778d`);
-      console.log(response)
-
-      // const filteredData = response.data.filter(async user => user.isActive);
-
-      // console.log( filteredData );
-
-      const enhancedData = await Promise.all(response.data.map(async user => {
-        const schedulePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${user.schedule}`);
-        const chargePerson = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${user.charge}`);
-        //   // const unityPerson = await axios.get(`${process.env.NEXT_PUBLIC_UNITYS}${user.unity}`);
-        const enhancedUser = { ...user, schedule: schedulePerson.data.name, charge: chargePerson.data.name };
-        //   console.log("afjalskñdfj", enhancedUser )
-        return enhancedUser;
-      }));
-
-      setData(enhancedData); // Guarda los datos filtrados en el estado 'data'
-
-    } catch (error) {
-      console.log(error);
-    }
+  const handleClickOpen = () => {
+    setOpen(true);
   };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const columns = [
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'status',
+      headerName: 'Estado',
+      renderCell: ({ row }: CellType) => {
+        const status = row.isActive ? 'activo' : 'inactivo';
+        return (
+          <CustomChip
+            skin='light'
+            size='small'
+            label={status}
+            color={userStatusObj[status]}
+            sx={{ textTransform: 'capitalize', '& .MuiChip-label': { lineHeight: '18px' } }}
+          />
+        )
+      }
+    },
+    {
+      flex: 0.2,
+      minWidth: 230,
+      field: 'fullName',
+      headerName: 'Personal',
+      renderCell: ({ row }: CellType) => {
+        const { name, lastName } = row
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {renderClient(row)}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
+              <StyledLink href={`/user/usuario/view/${row._id}/`}>{[name, ' ', lastName]}</StyledLink>
+            </Box>
+          </Box>
+        )
+      },
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
+      field: 'ci',
+      headerName: 'CI',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Typography noWrap variant='body2'>
+            {row.ci}
+          </Typography>
+        )
+      }
+    },
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'email',
+      headerName: 'Email',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Tooltip title={row.email || ''}>
+            <div>
+              <Typography noWrap variant='body2'>
+                {row.email}
+              </Typography>
+            </div>
+          </Tooltip>
+        )
+      }
+    },
+
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'phone',
+      headerName: 'Celular',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Typography noWrap variant='body2'>
+            {row.phone}
+          </Typography>
+        )
+      }
+    },
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'address',
+      headerName: 'Direccion',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Tooltip title={row.address || ''}>
+            <div>
+              <Typography noWrap variant='body2'>
+                {row.address}
+              </Typography>
+            </div>
+          </Tooltip>
+        )
+      }
+    },
+    {
+      flex: 0.1,
+      minWidth: 110,
+      field: 'nationality',
+      headerName: 'Nacionalidad',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Typography title={row.nationality} noWrap variant='body2'>
+            {row.nationality}
+          </Typography>
+        )
+      }
+    },
+
+
+    {
+      flex: 0.1,
+      minWidth: 90,
+      sortable: false,
+      field: 'actions',
+      headerName: 'Acciones',
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
+    }
+  ]
+
+  function CustomLoadingOverlay() {
+    return (
+      <div style={{ position: 'absolute', top: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.7)' }}>
+        <CircularProgress color="inherit" />
+      </div>
+    );
+  }
+  const reversedPaginatedUsers = [...paginatedUsers].reverse();
+
+
   return (
     <>
-      <AddUserDrawer open={addUserOpen} toggle={toggleAddUserDrawer} />
-      <TableContainer component={Paper}>
+      <Grid container spacing={6} >
+        <Grid item xs={12}>
+          <Card>
+            <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
+            <DataGrid
+              loading={userStatus === 'loading'}
+              rowHeight={60}
+              getRowId={row => row._id}
+              autoHeight
+              rows={reversedPaginatedUsers}
+              columns={columns}
+              sx={{
+                '& .MuiDataGrid-columnHeaders': { borderRadius: 0 }, '& .MuiDataGrid-window': {
+                  overflow: 'hidden'
+                }
+              }}
 
-        <Table aria-label="collapsible table">
-          <TableHead>
-            <TableRow sx={{
-              '&:nth-of-type(odd)': {
-                backgroundColor: open ? (theme.palette.mode === 'dark' ? '#64C623' : '#64C623') : (theme.palette.mode === 'dark' ? '#64C623' : '#64C623'),
-              },
-              boxShadow: 'inset 0px 0px 5px rgba(0, 0, 0, 0.5)',
-              color: '#ffffff', // Cambio de color de las letras a blanco
-            }}>
-              <TableCell sx={{
-                borderRight: '1px solid rgba(224, 224, 224, 1)',
-                borderBottom: '1px solid rgba(224, 224, 224, 1)',
-                boxShadow: 'none',
-                color: '#ffffff', // Cambio de color de las letras a blanco
-              }} />
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>IMAGEN</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>NOMBRE</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>APELLIDO</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>EMAIL</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>UNIDAD</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>CARGO</TableCell>
-              <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>HORARIO NORMAL</TableCell>
-              {/* <TableCell align="center" style={{ fontWeight: 'bold', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>HORARIO ESPECIAL</TableCell> */}
-              {/* <TableCell align="center" style={{ fontWeight: 'bold', borderRight: '1px solid rgba(224, 224, 224, 1)', borderBottom: '1px solid rgba(224, 224, 224, 1)', color: '#ffffff' }}>ESTADOS</TableCell> */}
+              components={{
+                LoadingOverlay: CustomLoadingOverlay,
 
-            </TableRow>
+                Pagination: () =>
+                  <>
+                    <Box display="flex" alignItems="center">
+                      <Box className={classes.selectContainer}>
+                        <Select
+                          className={`${classes.selectControl} ${classes.customSelect}`}
+                          value={pageSize}
+                          onChange={(e) => setPageSize(Number(e.target.value))}
+                          style={{
+                            border: 'none',
+                            outline: 'none',
+                            boxShadow: 'none',
+                            fontSize: '15px',
+                            width: '70px',
+                          }}
+                        >
+                          <MenuItem value={5}>5</MenuItem>
+                          <MenuItem value={10}>10</MenuItem>
+                          <MenuItem value={20}>20</MenuItem>
+                          <MenuItem value={50}>50</MenuItem>
+                        </Select>
 
-
-
-
-
-
-          </TableHead>
-          <TableBody>
-            {data.map((row) => (
-              <Row key={row.name} row={row} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                      </Box>
+                      <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
+                    </Box>
+                  </>
+              }}
+              localeText={{
+                filterOperatorAfter: 'después de',
+                filterOperatorOnOrAfter: 'en o después de',
+                filterOperatorBefore: 'antes de',
+                filterOperatorOnOrBefore: 'en o antes de',
+                filterOperatorEquals: 'igual a',
+                filterOperatorStartsWith: 'comienza con',
+                filterOperatorEndsWith: 'termina con',
+                filterOperatorContains: 'contiene',
+                columnMenuLabel: 'Menú de columna',
+                columnMenuShowColumns: 'Mostrar columnas',
+                columnMenuFilter: 'Filtrar',
+                columnMenuHideColumn: 'Ocultar',
+                columnMenuUnsort: 'Desordenar',
+                columnMenuSortAsc: 'Ordenar Asc',
+                columnMenuSortDesc: 'Ordenar Desc',
+                toolbarDensity: 'Densidad',
+                toolbarDensityLabel: 'Densidad',
+                toolbarDensityCompact: 'Compacto',
+                toolbarDensityStandard: 'Estándar',
+                toolbarDensityComfortable: 'Cómodo',
+                noRowsLabel: 'No hay filas',
+                noResultsOverlayLabel: 'No se encontraron resultados.',
+                errorOverlayDefaultLabel: 'Ocurrió un error.'
+              }}
+            />
+          </Card>
+        </Grid>
+        <SidebarAddUser open={addUserOpen} toggle={toggleAddUserDrawer} />
+        {selectedUserId && <SidebarEditUser userId={selectedUserId} open={editUserOpen} toggle={() => setEditUserOpen(false)} />}
+      </Grid>
     </>
-  );
+  )
 }
+
+export default UserList

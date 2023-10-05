@@ -12,32 +12,18 @@ const FooterContent = () => {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
       <Typography sx={{ mr: 2 }}>
-        {`© ${new Date().getFullYear()}, Made with `}
+        {`${new Date().getFullYear()}, All In One Project,  v 2.0.0`}
         <Box component='span' sx={{ color: 'error.main' }}>
           ❤️
         </Box>
-        {` by `}
-        <Link target='_blank' href='https://pixinvent.com/'>
+        {`  `}
+        {/* <Link target='_blank' href='https://pixinvent.com/'>
           Pixinvent
-        </Link>
+        </Link> */}
       </Typography>
       {hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
-          <Link target='_blank' href='https://themeforest.net/licenses/standard'>
-            License
-          </Link>
-          <Link target='_blank' href='https://1.envato.market/pixinvent_portfolio'>
-            More Themes
-          </Link>
-          <Link
-            target='_blank'
-            href='https://pixinvent.com/demo/materialize-mui-react-nextjs-admin-template/documentation'
-          >
-            Documentation
-          </Link>
-          <Link target='_blank' href='https://pixinvent.ticksy.com/'>
-            Support
-          </Link>
+
         </Box>
       )}
     </Box>

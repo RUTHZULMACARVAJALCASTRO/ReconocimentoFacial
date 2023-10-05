@@ -121,9 +121,9 @@ const App = (props: ExtendedAppProps) => {
   const aclAbilities = Component.acl ?? defaultACLObj
 
   return (
-    
-      <Provider store={store}>
-        <CacheProvider value={emotionCache}>
+
+    <Provider store={store}>
+      <CacheProvider value={emotionCache}>
         <Head>
           <title>{`${themeConfig.templateName} - Material Design React Admin Template`}</title>
           <meta
@@ -157,8 +157,8 @@ const App = (props: ExtendedAppProps) => {
           </SettingsProvider>
         </AuthProvider>
       </CacheProvider>
-      </Provider>
-   
+    </Provider>
+
   )
 }
 
