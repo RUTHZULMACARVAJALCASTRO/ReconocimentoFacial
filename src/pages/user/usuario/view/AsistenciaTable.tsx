@@ -55,13 +55,13 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
     const fetchData = async () => {
         try {
             const { data } = await axios.get<PersonalData>(
-                `http://10.10.214.24:3000/api/attendance/${personalId}`
+                `https://five-islands-accept.loca.lt/api/attendance/${personalId}`
             );
 
             console.log('mensaje', data)
             const processedData: any[] = [];
             const horarioId = data.schedule;
-            const horario = await axios.get(`http://10.10.214.24:3000/api/schedule/${horarioId}`);
+            const horario = await axios.get(`https://five-islands-accept.loca.lt/api/schedule/${horarioId}`);
             const infoHorario = horario.data;
             console.log(infoHorario)
 
@@ -89,7 +89,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
     const columns = [
         {
-            flex: 0.1,
+            //flex: 0.1,
             field: 'fecha',
             headerName: 'Fecha',
             renderCell: (params: any) => (
@@ -102,7 +102,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'marcado',
             headerName: 'Marcado',
             renderCell: (params: any) => (
@@ -115,7 +115,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'infraccion',
             headerName: 'Infracción',
             renderCell: (params: any) => (
@@ -127,7 +127,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
             ),
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'tipo',
             headerName: 'Tipo',
             renderCell: (params: any) => (
@@ -140,7 +140,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'estado',
             headerName: 'Estado',
             renderCell: (params: any) => (
@@ -153,7 +153,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'turno',
             headerName: 'Turno',
             renderCell: (params: any) => (
@@ -166,7 +166,7 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
 
         },
         {
-            flex: 0.1,
+            // flex: 0.1,
             field: 'nombreHorario',
             headerName: 'Horario',
             renderCell: (params: any) => (
@@ -204,31 +204,9 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
                         ...column,
                         width: 150,
                     }))}
-                    localeText={{
-                        filterOperatorAfter: 'después de',
-                        filterOperatorOnOrAfter: 'en o después de',
-                        filterOperatorBefore: 'antes de',
-                        filterOperatorOnOrBefore: 'en o antes de',
-                        filterOperatorEquals: 'igual a',
-                        filterOperatorStartsWith: 'comienza con',
-                        filterOperatorEndsWith: 'termina con',
-                        filterOperatorContains: 'contiene',
-                        columnMenuLabel: 'Menú de columna',
-                        columnMenuShowColumns: 'Mostrar columnas',
-                        columnMenuFilter: 'Filtrar',
-                        columnMenuHideColumn: 'Ocultar',
-                        columnMenuUnsort: 'Desordenar',
-                        columnMenuSortAsc: 'Ordenar Asc',
-                        columnMenuSortDesc: 'Ordenar Desc',
-                        toolbarDensity: 'Densidad',
-                        toolbarDensityLabel: 'Densidad',
-                        toolbarDensityCompact: 'Compacto',
-                        toolbarDensityStandard: 'Estándar',
-                        toolbarDensityComfortable: 'Cómodo',
-                        noRowsLabel: 'No hay filas',
-                        noResultsOverlayLabel: 'No se encontraron resultados.',
-                        errorOverlayDefaultLabel: 'Ocurrió un error.'
-                    }}
+                    disableColumnMenu={true}
+                    hideFooterPagination
+                    hideFooterSelectedRowCount
                 />
             </Box>
         </Paper>

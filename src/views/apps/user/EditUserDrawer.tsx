@@ -165,7 +165,7 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
     const [previewfile, setPreviewfile] = useState<string | ''>('')
     const [charges, setCharges] = useState<Charge[]>([]);
     const dispatch: AppDispatch = useDispatch();
-    const allUsers = useSelector((state: RootState) => state.users.list);
+    const allUsers = useSelector((state: RootState) => state.users.paginatedUsers);
     const selectedUser = allUsers.find(user => user._id === userId);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [showImage, setShowImage] = useState(true);

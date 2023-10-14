@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   Checkbox,
+  TextField,
   Button,
   Box,
   Tab,
@@ -16,14 +17,19 @@ import {
   CardActions,
   FormControlLabel,
   Collapse,
+  FormLabel,
   List,
   ListItem,
   FormGroup,
   ListItemIcon,
   ListItemText,
+  FormControl,
   Switch,
   useTheme,
-  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  InputAdornment,
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -39,15 +45,13 @@ import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Cipher } from 'crypto';
+
 import { useDispatch } from 'react-redux'
 import { addSchedule } from 'src/store/apps/schedule/index'
 import { AppDispatch } from 'src/redux/store';
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
-import Autocomplete from '@mui/material/Autocomplete';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
+import SearchIcon from '@material-ui/icons/Search';
+import Grid from '@mui/material/Grid';
+import { makeStyles } from '@material-ui/core/styles';
 
 interface SidebarAddHorarioType {
   open: boolean;
@@ -111,6 +115,17 @@ interface DayData {
 interface SpecialDaysData {
   [key: string]: DayData;
 }
+
+
+const useStyles = makeStyles((theme) => ({
+  listContainer: {
+    maxHeight: '300px', // Puedes ajustar el valor según tus necesidades
+    overflowY: 'auto',
+    border: '1px solid #ccc', // Define el borde del cuadrado
+    borderRadius: '5px', // Agrega un pequeño borde redondeado
+    padding: theme.spacing(1),
+  },
+}));
 
 const PickersRange = ({
   selectedDateRange,
@@ -182,7 +197,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
   const [specialDaysData, setSpecialDaysData] = useState<SpecialDaysData>({});
   const [isUserModalOpen, setUserModalOpen] = useState(false);
   const dispatch: AppDispatch = useDispatch();
-  const MySwal = withReactContent(Swal)
+  const classes = useStyles();
 
   const fetchUsers = async () => {
     try {
@@ -268,7 +283,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
       intoTwo: '14:00',
       outTwo: '18:00',
       toleranceInto: 15,
-      toleranceOut: 30,
+      toleranceOut: 15,
     })),
     scheduleSpecial: dias.map(dia => ({
       name: 'Descripcion',
@@ -278,7 +293,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
       intoTwo: '13:00',
       outTwo: '17:00',
       toleranceInto: 15,
-      toleranceOut: 30,
+      toleranceOut: 15,
       permanente: true,
       dateRange: [null, null],
       usersAssigned: [],
@@ -307,22 +322,6 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 
     console.log('entraa', specialDaysData);
   };
-
-  const handleUserSelectionChange = (dayValue: string, selectedUserIds: string[]) => {
-    setSpecialDaysData(prevState => {
-      const currentData = prevState[dayValue] || { selectedUsers: [] };
-      return {
-        ...prevState,
-        [dayValue]: {
-          ...currentData,
-          selectedUsers: selectedUserIds,
-        }
-      };
-    });
-  };
-
-
-
 
   const theme = useTheme()
   const { direction } = theme
@@ -437,10 +436,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 
       toggle();
       reset(defaultValues);
-      MySwal.fire({
-        title: <p>Horario creado con exito!</p>,
-        icon: 'success'
-      });
+
     } catch (error) {
       // Enviar un mensaje de error (ocurrio un error. Vuelva a intentarlo)
       console.error("Error al enviar datos al servidor:", error);
@@ -456,6 +452,44 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
     reset();
     setUsersError('');
   };
+
+
+  const [searchValue, setSearchValue] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [searchBy, setSearchBy] = useState('name');
+
+  // const handleSearch = async () => {
+  //   if (searchValue) {
+  //     try {
+  //       const response = await axios.get(`https://fine-experts-push.loca.lt/api/personal/filtered?name=${searchValue}`);
+  //       if (response.data && response.data.data) {
+  //         setFilteredUsers(response.data.data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error buscando usuarios:", error);
+  //     }
+  //   } else {
+  //     setFilteredUsers(users);
+  //   }
+  // };
+
+  const handleSearch = async () => {
+    if (searchValue) {
+      try {
+        const url = `http://10.10.214.124:3000/api/personal/filtered?${searchBy}=${searchValue}`;
+        const response = await axios.get(url);
+        setFilteredUsers(response.data.data); if (response.data && response.data.data) {
+          setFilteredUsers(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error buscando usuarios:", error);
+      }
+    } else {
+      setFilteredUsers(users);
+    }
+  };
+
+
 
   return (
     <>
@@ -483,7 +517,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
         variant="temporary"
         onClose={handleClose}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, lg: 800 } } }}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 200, sm: 400, md: 600, xl: 1000 } } }}
       >
         <ScrollBar>
           <Card>
@@ -538,7 +572,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                             }
                             label={dia.nombre}
                           />
-                          <Box mb={2}>
+                          <Box mb={3}>
                             <Controller
                               name={`scheduleNormal.${index}.into`}
                               control={control}
@@ -554,7 +588,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                               )}
                             />
                           </Box>
-                          <Box mb={2}>
+                          <Box mb={3}>
                             <Controller
                               name={`scheduleNormal.${index}.out`}
                               control={control}
@@ -570,7 +604,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                               )}
                             />
                           </Box>
-                          <Box mb={2}>
+                          <Box mb={3}>
                             <Controller
                               name={`scheduleNormal.${index}.intoTwo`}
                               control={control}
@@ -586,7 +620,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                               )}
                             />
                           </Box>
-                          <Box mb={2}>
+                          <Box mb={3}>
                             <Controller
                               name={`scheduleNormal.${index}.outTwo`}
                               control={control}
@@ -602,7 +636,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                               )}
                             />
                           </Box>
-                          <Box mb={2}>
+                          <Box mb={3}>
                             <Controller
                               name={`scheduleNormal.${index}.toleranceInto`}
                               control={control}
@@ -799,43 +833,130 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
                                   />
                                 </Box>
                               </Grid>
-                              <Grid item xs={6}>
+                              {/* <Grid item xs={6}>
                                 <Box mb={2}>
                                   <FormControl component="fieldset">
                                     <FormLabel component="legend">Seleccionar usuarios</FormLabel>
+                                    <Box display="flex" alignItems="center" mb={2}>
+                                      <TextField
+                                        variant="outlined"
+                                        placeholder="Buscar usuario..."
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        fullWidth
+                                      />
+                                      <Button onClick={handleSearch} color="primary">
+                                        Buscar
+                                      </Button>
+                                    </Box>
 
-                                    <Autocomplete
-                                      multiple
-                                      id="users-autocomplete"
-                                      options={users}
-                                      getOptionLabel={(user) => user ? `${user.name} ${user.lastName}` : ''}
-                                      value={specialDaysData[dia.value.toString()]?.selectedUsers?.map(userId => users.find(user => user._id === userId)).filter(Boolean) || []}
-                                      onChange={(event, newValue) => {
-                                        const userIds = newValue
-                                          .filter((user): user is User => user !== undefined) // El tipo de guardia garantiza que solo los valores no undefined pasen.
-                                          .map(user => user._id)
-                                          .filter(Boolean); // Esto garantiza que solo se consideren los ids válidos.
-                                        handleUserSelectionChange(dia.value.toString(), userIds);
-                                      }}
-
-                                      isOptionEqualToValue={(option, value) => option && value ? option._id === value._id : false}
-                                      renderInput={(params) => (
-                                        <TextField {...params} variant="outlined" label="Usuarios" placeholder="Buscar..." />
-                                      )}
-                                      renderOption={(props, option, { selected }) => (
-                                        <li {...props}>
-                                          <Checkbox checked={selected} />
-                                          {option?.name} {option?.lastName}
-                                        </li>
-                                      )}
-
-                                    />
+                                    <List dense>
+                                      {filteredUsers.map((user) => (
+                                        <ListItem key={user._id}>
+                                          <ListItemIcon>
+                                            <Checkbox
+                                              edge="start"
+                                              checked={specialDaysData[dia.value.toString()]?.selectedUsers?.includes(user._id) || false}
+                                              onChange={(e) => handleUserCheckboxChange(dia.value.toString(), user._id, e.target.checked)}
+                                              color="primary"
+                                            />
+                                          </ListItemIcon>
+                                          <ListItemText primary={`${user.name} ${user.lastName}`} />
+                                        </ListItem>
+                                      ))}
+                                    </List>
                                   </FormControl>
+                                </Box>
+                              </Grid> */}
+                              <Grid item xs={12}>
+                                <Box mb={2}>
+                                  <FormControl component="fieldset">
+                                    <FormLabel component="legend">Seleccionar usuarios</FormLabel>
+                                    <br />
+                                    {/* Agregando buscador */}
+                                    <Box display="flex" alignItems="center" mb={2}>
+                                      {/* Selector para elegir la propiedad por la cual buscar */}
 
+                                      <Box mb={2}>
+                                        <FormControl variant="outlined" style={{ marginRight: '30px' }}>
+                                          <InputLabel>Buscar por</InputLabel>
+                                          <Select
+                                            value={searchBy}
+                                            onChange={(e) => setSearchBy(e.target.value)}
+                                            label="Buscar por"
+                                          >
+                                            <MenuItem value="name">Nombre</MenuItem>
+                                            <MenuItem value="lastName">Apellido</MenuItem>
+                                            <MenuItem value="nationality">Nacionalidad</MenuItem>
+                                            <MenuItem value="ci">CI</MenuItem>
+                                            <MenuItem value="address">Dirección</MenuItem>
+                                            <MenuItem value="phone">Teléfono</MenuItem>
+                                            <MenuItem value="email">Email</MenuItem>
+                                            <MenuItem value="isActive">Estado Activo</MenuItem>
+                                          </Select>
+                                        </FormControl>
+                                      </Box>
+
+
+                                      {/* <TextField
+                                        variant="outlined"
+                                        placeholder="Buscar usuario..."
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        fullWidth
+                                      />
+                                      <Button onClick={handleSearch} color="primary">
+                                        <SearchIcon />
+                                        Buscar
+                                      </Button> */}
+
+                                      <Box mb={2}>
+                                        <TextField
+                                          variant="outlined"
+                                          placeholder="Buscar usuario..."
+                                          value={searchValue}
+                                          onChange={(e) => setSearchValue(e.target.value)}
+                                          fullWidth
+                                          InputProps={{
+                                            endAdornment: (
+                                              <InputAdornment position="end">
+                                                <Button onClick={handleSearch} color="primary">
+                                                  <SearchIcon />
+                                                  Buscar
+                                                </Button>
+                                              </InputAdornment>
+                                            ),
+                                          }}
+                                        />
+                                      </Box>
+
+                                    </Box>
+
+                                    {searchValue && (
+                                      <Box className={classes.listContainer}>
+                                        <List dense>
+                                          {filteredUsers.map((user) => (
+                                            <ListItem key={user._id}>
+                                              <ListItemIcon>
+                                                <Checkbox
+                                                  edge="start"
+                                                  checked={specialDaysData[dia.value.toString()]?.selectedUsers?.includes(user._id) || false}
+                                                  onChange={(e) => handleUserCheckboxChange(dia.value.toString(), user._id, e.target.checked)}
+                                                  color="primary"
+                                                />
+                                              </ListItemIcon>
+                                              <ListItemText primary={`${user.name} ${user.lastName}`} />
+                                            </ListItem>
+                                          ))}
+                                        </List>
+                                      </Box>
+                                    )}
+
+                                  </FormControl>
                                 </Box>
                               </Grid>
 
-                              <Grid item xs={6}>
+                              <Grid item xs={12}>
                                 <Box mb={2}>
                                   <FormControlLabel
                                     control={

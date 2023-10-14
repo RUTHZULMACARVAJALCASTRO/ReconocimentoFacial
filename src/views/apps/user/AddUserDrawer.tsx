@@ -19,13 +19,11 @@ import { useForm, Controller } from 'react-hook-form';
 import Icon from 'src/@core/components/icon';
 import axios from 'axios';
 import Autocomplete from '@mui/material/Autocomplete';
-import user from 'src/store/apps/user';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from 'src/redux/store'
-import { addUser } from 'src/store/apps/user/index';
+import { addUser, fetchUsersByPage } from 'src/store/apps/user/index';
 import { RootState } from 'src/store';
-// import { RootState } from 'src/store';
 
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -34,6 +32,8 @@ import withReactContent from 'sweetalert2-react-content'
 interface SidebarAddUserType {
 	open: boolean;
 	toggle: () => void;
+	page: number;
+	pageSize: number;
 }
 
 interface Charge {
@@ -159,13 +159,13 @@ const defaultValues = {
 };
 
 const SidebarAddUser = (props: SidebarAddUserType) => {
-	const { open, toggle } = props;
+	const { open, toggle, page, pageSize } = props;
 	const [previewfile, setPreviewfile] = useState<string | ''>('');
 	const [schedules, setSchedules] = useState<Schedule[]>([]);
 	const [charges, setCharges] = useState<Charge[]>([]);
 	const [units, setUnits] = useState<Unit[]>([]);
 	const [message, setMessage] = useState<string | null>(null);
-
+	const [drawerKey, setDrawerKey] = useState('closed');
 	const dispatch: AppDispatch = useDispatch();
 
 	const error = useSelector((state: RootState) => state.users.error);
@@ -322,8 +322,9 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	const MySwal = withReactContent(Swal)
 
 
-	const handleSave = async (userData: UserData) => {
-		dispatch(addUser({ ...userData, file: previewfile }));
+	const onSubmit = async (userData: UserData) => {
+		await dispatch(addUser({ ...userData, file: previewfile }));
+		dispatch(fetchUsersByPage({ page, pageSize }));
 		// dispatch(addUser(userData))
 		setPreviewfile('');
 		toggle();
@@ -343,15 +344,30 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	// }
 
 	const handleClose = () => {
-		toggle()
-		reset(defaultValues)
+		setPreviewfile('');
+		toggle();
+		reset(defaultValues);
+		open ? 'open' : 'closed'
 	}
+
+	useEffect(() => {
+		if (!open) {
+			const timeout = setTimeout(() => {
+				setDrawerKey(open ? 'open' : 'closed');
+			}, 500);  // 500ms es la duración de tu animación
+
+			return () => clearTimeout(timeout);
+		}
+	}, [open]);
+
 
 	return (
 		<>
 			<Drawer
-				key={open ? 'open' : 'closed'}
+
 				open={open}
+				key={open ? 'open' : 'closed'}
+				//key={drawerKey}
 				anchor='right'
 				variant='temporary'
 				onClose={handleClose}
@@ -366,7 +382,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 				</Header>
 
 				<Box sx={{ p: 5 }}>
-					<form onSubmit={handleSubmit(handleSave)}>
+					<form onSubmit={handleSubmit(onSubmit)}>
 						<Grid container spacing={3}>
 							<Grid item xs={12} >
 								<FormControl fullWidth sx={{ mb: 4 }}>
@@ -664,8 +680,6 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 					</form>
 				</Box>
 			</Drawer>
-			{/* Agrega el componente SidebarAddSpecialSchedule */}
-
 		</>
 	);
 };

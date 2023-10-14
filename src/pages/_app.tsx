@@ -65,6 +65,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 import '../../styles/globals.css'
 import { Provider } from 'react-redux'
 import { store } from '../redux/store';
+import { Typography } from '@mui/material'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -133,7 +134,6 @@ const App = (props: ExtendedAppProps) => {
           <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
           <meta name='viewport' content='initial-scale=1, width=device-width' />
         </Head>
-
         <AuthProvider>
           <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
             <SettingsConsumer>

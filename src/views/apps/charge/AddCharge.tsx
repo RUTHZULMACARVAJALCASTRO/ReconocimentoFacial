@@ -126,11 +126,12 @@ const SidebarAddCharge = ({ open, toggle }: SidebarAddUserType) => {
       > Crear Cargo </Button> */}
       <Drawer
         open={open}
+        // key={open ? 'open' : 'closed'}
         anchor='right'
         variant='temporary'
         onClose={handleClose}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 500, md: 800, xl: 1200 } } }}
+        sx={{ '& .MuiDrawer-paper': { width: { xs: 200, sm: 400, md: 600, xl: 1000 } } }}
       >
         <Header>
           <Typography variant='h6'>Agregar Cargo</Typography>

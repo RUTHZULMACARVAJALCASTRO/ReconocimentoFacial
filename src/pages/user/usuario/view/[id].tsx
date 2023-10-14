@@ -125,7 +125,7 @@ const UserViewLeft = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`https://cold-cameras-stop.loca.lt/api/personal/${id}`);
+      const response = await axios.get(`http://10.10.214.124:3000/api/personal/${id}`);
       setData(response.data);
       console.log(data?.file)
     } catch (error) {
@@ -135,7 +135,7 @@ const UserViewLeft = () => {
 
   const fetchCharge = async (charge: string) => {
     try {
-      const response = await axios.get(`https://cold-cameras-stop.loca.lt/api/charge/${charge}`);
+      const response = await axios.get(`http://10.10.214.124:3000/api/charge/${charge}`);
       setCharge(response.data.name); // Asumiendo que la respuesta tiene un campo 'name'
     } catch (error) {
       console.log(error);
@@ -144,7 +144,7 @@ const UserViewLeft = () => {
 
   const fetchSchedule = async (schedule: string) => {
     try {
-      const response = await axios.get(`https://cold-cameras-stop.loca.lt/api/schedule/${schedule}`);
+      const response = await axios.get(`http://10.10.214.124:3000/api/schedule/${schedule}`);
       setSchedule(response.data.name); // Asumiendo que la respuesta tiene un campo 'name'
     } catch (error) {
       console.log(error);
@@ -254,6 +254,8 @@ const UserViewLeft = () => {
                 value={data.isActive ? 'activo' : 'inactivo'}
                 valueColor={data.isActive ? 'green' : 'red'}
               />
+
+
               <DetailItem icon={<MailIcon color="primary" />} label="Email" value={data.email} />
               <DetailItem icon={<PhoneIcon color="primary" />} label="Celular" value={data.phone} />
               <DetailItem icon={<HomeIcon color="primary" />} label="Dirección" value={data.address} />

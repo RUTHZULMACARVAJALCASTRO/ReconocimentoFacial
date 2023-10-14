@@ -13,18 +13,20 @@ import Icon from 'src/@core/components/icon';
 import { useState, useEffect, MouseEvent, useCallback } from 'react'
 import charge, { fetchCharges } from 'src/store/apps/charge/index';
 import { useDispatch, useSelector } from 'react-redux'
-import { toggleChargeStatus } from 'src/store/apps/charge/index';
+import { toggleChargeStatus, fetchChargesByPage } from 'src/store/apps/charge/index';
 import { RootState } from 'src/store';
 import { AppDispatch } from 'src/redux/store';
 import CustomChip from 'src/@core/components/mui/chip'
 import { ThemeColor } from 'src/@core/layouts/types'
-import TableHeader from 'src/views/apps/user/TableHeaderCharge'
+import TableHeader from 'src/views/apps/charge/TableHeaderCharge'
 import SidebarAddCharge from 'src/views/apps/charge/AddCharge'
 import SidebarEditCharge from 'src/views/apps/charge/EditCharge'
 import Tooltip from '@mui/material/Tooltip';
 interface HTMLElement extends Element { }
 import Swal from 'sweetalert2';
-import { CircularProgress } from '@mui/material'
+import { CircularProgress, FormControl } from '@mui/material'
+import { Pagination, Select } from '@mui/material';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 
 export interface Docu {
   _id: string
@@ -33,12 +35,12 @@ export interface Docu {
   isActive: boolean
 }
 
-interface ChargeData {
-  _id: string
-  name: string
-  description: string
-  isActive: boolean
-}
+// interface ChargeData {
+//   _id: string
+//   name: string
+//   description: string
+//   isActive: boolean
+// }
 
 interface CellType {
   row: Docu
@@ -53,32 +55,61 @@ const ChargeList = () => {
   // ** State
   const [data, setData] = useState<Docu[]>([])
   const [value, setValue] = useState<string>('')
-  const [pageSize, setPageSize] = useState<number>(10)
   const [addChargeOpen, setAddChargeOpen] = useState<boolean>(false)
   const [editChargeOpen, setEditChargeOpen] = useState<boolean>(false)
   const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null);
   const toggleAddCharge = () => setAddChargeOpen(!addChargeOpen)
-
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  // const dispatch = useDispatch<AppDispatch>()
+  // const charges: Docu[] = useSelector((state: RootState) => state.charges.list);
+  // const chargeStatus = useSelector((state: RootState) => state.charges.status);
+  // const paginatedCharges = useSelector((state: RootState) => state.charges.paginatedCharges);
+  // const totalPages = useSelector((state: RootState) => state.charges.totalPages);
+  // const [paginationModel, setPaginationModel] = useState({
+  //   pageSize,
+  //   page
+  // });
   const dispatch = useDispatch<AppDispatch>()
-
   const charges: Docu[] = useSelector((state: RootState) => state.charges.list);
   const chargeStatus = useSelector((state: RootState) => state.charges.status);
+  const totalPages = useSelector((state: RootState) => state.charges.pageSize) || 0;
+  const paginatedCharges = useSelector((state: RootState) => state.charges.paginatedCharges);
+
+
+  const useStyles = makeStyles((theme: Theme) => ({
+    selectContainer: {
+      marginRight: theme.spacing(2),
+    },
+    selectControl: {
+      minWidth: 50,
+    },
+    customSelect: {
+      '& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input.MuiOutlinedInput-input': {
+        minWidth: 50,
+      },
+    },
+    menuPaper: {
+      border: 'none', // Elimina el borde
+      boxShadow: 'none', // Elimina la sombra
+    },
+  }));
+  // useEffect(() => {
+  //   dispatch(fetchCharges());
+  // }, [dispatch]);
+  const classes = useStyles();
+
+  // useEffect(() => {
+  //   dispatch(fetchChargesByPage({ page, pageSize }));
+  // }, [page, pageSize, dispatch]);
 
   useEffect(() => {
-    dispatch(fetchCharges());
-  }, [dispatch]);
+    dispatch(fetchChargesByPage({ page, pageSize }));
+    //dispatch(setCurrentPage(page));
+    console.log(page)
+    console.log('pageSize', pageSize)
+  }, [page, pageSize, dispatch]);
 
-
-  const toggleChargeActivation = async (chargeId: string, isActive: boolean) => {
-    console.log(`Setting charge with ID ${chargeId} active status to: ${isActive}`);
-
-    try {
-      await dispatch(toggleChargeStatus({ chargeId, isActive })).unwrap();
-
-    } catch (error) {
-      console.error("Error making the PUT request to update status:", error);
-    }
-  };
 
   const chargeStatusObj: ChargeStatusType = {
     activo: 'success',
@@ -147,8 +178,8 @@ const ChargeList = () => {
                 onClick={isActive ? handleUpdate(id.toString()) : undefined}
                 sx={{
                   '& svg': { mr: 2 },
-                  pointerEvents: isActive ? 'auto' : 'none', // Deshabilita el clic si el usuario está inactivo.
-                  opacity: isActive ? 1 : 0.5, // Cambia la opacidad si el usuario está inactivo.
+                  pointerEvents: isActive ? 'auto' : 'none',
+                  opacity: isActive ? 1 : 0.5,
                 }}
               >
                 <Icon icon='mdi:edit' fontSize={20} />
@@ -281,7 +312,6 @@ const ChargeList = () => {
         )
       }
     },
-
     {
       flex: 0.1,
       minWidth: 90,
@@ -298,17 +328,25 @@ const ChargeList = () => {
       </div>
     );
   }
+
+  const reversedPaginatedCharges = [...paginatedCharges].reverse();
+
   return (
     <>
       <Grid container spacing={50}>
         <Grid item xs={12}>
           <Card>
-            <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddCharge} />
+            <TableHeader
+              value={value}
+              toggle={toggleAddCharge}
+              pageSize={pageSize}
+            />
             <DataGrid
               loading={chargeStatus === 'loading'}
               getRowId={row => row._id}
               autoHeight
-              rows={[...charges].reverse()}
+              // rows={[...charges].reverse()}
+              rows={reversedPaginatedCharges}
               columns={columns}
               pageSize={pageSize}
               // rowsPerPageOptions={[10, 25, 50]}
@@ -319,30 +357,40 @@ const ChargeList = () => {
                 }
               }}
               components={{
-                LoadingOverlay: CustomLoadingOverlay
+                LoadingOverlay: CustomLoadingOverlay,
+                Pagination: () =>
+                  <>
+                    <Box display="flex" alignItems="center">
+                      <FormControl variant="standard" sx={{ m: 1, minWidth: 60 }}>
+                        <Select
+                          value={pageSize}
+                          onChange={(e) => setPageSize(Number(e.target.value))}
+                          style={{
+                            border: 'none',
+                            outline: 'none',
+                            boxShadow: 'none',
+                            fontSize: '15px',
+                            width: '70px',
+                          }}
+                        >
+                          <MenuItem value={5}>5</MenuItem>
+                          <MenuItem value={10}>10</MenuItem>
+                          <MenuItem value={20}>20</MenuItem>
+                          <MenuItem value={50}>50</MenuItem>
+                          <MenuItem value={100}>100</MenuItem>
+                          <MenuItem value={300}>300</MenuItem>
+                          <MenuItem value={500}>500</MenuItem>
+                          <MenuItem value={800}>800</MenuItem>
+                          <MenuItem value={1000}>1000</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
+                    </Box>
+                  </>,
               }}
-              onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
+
               localeText={{
-                filterOperatorAfter: 'después de',
-                filterOperatorOnOrAfter: 'en o después de',
-                filterOperatorBefore: 'antes de',
-                filterOperatorOnOrBefore: 'en o antes de',
-                filterOperatorEquals: 'igual a',
-                filterOperatorStartsWith: 'comienza con',
-                filterOperatorEndsWith: 'termina con',
-                filterOperatorContains: 'contiene',
-                columnMenuLabel: 'Menú de columna',
-                columnMenuShowColumns: 'Mostrar columnas',
-                columnMenuFilter: 'Filtrar',
-                columnMenuHideColumn: 'Ocultar',
-                columnMenuUnsort: 'Desordenar',
-                columnMenuSortAsc: 'Ordenar Asc',
-                columnMenuSortDesc: 'Ordenar Desc',
-                toolbarDensity: 'Densidad',
-                toolbarDensityLabel: 'Densidad',
-                toolbarDensityCompact: 'Compacto',
-                toolbarDensityStandard: 'Estándar',
-                toolbarDensityComfortable: 'Cómodo',
+
                 noRowsLabel: 'No hay filas',
                 noResultsOverlayLabel: 'No se encontraron resultados.',
                 errorOverlayDefaultLabel: 'Ocurrió un error.'
@@ -361,3 +409,5 @@ const ChargeList = () => {
 
 
 export default ChargeList
+
+

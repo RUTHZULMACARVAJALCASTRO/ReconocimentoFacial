@@ -73,7 +73,7 @@ const defaultValues = {
 const SidebarEditCharge = ({ chargeId, open, toggle }: SidebarEditChargeType) => {
   console.log(chargeId);
   const dispatch: AppDispatch = useDispatch();
-  const allCharges: Docu[] = useSelector((state: RootState) => state.charges.list);
+  const allCharges: Docu[] = useSelector((state: RootState) => state.charges.paginatedCharges);
   const selectedCharge = allCharges.find(charge => charge._id === chargeId);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [charge, setCharge] = useState<Docu>(selectedCharge ? selectedCharge : defaultValues);
