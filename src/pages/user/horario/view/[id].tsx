@@ -56,7 +56,7 @@ const PlanillaHorario = () => {
     const fetchData = async () => {
         try {
             const { data } = await axios.get(
-                `https://five-islands-accept.loca.lt/api/schedule/${id}`
+                `${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${id}`
             );
 
             // Filtra los datos en función del tipo de horario
@@ -99,7 +99,7 @@ const PlanillaHorario = () => {
     const fetchAllUsers = async () => {
         try {
             const { data } = await axios.get(
-                'https://five-islands-accept.loca.lt/api/personal/'
+                `${process.env.NEXT_PUBLIC_PERSONAL}`
             );
             console.log('Data de usuarios cargada:', data);
             setAllUsers(data.users);
@@ -112,7 +112,7 @@ const PlanillaHorario = () => {
     const fetchSpecialScheduleUsers = async () => {
         try {
             const { data } = await axios.get(
-                `https://five-islands-accept.loca.lt/api/schedule/${id}`
+                `${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${id}`
             );
 
             // Extrae los IDs de los usuarios asignados al horario especial

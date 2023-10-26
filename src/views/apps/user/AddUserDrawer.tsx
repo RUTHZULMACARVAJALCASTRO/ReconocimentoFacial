@@ -39,10 +39,12 @@ interface SidebarAddUserType {
 interface Charge {
 	_id: string;
 	name: string;
+	isActive: boolean;
 }
 interface Schedule {
 	_id: string;
 	name: string;
+	isActive: boolean;
 }
 interface Unit {
 	_id: string;
@@ -167,8 +169,9 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	const [message, setMessage] = useState<string | null>(null);
 	const [drawerKey, setDrawerKey] = useState('closed');
 	const dispatch: AppDispatch = useDispatch();
-
-	const error = useSelector((state: RootState) => state.users.error);
+	const activeCharges = charges.filter(charge => charge.isActive);
+	const activeSchedules = schedules.filter(schedule => schedule.isActive);
+	//
 	// const userStatus = useSelector((state: RootState) => state.users.status);
 	const [user, setUser] = useState<UserData>({
 		name: '',
@@ -320,28 +323,42 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	};
 
 	const MySwal = withReactContent(Swal)
+	const errorFromRedux = useSelector((state: RootState) => state.users.error);
+	const [localError, setLocalError] = useState(null);
 
+	const [error, setError] = useState(null);
 
 	const onSubmit = async (userData: UserData) => {
 		await dispatch(addUser({ ...userData, file: previewfile }));
-		dispatch(fetchUsersByPage({ page, pageSize }));
-		// dispatch(addUser(userData))
-		setPreviewfile('');
-		toggle();
-		reset(defaultValues);
-		MySwal.fire({
-			title: <p>Usuario creado con éxito!</p>,
-			icon: 'success'
-		});
+
+		if (errorFromRedux) {
+			setLocalError(errorFromRedux);
+		} else {
+			dispatch(fetchUsersByPage({ page, pageSize }));
+			setPreviewfile('');
+			toggle();
+			reset(defaultValues);
+			MySwal.fire({
+				title: <p>Usuario creado con éxito!</p>,
+				icon: 'success'
+			});
+		}
 	};
 
-	// if (error) {
-	// 	MySwal.fire({
-	// 		title: <p>Error al crear el usuario</p>,
-	// 		text: error,
-	// 		icon: 'error'
-	// 	});
-	// }
+
+	useEffect(() => {
+		if (localError) {
+			MySwal.fire({
+				title: <p>Error al crear el usuario</p>,
+				text: localError,
+				icon: 'error'
+			});
+
+			// Limpia el error después de mostrarlo
+			setLocalError(null);
+		}
+	}, [localError]);
+
 
 	const handleClose = () => {
 		setPreviewfile('');
@@ -593,29 +610,33 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 										name='charge'
 										control={control}
 										rules={{ required: true }}
-										render={({ field: { value, onChange } }) => (
-											<Autocomplete
-												options={charges} // Usar la lista de cargos obtenida del estado local
-												getOptionLabel={option => option.name}
-												isOptionEqualToValue={(option: Charge, value: Charge) => option._id === value._id}
-												onChange={(_, newValue: Charge | null) => {
-													onChange(newValue ? newValue._id : null);
-												}}
-												renderInput={params => (
-													<TextField
-														value={value}
-														{...params}
-														label='Cargos'
-														error={Boolean(errors.charge)}
-														helperText={errors.charge ? errors.charge.message : ''}
-														inputProps={{ ...params.inputProps, autoComplete: 'off' }}
-													/>
-												)}
-											/>
-										)}
+										render={({ field: { value, onChange } }) => {
+											const activeCharges = charges.filter(charge => charge.isActive); // Filtrar los cargos activos
+											return (
+												<Autocomplete
+													options={activeCharges} // Usar solo los cargos activos
+													getOptionLabel={option => option.name}
+													isOptionEqualToValue={(option: Charge, value: Charge) => option._id === value._id}
+													onChange={(_, newValue: Charge | null) => {
+														onChange(newValue ? newValue._id : null);
+													}}
+													renderInput={params => (
+														<TextField
+															value={value}
+															{...params}
+															label='Cargos'
+															error={Boolean(errors.charge)}
+															helperText={errors.charge ? errors.charge.message : ''}
+															inputProps={{ ...params.inputProps, autoComplete: 'off' }}
+														/>
+													)}
+												/>
+											);
+										}}
 									/>
 								</FormControl>
 							</Grid>
+
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth sx={{ mb: 4 }}>
 									<Controller
@@ -624,7 +645,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 										rules={{ required: true }}
 										render={({ field: { value, onChange } }) => (
 											<Autocomplete
-												options={schedules} // Usar la lista de cargos obtenida del estado local
+												options={activeSchedules}
 												getOptionLabel={option => option.name}
 												isOptionEqualToValue={(option: Schedule, value: Schedule) => option._id === value._id}
 												onChange={(_, newValue: Schedule | null) => {

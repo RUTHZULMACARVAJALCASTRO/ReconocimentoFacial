@@ -125,7 +125,7 @@ const UserViewLeft = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`http://10.10.214.124:3000/api/personal/${id}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}${id}`);
       setData(response.data);
       console.log(data?.file)
     } catch (error) {
@@ -135,7 +135,7 @@ const UserViewLeft = () => {
 
   const fetchCharge = async (charge: string) => {
     try {
-      const response = await axios.get(`http://10.10.214.124:3000/api/charge/${charge}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}${charge}`);
       setCharge(response.data.name); // Asumiendo que la respuesta tiene un campo 'name'
     } catch (error) {
       console.log(error);
@@ -144,7 +144,7 @@ const UserViewLeft = () => {
 
   const fetchSchedule = async (schedule: string) => {
     try {
-      const response = await axios.get(`http://10.10.214.124:3000/api/schedule/${schedule}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${schedule}`);
       setSchedule(response.data.name); // Asumiendo que la respuesta tiene un campo 'name'
     } catch (error) {
       console.log(error);

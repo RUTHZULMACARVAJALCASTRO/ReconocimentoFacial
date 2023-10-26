@@ -37,46 +37,39 @@
 // }
 
 // export default TableHeader
-// ** MUI Imports
-import { useState } from 'react';
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
 
-// ** Icon Imports
-import FilterMod from './FilterUser'
-
+import React, { useState } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Icon from 'src/@core/components/icon';
+import FilterComponent from './FilterUser'; // Importa tu componente FilterComponent aquí
 
 interface TableHeaderProps {
-  value: string
-  toggle: () => void,
-  pageSize: number
+  toggle: () => void;
+  pageSize: number;
 }
 
-const TableHeader: React.FC<TableHeaderProps> = ({ toggle, value, pageSize }) => {
+const TableHeader: React.FC<TableHeaderProps> = ({ toggle, pageSize }) => {
+  const [isFilterComponentVisible, setIsFilterComponentVisible] = useState(false);
 
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const openFilterModal = () => setIsFilterModalOpen(true);
-  const closeFilterModal = () => setIsFilterModalOpen(false);
-
-
+  const toggleFilterComponent = () => setIsFilterComponentVisible(!isFilterComponentVisible);
 
   return (
     <Box sx={{ p: 5, pb: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button onClick={openFilterModal} variant='contained' sx={{ mr: 6, mb: 2, pr: 15, pl: 15 }}>
+        <Button onClick={toggleFilterComponent} variant='contained' sx={{ mr: 6, mb: 2, pr: 15, pl: 15 }}>
           Filtrar
         </Button>
 
         <Button sx={{ mb: 2 }} onClick={toggle} variant='contained'>
-          Agregar Usuario
+          Crear Personal
         </Button>
-
-        <FilterMod open={isFilterModalOpen} handleClose={closeFilterModal} pageSize={pageSize} />
       </Box>
+      {isFilterComponentVisible && <FilterComponent pageSize={pageSize} />}
     </Box>
-  )
+  );
 }
 
-export default TableHeader
+export default TableHeader;

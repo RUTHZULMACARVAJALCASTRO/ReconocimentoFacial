@@ -55,13 +55,13 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
     const fetchData = async () => {
         try {
             const { data } = await axios.get<PersonalData>(
-                `https://five-islands-accept.loca.lt/api/attendance/${personalId}`
+                `${process.env.NEXT_PUBLIC_PERSONAL_PLANILLA}${personalId}`
             );
 
             console.log('mensaje', data)
             const processedData: any[] = [];
             const horarioId = data.schedule;
-            const horario = await axios.get(`https://five-islands-accept.loca.lt/api/schedule/${horarioId}`);
+            const horario = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${horarioId}`);
             const infoHorario = horario.data;
             console.log(infoHorario)
 

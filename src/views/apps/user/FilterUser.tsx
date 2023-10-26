@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Button, Modal, TextField, Box, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { fetchUsersByPage, setCurrentPage } from 'src/store/apps/user/index';
+import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, Paper, Typography, Button, InputAdornment } from '@mui/material';
+import { fetchUsersByPage } from 'src/store/apps/user/index';
 import { AppDispatch } from 'src/redux/store';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
+import FilterListIcon from '@mui/icons-material/FilterList';
 
-
-interface FilterModalProps {
-    open: boolean;
-    handleClose: () => void;
-    pageSize: number
+interface FilterProps {
+    pageSize: number;
+    onFilterSubmit?: (filters: any) => void;
 }
 
 const initialFilters = {
@@ -24,11 +24,9 @@ const initialFilters = {
     isActive: ''
 };
 
-const FilterModal: React.FC<FilterModalProps> = ({ open, handleClose, pageSize }) => {
+const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) => {
     const [filters, setFilters] = useState(initialFilters);
-
-
-    const dispatch = useDispatch<AppDispatch>()
+    const dispatch = useDispatch<AppDispatch>();
     const currentPage = useSelector((state: RootState) => state.users.currentPage);
 
     const handleInputChange = (event: any) => {
@@ -38,116 +36,158 @@ const FilterModal: React.FC<FilterModalProps> = ({ open, handleClose, pageSize }
         } else {
             setFilters(prevState => ({ ...prevState, [name]: value }));
         }
-
-        console.log(name);
-        console.log(value);
     };
 
-    useEffect(() => {
-        console.log(filters);
-    }, [filters]);
-
-    const handleSubmit = (event: any) => {
-        console.log('aplicando filtro');
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const finalFilters = {
             ...filters,
-            page: currentPage,
+            page: 1,
             pageSize: pageSize
         };
+
         dispatch(fetchUsersByPage(finalFilters));
-        handleClose();
-    };
 
-    useEffect(() => {
-        if (!open) {
-            setFilters(initialFilters);
+        if (onFilterSubmit) {
+            onFilterSubmit(finalFilters);
         }
-    }, [open]);
-
-    const style = {
-        position: 'absolute' as 'absolute',
-        top: '20%',
-        left: '50%',
-        transform: 'translate(-50%, -10%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
     };
 
+    const handleReset = () => {
+        setFilters(initialFilters); // Restablecer los filtros al estado inicial
+        console.log("Estado actualizado a:", initialFilters);
+
+        // Suponiendo que si no pasas filtros a fetchChargesByPage, devuelve todos los datos.
+        dispatch(fetchUsersByPage({ page: 1, pageSize: pageSize }));
+    };
     return (
-        <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-        >
-            <Box sx={style}>
-                <form onSubmit={handleSubmit}>
-                    <Grid container spacing={4}>
-                        <Grid item xs={6}>
-                            <TextField name="name" value={filters.name} onChange={handleInputChange} id="standard-basic-1" label="Nombre" variant="standard" fullWidth />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField name="lastName" value={filters.lastName} onChange={handleInputChange} id="standard-basic-2" label="Apellido" variant="standard" fullWidth />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField name="ci" value={filters.ci} onChange={handleInputChange} id="standard-basic-3" label="CI" variant="standard" fullWidth />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField name="email" value={filters.email} onChange={handleInputChange} id="standard-basic-4" label="E-mail" variant="standard" fullWidth />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField name="phone" value={filters.phone} onChange={handleInputChange} id="standard-basic-5" label="Telefono" variant="standard" fullWidth />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField name="address" value={filters.address} onChange={handleInputChange} id="standard-basic-6" label="Direccion" variant="standard" fullWidth />
-                        </Grid>
 
-                        <Grid item xs={6}>
-                            <FormControl fullWidth variant="standard">
-                                <InputLabel htmlFor="nacionalidad">Nacionalidad</InputLabel>
-                                <Select
-                                    name="nationality"
-                                    value={filters.nationality}
-                                    onChange={handleInputChange}
-                                    id="nacionalidad"
-                                    label="Nacionalidad"
-                                >
-                                    <MenuItem value={"Argentina"}>Argentino</MenuItem>
-                                    <MenuItem value={"Brasil"}>Brasileño</MenuItem>
-                                    <MenuItem value={"Chile"}>Chileno</MenuItem>
-                                    <MenuItem value={"Bolivia"}>Boliviano</MenuItem>
-                                    <MenuItem value={"Peru"}>Peruano</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
+        <Paper style={{ padding: '10px', marginBottom: '10px', width: '100%' }}>
 
-                        <Grid item xs={6}>
-                            <FormControl fullWidth variant="standard">
-                                <InputLabel htmlFor="estado">Estado</InputLabel>
-                                <Select
-                                    name="isActive"
-                                    value={filters.isActive}
-                                    onChange={handleInputChange}
-                                    id="estado"
-                                    label="Estado"
-                                >
-                                    <MenuItem value={"true"}>Activo</MenuItem>
-                                    <MenuItem value={"false"}>Inactivo</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
+            <form onSubmit={handleSubmit}>
+                <Grid container spacing={2}>
+                    <Grid item xs={1.2}>
+                        <FormControl fullWidth variant="standard">
+                            <InputLabel htmlFor="isActive">Estado</InputLabel>
+                            <Select
+                                name="isActive"
+                                value={filters.isActive}
+                                onChange={handleInputChange}
+                                id="isActive"
+                            >
+                                <MenuItem value={"true"}>Activo</MenuItem>
+                                <MenuItem value={"false"}>Inactivo</MenuItem>
+                            </Select>
 
-                        <Grid item xs={12}>
-                            <Button type="submit" fullWidth>Aplicar Filtro</Button>
-                        </Grid>
+                        </FormControl>
                     </Grid>
-                </form>
-            </Box>
-        </Modal>
+                    <Grid item xs={1.2}>
+                        <TextField name="name" variant="standard" value={filters.name} onChange={handleInputChange} label="Nombre" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1.3}>
+                        <TextField name="lastName" variant="standard" value={filters.lastName} onChange={handleInputChange} label="Apellido" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1}>
+                        <TextField name="ci" variant="standard" value={filters.ci} onChange={handleInputChange} label="CI" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1.3}>
+                        <TextField name="E-mail" variant="standard" value={filters.email} onChange={handleInputChange} label="E-mail" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1.3}>
+                        <TextField name="telefono" variant="standard" value={filters.phone} onChange={handleInputChange} label="Telefono" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1.3}>
+                        <TextField name="dirección" variant="standard" value={filters.address} onChange={handleInputChange} label="Dirección" fullWidth
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <FilterListIcon />
+                                    </InputAdornment>
+                                ),
+                            }} />
+                    </Grid>
+                    <Grid item xs={1.2}>
+                        <FormControl fullWidth variant="standard">
+                            <InputLabel htmlFor="nationality">Nacionalidad</InputLabel>
+                            <Select
+                                name="nationality"
+                                value={filters.nationality}
+                                onChange={handleInputChange}
+                                id="nationality"
+                            >
+                                <MenuItem value={"Argentina"}>Argentino</MenuItem>
+                                <MenuItem value={"Brasil"}>Brasileño</MenuItem>
+                                <MenuItem value={"Chile"}>Chileno</MenuItem>
+                                <MenuItem value={"Bolivia"}>Boliviano</MenuItem>
+                                <MenuItem value={"Peru"}>Peruano</MenuItem>
+                            </Select>
+
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={1}>
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            style={{ marginTop: '10px' }}
+                        >
+                            Filtrar
+                        </Button>
+                    </Grid>
+                    <Grid item xs={1}>
+                        <Button
+                            onClick={handleReset}
+                            fullWidth
+                            variant="outlined"
+                            color="primary"
+                            style={{ marginTop: '10px' }}
+                        >
+                            Fin
+                        </Button>
+                    </Grid>
+
+                </Grid>
+            </form>
+        </Paper>
     );
 };
 
-export default FilterModal;
+export default FilterComponent;
+

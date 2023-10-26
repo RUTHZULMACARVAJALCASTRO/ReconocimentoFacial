@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, Paper, Typography, Button, InputAdornment } from '@mui/material';
-import { fetchScheduleByPage } from 'src/store/apps/schedule/index';
+
 import { AppDispatch } from 'src/redux/store';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { fetchLicensesByPage } from 'src/store/apps/license';
 
 interface FilterProps {
     pageSize: number;
@@ -14,14 +15,14 @@ interface FilterProps {
 }
 
 const initialFilters = {
-    name: '',
+    licenseType: '',
     isActive: ''
 };
 
 const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) => {
     const [filters, setFilters] = useState(initialFilters);
     const dispatch = useDispatch<AppDispatch>();
-    const currentPage = useSelector((state: RootState) => state.schedules.currentPage);
+    const currentPage = useSelector((state: RootState) => state.charges.currentPage);
 
     const handleInputChange = (event: any) => {
         const { name, value } = event.target;
@@ -40,7 +41,7 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
             pageSize: pageSize
         };
 
-        dispatch(fetchScheduleByPage(finalFilters));
+        dispatch(fetchLicensesByPage(finalFilters));
 
         if (onFilterSubmit) {
             onFilterSubmit(finalFilters);
@@ -52,7 +53,7 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
         console.log("Estado actualizado a:", initialFilters);
 
         // Suponiendo que si no pasas filtros a fetchChargesByPage, devuelve todos los datos.
-        dispatch(fetchScheduleByPage({ page: 1, pageSize: pageSize }));
+        dispatch(fetchLicensesByPage({ page: 1, pageSize: pageSize }));
     };
     return (
 
@@ -76,7 +77,7 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
                         </FormControl>
                     </Grid>
                     <Grid item xs={3}>
-                        <TextField name="name" variant="standard" value={filters.name} onChange={handleInputChange} label="Nombre" fullWidth
+                        <TextField name="name" variant="standard" value={filters.licenseType} onChange={handleInputChange} label="Nombre" fullWidth
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -86,7 +87,7 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
                             }} />
                     </Grid>
 
-                    <Grid item xs={1.2}>
+                    <Grid item xs={3}>
                         <Button
                             type="submit"
                             fullWidth
@@ -94,10 +95,10 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
                             color="primary"
                             style={{ marginTop: '10px' }}
                         >
-                            Filtrar
+                            Aplicar Filtro
                         </Button>
                     </Grid>
-                    <Grid item xs={1.5}>
+                    <Grid item xs={3}>
                         <Button
                             onClick={handleReset}
                             fullWidth

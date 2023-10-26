@@ -69,7 +69,7 @@ const Planillas = () => {
                 useEntrance = false;
             }
 
-            const horario = await axios.get(`http:10.10.214.124:3000/api/schedule/${personal.schedule}`);
+            const horario = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${personal.schedule}`);
             const infoHorario = horario.data;
 
             processedData[personal.personalId] = {
@@ -103,7 +103,7 @@ const Planillas = () => {
     //         const exits = latestAttendanceDetail.exits;
     //         const latestEntrance = entrances[entrances.length - 1];
     //         const latestExit = exits[exits.length - 1];
-    //         const horario = await axios.get(`http:10.10.214.124:3000/api/schedule/${personal.schedule}`);
+    //         const horario = await axios.get(`http://10.10.214.158:3000/api/schedule/${personal.schedule}`);
     //         const infoHorario = horario.data;
 
     //         processedData[personal.personalId] = {
@@ -130,7 +130,7 @@ const Planillas = () => {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get(`http:10.10.214.124:3000/api/attendance/`);
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_PLANILLA}`);
             const processedData = await procesarDatos(response.data) as PersonalData[];
 
             console.log('entraa', processedData)
@@ -184,7 +184,7 @@ const Planillas = () => {
             headerName: 'Horario',
             renderCell: (params: any) => (
                 <Tooltip title={params.value || ''}>
-                    <div>
+                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {params.value}
                     </div>
                 </Tooltip>

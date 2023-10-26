@@ -30,14 +30,10 @@ interface Props {
 
 interface user {
   _id: string
-  password: string
   name: string
   lastName: string
-  phone: string
-  email: string
   ci: string
   file: string
-  roles: string[]
   createdAt: string
   updatedAt: string
 }
@@ -60,20 +56,26 @@ const UserDropdown = (props: Props) => {
   const { logout } = useAuth()
   const { direction } = settings
   const [user, setUser] = useState<user>()
+  const [isLoading, SetIsLoading] = useState<boolean>(true)
   useEffect(() => {
+    const get = async () => {
+      try {
+        const response = await axios.get<user>(`${process.env.NEXT_PUBLIC_API_CENTRAL}user/${id}`)
+        console.log(response)
+        setUser(response.data)
+        if (user?.file !== undefined) {
+          const aux = 'data:image/png;base64,' + user.file
+          setImage(aux)
+        }
+        SetIsLoading(false)
+        console.log(response.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
     get()
   }, [])
-  const get = async () => {
-    try {
-      const response = await axios.get<user>(`${process.env.NEXT_PUBLIC_API_CENTRAL}user/${id}`)
-      setUser(response.data)
-      const aux = 'data:image/png;base64,' + user?.file
-      setImage(aux)
-      console.log(response.data)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
   }
@@ -104,7 +106,10 @@ const UserDropdown = (props: Props) => {
 
   return (
     <Fragment>
-      {user?.name} {user?.lastName}
+      <Typography>
+        {user?.name} {user?.lastName} <b></b>
+        CI:{user?.ci}
+      </Typography>
       <Badge
         overlap='circular'
         onClick={handleDropdownOpen}
@@ -115,7 +120,7 @@ const UserDropdown = (props: Props) => {
           horizontal: 'right'
         }}
       >
-        <Avatar alt='John Doe' onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={image} />
+        <Avatar alt={user?.name} onClick={handleDropdownOpen} sx={{ width: 40, height: 40 }} src={image} />
       </Badge>
       <Menu
         anchorEl={anchorEl}
@@ -127,16 +132,29 @@ const UserDropdown = (props: Props) => {
       >
         <Box sx={{ pt: 2, pb: 3, px: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Badge
-              overlap='circular'
-              badgeContent={<BadgeContentSpan />}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right'
-              }}
-            >
-              <Avatar alt='John Doe' src={image} sx={{ width: '2.5rem', height: '2.5rem' }} />
-            </Badge>
+            {isLoading ? (
+              <Badge
+                overlap='circular'
+                badgeContent={<BadgeContentSpan />}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right'
+                }}
+              >
+                <Avatar alt='John Doe' src={image} sx={{ width: '2.5rem', height: '2.5rem' }} />
+              </Badge>
+            ) : (
+              <Badge
+                overlap='circular'
+                badgeContent={<BadgeContentSpan />}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right'
+                }}
+              >
+                <Avatar alt='John Doe' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              </Badge>
+            )}
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>
                 {user?.name} {user?.lastName}

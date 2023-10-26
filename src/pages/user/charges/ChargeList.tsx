@@ -3,7 +3,6 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Menu from '@mui/material/Menu'
 import Grid from '@mui/material/Grid'
-
 import { DataGrid } from '@mui/x-data-grid'
 import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
@@ -71,11 +70,10 @@ const ChargeList = () => {
   //   page
   // });
   const dispatch = useDispatch<AppDispatch>()
-  const charges: Docu[] = useSelector((state: RootState) => state.charges.list);
   const chargeStatus = useSelector((state: RootState) => state.charges.status);
   const totalPages = useSelector((state: RootState) => state.charges.pageSize) || 0;
   const paginatedCharges = useSelector((state: RootState) => state.charges.paginatedCharges);
-
+  console.log(chargeStatus)
 
   const useStyles = makeStyles((theme: Theme) => ({
     selectContainer: {
@@ -112,8 +110,8 @@ const ChargeList = () => {
 
 
   const chargeStatusObj: ChargeStatusType = {
-    activo: 'success',
-    inactivo: 'secondary'
+    disponible: 'success',
+    No_disponible: 'secondary'
   }
 
   const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
@@ -249,19 +247,7 @@ const ChargeList = () => {
 
     )
   }
-
-  const handleFilter = useCallback((val: string) => {
-    setValue(val)
-  }, [])
   const [open, setOpen] = useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
   const columns = [
     {
       flex: 0.1,
@@ -269,7 +255,7 @@ const ChargeList = () => {
       field: 'status',
       headerName: 'Estado',
       renderCell: ({ row }: CellType) => {
-        const status = row.isActive ? 'activo' : 'inactivo';
+        const status = row.isActive ? 'disponible' : 'No disponible';
         return (
           <CustomChip
             skin='light'
@@ -337,11 +323,12 @@ const ChargeList = () => {
         <Grid item xs={12}>
           <Card>
             <TableHeader
-              value={value}
+              //value={value}
               toggle={toggleAddCharge}
               pageSize={pageSize}
             />
             <DataGrid
+
               loading={chargeStatus === 'loading'}
               getRowId={row => row._id}
               autoHeight
@@ -373,7 +360,7 @@ const ChargeList = () => {
                             width: '70px',
                           }}
                         >
-                          <MenuItem value={5}>5</MenuItem>
+                          <MenuItem value={2}>2</MenuItem>
                           <MenuItem value={10}>10</MenuItem>
                           <MenuItem value={20}>20</MenuItem>
                           <MenuItem value={50}>50</MenuItem>
@@ -391,10 +378,11 @@ const ChargeList = () => {
 
               localeText={{
 
-                noRowsLabel: 'No hay filas',
+                noRowsLabel: 'No hay Cargos',
                 noResultsOverlayLabel: 'No se encontraron resultados.',
                 errorOverlayDefaultLabel: 'Ocurrió un error.'
               }}
+              disableColumnMenu={true}
 
             />
           </Card>

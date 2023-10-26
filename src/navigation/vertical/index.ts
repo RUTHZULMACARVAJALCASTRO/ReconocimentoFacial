@@ -5,6 +5,21 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 const navigation = (): VerticalNavItemsType => {
   return [
     {
+      title: 'Roles Y Permisos',
+      icon: 'mdi:shield-outline',
+      children: [
+        {
+          title: 'Roles',
+          path: '/user/roles_y_permisos/roles/roles'
+        },
+        {
+          title: 'Permisos',
+          path: '/user/roles_y_permisos/permisos/TableHeader'
+        }
+      ]
+    },
+
+    {
       title: 'Personal',
       icon: 'mdi:account-group',
       children: [
@@ -21,6 +36,11 @@ const navigation = (): VerticalNavItemsType => {
       icon: 'mdi:clipboard-account',
     },
     {
+      title: 'Salarios',
+      path: '/user/salarios/salarios',
+      icon: 'mdi:clipboard-account',
+    },
+    {
       title: 'Horarios',
       icon: 'mdi:timetable',
       children: [
@@ -32,11 +52,31 @@ const navigation = (): VerticalNavItemsType => {
         }
       ]
     },
+
+    
     
     {
       title: 'Planilla de Asistencia',
       path: '/user/Asistencia/planillas',
       icon: 'mdi:clipboard-list',
+    },
+    {
+      title: 'Permisos y Licencias',
+      icon: 'mdi:account-lock',
+      children: [
+        {
+          title: 'Permisos',
+          path: '/user/permisos_y_licencias/permisos/permisos'
+        },
+        // {
+        //   title: 'Licencias',
+        //   path: '/user/permisos_y_licencias/licencias/licencias'
+        // }
+        {
+          title: 'Licencias',
+          path: '/user/permisos_y_licencias/licencias/licencias'
+        }
+      ]
     },
     {
       title: 'Marcar Asistencia',

@@ -9,6 +9,26 @@ import { Login, Redirect } from 'src/services/services'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import axios from 'axios'
+import { makeStyles } from '@mui/styles';
+import { useTheme } from '@mui/material/styles';
+
+const useStyles = makeStyles((theme) => ({
+  card: {
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    transition: 'transform 0.2s ease-in-out',
+    '&:hover': {
+      transform: 'scale(1.05)',
+    },
+  },
+  title: {
+    //color: primary,
+    fontWeight: 'bold',
+  },
+  content: {
+    textAlign: 'center',
+  },
+}));
 
 const Home = () => {
   const router = useRouter()
@@ -47,35 +67,25 @@ const Home = () => {
         alert(JSON.stringify(e))
       })
   }
+  const classes = useStyles();
 
   return (
-    <Grid container spacing={6}>
+    <Grid container spacing={3}>
       <Grid item xs={12}>
-        <Card>
-          <CardHeader title='Pon en marcha tu proyecto 🚀'></CardHeader>
-          <CardContent>
-            <Typography sx={{ mb: 2 }}>Todo lo mejor para tu nuevo proyecto.</Typography>
-            <Typography>
-              Asegúrese de leer nuestra documentación de plantilla para comprender a dónde ir desde aquí y cómo utilizar nuestra
-              plantilla.
+        <Card className={classes.card}>
+          <CardHeader title='Bienvenido a nuestro Sistema de Recursos Humanos 🌟' className={classes.title} />
+          <CardContent className={classes.content}>
+            <Typography variant="body1">
+              ¡Pon en marcha tu gestión de recursos humanos de manera eficiente y moderna!
             </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader title='ACL y JWT 🔒'></CardHeader>
-          <CardContent>
-            <Typography sx={{ mb: 2 }}>
-              El control de acceso (ACL) y la autenticación (JWT) son las dos características de seguridad principales de nuestra plantilla y son
-              implementado también en el kit de inicio.
+            <Typography variant="body2">
+              Descubre todas las herramientas que necesitas para gestionar el talento de tu organización.
             </Typography>
-            <Typography>Lea nuestra documentación de autenticación y ACL para aprovecharla al máximo..</Typography>
           </CardContent>
         </Card>
       </Grid>
     </Grid>
-  )
+  );
 }
 
 export default Home

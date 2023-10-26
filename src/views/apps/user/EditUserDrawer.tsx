@@ -166,7 +166,7 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
     const [charges, setCharges] = useState<Charge[]>([]);
     const dispatch: AppDispatch = useDispatch();
     const allUsers = useSelector((state: RootState) => state.users.paginatedUsers);
-    const selectedUser = allUsers.find(user => user._id === userId);
+    const selectedUser = allUsers.find((user: UserData) => user._id === userId);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [showImage, setShowImage] = useState(true);
 
@@ -316,14 +316,18 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
             setShowImage(true);
             setPreviewfile('');
             toggle();
-            reset()
+            reset();
             MySwal.fire({
-                title: <p>Personal editado con exito!</p>,
+                title: <p>Personal editado con éxito!</p>,
                 icon: 'success'
             });
-
-        } catch {
-
+        } catch (error) {
+            const errorObject = error as Error;
+            MySwal.fire({
+                title: <p>Error al editar el usuario</p>,
+                text: errorObject.message,
+                icon: 'error'
+            });
         }
     };
 
@@ -413,7 +417,6 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
                                     />
                                 </FormControl>
                             </Grid>
-
                             <Grid item xs={12} md={6}>
                                 <FormControl fullWidth sx={{ mb: 4 }}>
                                     <Controller
@@ -427,6 +430,11 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
                                                     label='Email'
                                                     autoComplete='off'
                                                 />
+                                                {errors && errors.email && (
+                                                    <FormHelperText sx={{ color: 'error.main' }}>
+                                                        {errors.email.message}
+                                                    </FormHelperText>
+                                                )}
                                             </>
                                         )}
                                     />
@@ -445,14 +453,17 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
                                                     {...field}
                                                     label='CI'
                                                     autoComplete='off'
-
                                                 />
+                                                {errors && errors.ci && (
+                                                    <FormHelperText sx={{ color: 'error.main' }}>
+                                                        {errors.ci.message}
+                                                    </FormHelperText>
+                                                )}
                                             </>
                                         )}
                                     />
                                 </FormControl>
                             </Grid>
-
 
                             <Grid item xs={12} md={6}>
                                 <FormControl fullWidth sx={{ mb: 4 }}>
@@ -464,16 +475,23 @@ const SidebarEditUser = ({ userId, open, toggle }: SidebarEditUserType) => {
                                             minLength: { value: 2, message: 'El número de teléfono debe tener al menos 2 caracteres' },
                                         }}
                                         render={({ field }) => (
-                                            <TextField
-                                                {...field}
-                                                label='Teléfono'
-                                                autoComplete='off'
-
-                                            />
+                                            <>
+                                                <TextField
+                                                    {...field}
+                                                    label='Teléfono'
+                                                    autoComplete='off'
+                                                />
+                                                {errors && errors.phone && (
+                                                    <FormHelperText sx={{ color: 'error.main' }}>
+                                                        {errors.phone.message}
+                                                    </FormHelperText>
+                                                )}
+                                            </>
                                         )}
                                     />
                                 </FormControl>
                             </Grid>
+
 
 
                             <Grid item xs={12} md={6}>
