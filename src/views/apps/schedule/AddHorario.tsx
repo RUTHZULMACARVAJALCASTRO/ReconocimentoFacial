@@ -482,24 +482,24 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 
 	return (
 		<>
-			{/* <Button
-        onClick={handleClose}
-        variant="contained"
-        color="primary"
-        sx={{
-          borderRadius: '8px',
-          marginBottom: '15px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          padding: '10px 20px',
-          boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
-          '&:hover': {
-            backgroundColor: '#1565c0',
-          },
-        }}
-      >
-        Crear Horario
-      </Button> */}
+			<Button
+				onClick={handleClose}
+				variant="contained"
+				color="primary"
+				sx={{
+					borderRadius: '8px',
+					marginBottom: '15px',
+					fontSize: '12px',
+					fontWeight: 'bold',
+					padding: '10px 20px',
+					boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
+					'&:hover': {
+						backgroundColor: '#1565c0',
+					},
+				}}
+			>
+				Crear Horario
+			</Button>
 			<Drawer
 				open={open}
 				anchor="right"

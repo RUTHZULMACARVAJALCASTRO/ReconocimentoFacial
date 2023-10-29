@@ -1,11 +1,9 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { rootReducer } from 'src/store';
-import schedule from '../schedule';
 import { AsignacionLicencia } from 'src/pages/user/permisos_y_licencias/licencias/licenseList';
 
 export interface LicenseData {
-    personal: string;
+    personal: string | null;
     licenseType: string;
     description: string;
     startDate: Date;
@@ -14,24 +12,21 @@ export interface LicenseData {
 
 interface LicenseState {
     data: LicenseData | null;
-    list: AsignacionLicencia[];
-    findPaginateLicenses: AsignacionLicencia[],
     status: 'idle' | 'loading' | 'succeeded' | 'failed'
     pageSize: number;
     currentPage: number;
     paginatedLicenses: AsignacionLicencia[];
-    currentFilters: Filters;
     error: string | null;
 }
 
 interface FetchLicensesByPageArg {
     page: number;
     pageSize: number;
-    personal?: string;
+    personal?: string | null;
     licenseType?: string;
     description?: string;
-    startDate?: string;
-    endDate?: string;
+    startDate?: Date;
+    endDate?: Date;
     isActive?: boolean;
 }
 
@@ -41,22 +36,12 @@ interface PaginationResponse {
     totalPages: number;
 }
 
-interface Filters {
-    licenseType?: string;
-    isActive?: boolean;
-    page?: number;
-    pageSize?: number;
-}
-
 const initialState: LicenseState = {
     data: null,
-    list: [],
-    findPaginateLicenses: [],
     paginatedLicenses: [] as AsignacionLicencia[],
     status: 'idle',
     pageSize: 0,
     currentPage: 1,
-    currentFilters: {},
     error: null
 };
 
@@ -64,14 +49,14 @@ export const addLicense = createAsyncThunk(
     'license/addLicense',
     async (license: LicenseData, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}`, license);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_PERSONAL_LICENCIA}`, license);
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data && error.response.data.message) {
-                // Rechazar con el mensaje de error del servidor
+
                 return rejectWithValue(error.response.data.message);
             }
-            // Rechazar con un mensaje de error general
+
             return rejectWithValue(error.message);
         }
     }
@@ -80,7 +65,7 @@ export const addLicense = createAsyncThunk(
 export const fetchLicense = createAsyncThunk(
     'License/fetchLicense',
     async (): Promise<AsignacionLicencia[]> => {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_LICENCIA}`);
         return response.data;
     }
 );
@@ -102,45 +87,16 @@ export const fetchLicensesByPage = createAsyncThunk<PaginationResponse, FetchLic
 
         const queryString = new URLSearchParams(params);
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}filtered?${queryString}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_LICENCIA}filtered?${queryString}`);
         return response.data;
     }
 );
 
-export const fetchFilteredLicenses = createAsyncThunk(
-    'licenses/fetchFilteredLicenses',
-    async (filters: Filters, { rejectWithValue }) => {
-        try {
-            const cleanedFilters: Filters = Object.fromEntries(
-                Object.entries(filters).filter(([key, value]) => value !== undefined && value !== '')
-            );
-
-            const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}filtered`, {
-                params: {
-                    ...cleanedFilters,
-                    page: cleanedFilters.page,
-                    pageSize: cleanedFilters.pageSize
-                }
-            });
-
-            if (response.data && response.data.data) {
-                return response.data
-            } else {
-                throw new Error('Respuesta malformada del servidor');
-            }
-        } catch (error: any) {
-            if (error.response && error.response.data && error.response.data.message) {
-                return rejectWithValue(error.response.data.message);
-            }
-            return rejectWithValue(error.message);
-        }
-    }
-);
 
 export const editLicense = createAsyncThunk(
     'licenses/editLicense',
     async (updatedLicense: AsignacionLicencia): Promise<AsignacionLicencia> => {
-        const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}${updatedLicense._id}`, updatedLicense);
+        const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_LICENCIA}${updatedLicense._id}`, updatedLicense);
 
         if (!response.data || response.status !== 200) {
             throw new Error('Error al actualizar la licencia');
@@ -153,7 +109,7 @@ export const editLicense = createAsyncThunk(
 export const toggleLicenseStatus = createAsyncThunk(
     'licenses/toggleActivation',
     async ({ licenseId, isActive }: { licenseId: string; isActive: boolean }): Promise<AsignacionLicencia> => {
-        const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_LICENSE}${licenseId}`, { isActive: isActive });
+        const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_LICENCIA}${licenseId}`, { isActive: isActive });
 
         if (!response.data || response.status !== 200) {
             throw new Error('Error al cambiar el estado de activación del cargo');
@@ -176,20 +132,9 @@ const licenseSlice = createSlice({
                 state.paginatedLicenses.push(action.payload);
                 state.data = action.payload;
             })
-            .addCase(addLicense.rejected, (state, action) => {
+            .addCase(addLicense.rejected, (state: any, action) => {
                 state.status = 'failed';
                 state.error = action.error.message || null;
-            })
-            .addCase(fetchLicense.pending, (state) => {
-                state.status = 'loading';
-            })
-            .addCase(fetchLicense.fulfilled, (state, action) => {
-                state.status = 'succeeded';
-                state.list = action.payload;
-            })
-            .addCase(fetchLicense.rejected, (state: any, action) => {
-                state.status = 'failed';
-                state.error = action.error.message;
             })
             .addCase(fetchLicensesByPage.pending, (state) => {
                 state.status = 'loading';
@@ -198,7 +143,6 @@ const licenseSlice = createSlice({
                 state.status = 'succeeded';
                 state.paginatedLicenses = action.payload.data;
                 state.pageSize = action.payload.totalPages;
-                state.currentFilters = action.meta.arg;
             })
             .addCase(fetchLicensesByPage.rejected, (state: any, action) => {
                 state.status = 'failed';
@@ -226,14 +170,14 @@ const licenseSlice = createSlice({
                 state.status = 'loading';
                 const license = state.paginatedLicenses.find(license => license._id === action.meta.arg.licenseId);
                 if (license) {
-                    license.isActive = !license.isActive; // Invertir el estado
+                    license.isActive = !license.isActive;
                 }
             })
             .addCase(toggleLicenseStatus.fulfilled, (state, action: PayloadAction<AsignacionLicencia>) => {
                 state.status = 'succeeded';
-                const index = state.list.findIndex(license => license._id === action.payload._id);
+                const index = state.paginatedLicenses.findIndex(license => license._id === action.payload._id);
                 if (index !== -1) {
-                    state.list[index] = action.payload;  // Asumiendo que la respuesta del servidor contiene el cargo actualizado
+                    state.paginatedLicenses[index] = action.payload;
                 }
             })
             .addCase(toggleLicenseStatus.rejected, (state, action) => {

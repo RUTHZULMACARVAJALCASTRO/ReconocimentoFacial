@@ -6,27 +6,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import {
-  Card,
-  CardContent,
-  Checkbox,
-  TextField,
-  Button,
-  Box,
-  Tab,
-  Divider,
-  CardActions,
-  FormControlLabel,
-  Collapse,
-  FormLabel,
-  List,
-  ListItem,
-  FormGroup,
-  ListItemIcon,
-  ListItemText,
-  FormControl,
-  Switch,
-  useTheme,
-  Grid,
+  Card, CardContent, Checkbox, TextField, Button, Box, Tab, Divider, CardActions, FormControlLabel, Collapse, FormLabel, List, ListItem, ListItemText, FormControl, Switch, useTheme, Grid,
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -215,7 +195,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
   const [users, setUsers] = useState<User[]>([]);
   const [specialDaysData, setSpecialDaysData] = useState<SpecialDaysData>({});
   const dispatch: AppDispatch = useDispatch();
-  const allSchedules = useSelector((state: RootState) => state.schedules.list);
+  const allSchedules = useSelector((state: RootState) => state.schedules.paginatedSchedule);
   const selectedSchedule = allSchedules.find(schedule => schedule._id === scheduleId);
   const { handleSubmit, control, setValue, errors, reset }: any = useForm({
     defaultValues: selectedSchedule ? selectedSchedule : defaultValues
@@ -445,7 +425,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
 
   return (
     <>
-      <Button
+      {/* <Button
         onClick={handleClose}
         variant="contained"
         color="primary"
@@ -463,7 +443,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
         }}
       >
         Editar
-      </Button>
+      </Button> */}
       <Drawer
         open={open}
         anchor="right"
@@ -863,6 +843,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
           </Card>
         </ScrollBar>
       </Drawer>
+
     </>
   );
 };

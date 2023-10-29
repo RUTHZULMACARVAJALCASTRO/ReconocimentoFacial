@@ -1,7 +1,5 @@
-
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { UserData } from '../user';
 import { Docu } from 'src/pages/user/horario/listHorario';
 
 // Tipo de los datos del horario
@@ -40,8 +38,6 @@ interface ScheduleData {
 
 interface ScheduleState {
 	data: ScheduleData | null;
-	list: ScheduleData[];
-	findPaginateSchedule: Docu[],
 	status: 'idle' | 'loading' | 'succeeded' | 'failed';
 	pageSize: number;
 	currentPage: number;
@@ -63,18 +59,9 @@ interface PaginationResponse {
 	totalPages: number;
 }
 
-interface Filters {
-	name?: string;
-	isActive?: string;
-	page?: number;
-	pageSize?: number;
-}
-
 const initialState: ScheduleState = {
 	data: null,
-	list: [],
-	findPaginateSchedule: [],
-	paginatedSchedule: [] as Docu[],
+	paginatedSchedule: [],
 	status: 'idle',
 	pageSize: 0,
 	currentPage: 1,
@@ -99,7 +86,7 @@ export const addSchedule = createAsyncThunk(
 
 export const fetchSchedules = createAsyncThunk(
 	'schedules/fetchSchedules',
-	async (): Promise<ScheduleData[]> => {
+	async (): Promise<Docu[]> => {
 		const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}`);
 		return response.data;
 	}
@@ -137,12 +124,12 @@ export const fetchScheduleByPage = createAsyncThunk<PaginationResponse, FetchSch
 
 export const editSchedule = createAsyncThunk(
 	'schedules/editSchedules',
-	async (updateSchedule: PartialScheduleData): Promise<ScheduleData> => {
+	async (updateSchedule: PartialScheduleData): Promise<Docu> => {
 		if (!updateSchedule._id) {
 			throw new Error('Se requiere el ID del horario para actualizar');
 		}
 
-		const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}edit/${updateSchedule._id}`, updateSchedule);
+		const response = await axios.put(`${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${updateSchedule._id}`, updateSchedule);
 
 		if (!response.data || response.status !== 200) {
 			throw new Error('Error al actualizar el horario');
@@ -182,16 +169,9 @@ const scheduleSlice = createSlice({
 				state.paginatedSchedule.push(action.payload);
 				state.data = action.payload;
 			})
-			.addCase(addSchedule.rejected, (state, action) => {
+			.addCase(addSchedule.rejected, (state: any, action) => {
 				state.status = 'failed';
 				state.error = action.error.message || null;
-			})
-			.addCase(fetchSchedules.fulfilled, (state, action) => {
-				state.list = action.payload
-			})
-			.addCase(fetchSchedules.rejected, (state: any, action) => {
-				state.status = 'failed';
-				state.error = action.error.message;
 			})
 			.addCase(fetchScheduleByPage.pending, (state) => {
 				state.status = 'loading';
@@ -208,11 +188,11 @@ const scheduleSlice = createSlice({
 			.addCase(editSchedule.pending, (state) => {
 				state.status = 'loading';
 			})
-			.addCase(editSchedule.fulfilled, (state, action: PayloadAction<ScheduleData>) => {
+			.addCase(editSchedule.fulfilled, (state, action: PayloadAction<Docu>) => {
 				state.status = 'succeeded';
-				const index = state.list.findIndex(schedule => schedule._id === action.payload._id);
+				const index = state.paginatedSchedule.findIndex(schedule => schedule._id === action.payload._id);
 				if (index !== -1) {
-					state.list[index] = action.payload;
+					state.paginatedSchedule[index] = action.payload;
 				}
 			})
 			.addCase(editSchedule.rejected, (state, action) => {
@@ -221,14 +201,14 @@ const scheduleSlice = createSlice({
 			})
 			.addCase(toggleScheduleStatus.pending, (state, action) => {
 				state.status = 'loading';
-				const schedule = state.paginatedSchedule.find(schedule => schedule.id === action.meta.arg.scheduleId);
+				const schedule = state.paginatedSchedule.find(schedule => schedule._id === action.meta.arg.scheduleId);
 				if (schedule) {
 					schedule.isActive = !schedule.isActive; // Invertir el estado
 				}
 			})
 			.addCase(toggleScheduleStatus.fulfilled, (state, action: PayloadAction<Docu>) => {
 				state.status = 'succeeded';
-				const index = state.list.findIndex(schedule => schedule._id === action.payload.id);
+				const index = state.paginatedSchedule.findIndex(schedule => schedule._id === action.payload._id);
 				if (index !== -1) {
 					state.paginatedSchedule[index] = action.payload;  // Asumiendo que la respuesta del servidor contiene el cargo actualizado
 				}
@@ -236,7 +216,7 @@ const scheduleSlice = createSlice({
 			.addCase(toggleScheduleStatus.rejected, (state, action) => {
 				state.status = 'failed';
 				state.error = action.error.message || null;
-				const schedule = state.paginatedSchedule.find(schedule => schedule.id === action.meta.arg.scheduleId);
+				const schedule = state.paginatedSchedule.find(schedule => schedule._id === action.meta.arg.scheduleId);
 				if (schedule) {
 					schedule.isActive = !schedule.isActive;
 				}

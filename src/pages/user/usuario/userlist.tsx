@@ -1,24 +1,18 @@
-// ** Next Imports
-import Router, { useRouter } from 'next/router';
 
-// ** MUI Imports
-import Image from 'next/image'
-
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Menu from '@mui/material/Menu'
 import Grid from '@mui/material/Grid'
 
-import { DataGrid, GridFilterModel } from '@mui/x-data-grid'
+import { DataGrid } from '@mui/x-data-grid'
 import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon';
-import { useState, useEffect, MouseEvent, useCallback, SyntheticEvent } from 'react'
+import { useState, useEffect, MouseEvent } from 'react'
 import Link from 'next/link'
-import user, { fetchUsers, fetchUsersByPage, toggleUserStatus, fetchFilteredUsers } from 'src/store/apps/user/index';
+import { fetchUsersByPage, toggleUserStatus } from 'src/store/apps/user/index';
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store';
 import { AppDispatch } from 'src/redux/store';
@@ -26,29 +20,13 @@ import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
 import { ThemeColor } from 'src/@core/layouts/types'
-import { rows } from 'src/@fake-db/table/static-data';
-import axios from 'axios';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
-import Warning from '@mui/icons-material/Warning';
-import CheckCircle from '@mui/icons-material/CheckCircle';
 import Swal from 'sweetalert2';
-import { FormControl, InputLabel, Pagination, Select, TextField, Tooltip } from '@mui/material';
-import { toggleChargeStatus } from 'src/store/apps/charge';
+import { FormControl, Pagination, Select, Tooltip } from '@mui/material';
 import TableHeader from 'src/views/apps/user/TableHeaderUser';
 import SidebarEditUser from 'src/views/apps/user/EditUserDrawer';
 import SidebarAddUser from 'src/views/apps/user/AddUserDrawer';
 
 import CircularProgress from '@mui/material/CircularProgress';
-
-import { makeStyles, Theme } from '@material-ui/core/styles';
-
-
-
 
 // Interfaces
 export interface Docu {
@@ -78,63 +56,23 @@ interface UserStatusType {
 
 // Componente Principal
 const UserList = () => {
-  // ** State
-  // const [data, setData] = useState<Docu[]>([])
-  const [value, setValue] = useState<string>('')
+
   const [addUserOpen, setAddUserOpen] = useState<boolean>(false)
   const [editUserOpen, setEditUserOpen] = useState<boolean>(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-
-  // const dispatch = useDispatch();
   const dispatch = useDispatch<AppDispatch>()
-  const users: Docu[] = useSelector((state: RootState) => state.users.list);
   const userStatus = useSelector((state: RootState) => state.users.status);
-  const totalPages = useSelector((state: RootState) => state.users.pageSize) || 0;
+  const totalPages = useSelector((state: RootState) => state.users.pageSize) || 1;
   const paginatedUsers = useSelector((state: RootState) => state.users.paginatedUsers);
-  console.log(userStatus)
+  const [currentFilters, setCurrentFilters] = useState({});
 
-  const useStyles = makeStyles((theme: Theme) => ({
-    selectContainer: {
-      marginRight: theme.spacing(2),
-    },
-    selectControl: {
-      minWidth: 50,
-    },
-    customSelect: {
-      '& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input.MuiOutlinedInput-input': {
-        minWidth: 50,
-      },
-    },
-  }));
-
-  const classes = useStyles();
-
-  const toggleUserActivation = async (userId: string, isActive: boolean) => {
-    console.log(`Setting charge with ID ${userId} active status to: ${isActive}`);
-
-    try {
-      await dispatch(toggleUserStatus({ userId, isActive })).unwrap();
-
-    } catch (error) {
-      console.error("Error making the PUT request to update status:", error);
-    }
-  };
+  console.log({ userStatus, totalPages, paginatedUsers, page });
 
   useEffect(() => {
-    dispatch(fetchUsersByPage({ page, pageSize }));
-    console.log(page)
-    console.log(pageSize)
-  }, [page, pageSize, dispatch]);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     await dispatch(fetchUsers());
-  //   };
-  //   fetchData();
-  // }, [dispatch]);
+    dispatch(fetchUsersByPage({ page, pageSize, ...currentFilters }));
+  }, [page, pageSize, currentFilters, dispatch]);
 
   const userStatusObj: UserStatusType = {
     activo: 'success',
@@ -160,7 +98,6 @@ const UserList = () => {
     let imageSrc = convertBase64ToImageUrl(row.file);
 
     if (row.file) {
-      // return <img src={imageSrc} style={{ width: '34px', height: '34px' }} />;
       return <CustomAvatar src={imageSrc} sx={{ mr: 3, width: 34, height: 34 }} />;
     } else {
       return (
@@ -175,13 +112,12 @@ const UserList = () => {
     }
   }
 
+
   const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const rowOptionsOpen = Boolean(anchorEl)
-
-
 
     const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
       setAnchorEl(event.currentTarget)
@@ -250,7 +186,6 @@ const UserList = () => {
                 confirmButtonText: isActive ? 'Sí, dar de baja' : 'Sí, activar',
               }).then((result) => {
                 if (result.isConfirmed) {
-                  // Desactivar o activar el cargo
                   dispatch(toggleUserStatus({
                     userId: id.toString(),
                     isActive: !isActive,
@@ -264,8 +199,6 @@ const UserList = () => {
                           : 'El personal ha sido activado.',
                         'success'
                       );
-
-                      // dispatch(fetchUsersByPage({ page, pageSize }));
                     })
                     .catch((error) => {
                       Swal.fire('Error', 'Hubo un error en la acción.', error);
@@ -287,21 +220,7 @@ const UserList = () => {
     )
   }
 
-  const handleFilter = useCallback((val: string) => {
-    setValue(val)
-  }, [])
-
   const toggleAddUserDrawer = () => setAddUserOpen(!addUserOpen)
-  // const toggleEditUserDrawer = () => setEditUserOpen(!editUserOpen)
-  // const [open, setOpen] = useState(false);
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // }
 
   const columns = [
 
@@ -452,9 +371,6 @@ const UserList = () => {
         );
       },
     },
-
-
-
   ]
 
   function CustomLoadingOverlay() {
@@ -470,7 +386,7 @@ const UserList = () => {
       <Grid container spacing={6} >
         <Grid item xs={12}>
           <Card>
-            <TableHeader value={value} toggle={toggleAddUserDrawer} pageSize={0} />
+            <TableHeader toggle={toggleAddUserDrawer} pageSize={pageSize} page={page} setPage={setPage} setCurrentFilters={setCurrentFilters} />
             <DataGrid
               loading={userStatus === 'loading'}
               rowHeight={60}

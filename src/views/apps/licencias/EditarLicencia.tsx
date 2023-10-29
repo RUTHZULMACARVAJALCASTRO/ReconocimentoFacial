@@ -13,7 +13,7 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import axios from 'axios'
 import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'src/store'
+import { RootState } from 'src/redux/store'
 import { editLicense } from 'src/store/apps/license/index' // Asegúrate de tener una función 'editLicense' en tu store
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
@@ -65,8 +65,8 @@ const defaultValues = {
 const SidebarEditLicense = ({ licenseId, open, toggle }: SidebarEditLicenseType) => {
 
     const dispatch = useDispatch<AppDispatch>();
-    const allLicenses = useSelector((state: RootState) => state.licenses.paginatedLicenses); // Asumo que tienes un estado llamado 'allLicenses'
-    const selectedLicense = allLicenses.find(license => license._id === licenseId);
+    const allLicense = useSelector((state: RootState) => state.license.paginatedLicenses); // Asumo que tienes un estado llamado 'allLicenses'
+    const selectedLicense = allLicense.find(license => license._id === licenseId);
     const [searchBy, setSearchBy] = useState("name");
     const [searchValue, setSearchValue] = useState("");
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -86,6 +86,7 @@ const SidebarEditLicense = ({ licenseId, open, toggle }: SidebarEditLicenseType)
             setValue("description", selectedLicense.description);
             setValue("startDate", selectedLicense.startDate);
             setValue("endDate", selectedLicense.endDate);
+            setSelectedUserId(selectedLicense.personal);
 
         }
     }, [licenseId, selectedLicense, setValue]);
@@ -107,10 +108,14 @@ const SidebarEditLicense = ({ licenseId, open, toggle }: SidebarEditLicenseType)
     const handleClose = () => {
         toggle();
     };
+    const getFullNameFromId = (id: string): string => {
+        const user = selectedUsers.find((user) => user._id === id);
+        return user ? `${user.name} ${user.lastName}` : 'Desconocido';
+    };
     const handleSearch = async () => {
         setIsSearching(true);
         try {
-            const url = `http://localhost:3000/api/personal/filtered?${searchBy}=${searchValue}`;
+            const url = `${process.env.NEXT_PUBLIC_PERSONAL}filtered?${searchBy}=${searchValue}`;
             const response = await axios.get(url);
             setFilteredUsers(response.data.data);
         } catch (error) {
@@ -196,6 +201,24 @@ const SidebarEditLicense = ({ licenseId, open, toggle }: SidebarEditLicenseType)
                                     </List>
                                 </Box>
                             )}
+                            <Grid item xs={12}>
+                                <Controller
+                                    name="personal"
+                                    control={control}
+                                    // defaultValue={selectedUserId}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            label="Usuario Seleccionado"
+                                            value={selectedUserId ? getFullNameFromId(selectedUserId) : ""}
+                                            InputProps={{
+                                                readOnly: true,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid>
 
                             <Grid item xs={12}>
                                 <FormControl fullWidth sx={{ mb: 4 }}>
@@ -236,15 +259,50 @@ const SidebarEditLicense = ({ licenseId, open, toggle }: SidebarEditLicenseType)
                                     />
                                 </FormControl>
                             </Grid>
+                            <Grid item xs={6}>
+                                <Controller
+                                    name="startDate"
+                                    control={control}
+                                    rules={{ required: true, minLength: 5 }}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            type="date"
+                                            label="Fecha de inicio"
+                                            autoComplete='off'
+                                        />
+                                    )}
+                                />
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <Controller
+                                    name="endDate"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            fullWidth
+                                            type="date"
+                                            label="Fecha de finalización"
+                                            autoComplete='off'
+                                        />
+                                    )}
+                                />
+                            </Grid>
                         </Grid>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>
-                                Aceptar
-                            </Button>
-                            <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
-                                Cancelar
-                            </Button>
-                        </Box>
+                        <br />
+                        <Grid item xs={12}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>
+                                    Aceptar
+                                </Button>
+                                <Button size='large' variant='outlined' color='secondary' onClick={handleClose}>
+                                    Cancelar
+                                </Button>
+                            </Box>
+                        </Grid>
                     </form>
                 </Box>
             </Drawer>

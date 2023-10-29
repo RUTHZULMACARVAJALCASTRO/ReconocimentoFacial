@@ -4,19 +4,16 @@ import Card from '@mui/material/Card'
 import Menu from '@mui/material/Menu'
 import Grid from '@mui/material/Grid'
 import { DataGrid } from '@mui/x-data-grid'
-import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon';
-import { useState, useEffect, MouseEvent, useCallback } from 'react'
+import { useState, useEffect, MouseEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
-import { RootState } from 'src/store';
+import { RootState } from 'src/redux/store';
 import { AppDispatch } from 'src/redux/store';
 import CustomChip from 'src/@core/components/mui/chip'
 import { ThemeColor } from 'src/@core/layouts/types'
-
 import Tooltip from '@mui/material/Tooltip';
 interface HTMLElement extends Element { }
 import Swal from 'sweetalert2';
@@ -52,10 +49,9 @@ interface licenseStatusType {
     [key: string]: ThemeColor
 }
 
+// Componente Principal
 const licenseList = () => {
-    // ** State
-    const [data, setData] = useState<AsignacionLicencia[]>([])
-    const [value, setValue] = useState<string>('')
+
     const [addLicenseOpen, setAddLicenseOpen] = useState<boolean>(false)
     const [editLicenseOpen, setEditLicenseOpen] = useState<boolean>(false)
     const [selectedLicenseId, setSelectedLicenseId] = useState<string | null>(null);
@@ -63,10 +59,10 @@ const licenseList = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const dispatch = useDispatch<AppDispatch>()
-
-    const licenseStatus = useSelector((state: RootState) => state.licenses.status);
-    const totalPages = useSelector((state: RootState) => state.licenses.pageSize) || 0;
-    const paginatedLicenses = useSelector((state: RootState) => state.licenses.paginatedLicenses);
+    const licenseStatus = useSelector((state: RootState) => state.license.status);
+    const totalPages = useSelector((state: RootState) => state.license.pageSize) || 0;
+    const paginatedLicenses = useSelector((state: RootState) => state.license.paginatedLicenses);
+    const [currentFilters, setCurrentFilters] = useState({});
 
     const useStyles = makeStyles((theme: Theme) => ({
         selectContainer: {
@@ -86,20 +82,21 @@ const licenseList = () => {
         },
     }));
 
-    const classes = useStyles();
-
 
     useEffect(() => {
-        dispatch(fetchLicensesByPage({ page, pageSize }));
-        console.log(page)
-        console.log('pageSize', pageSize)
-    }, [page, pageSize, dispatch]);
+        dispatch(fetchLicensesByPage({ page, pageSize, ...currentFilters }));
+    }, [page, pageSize, currentFilters, dispatch]);
 
 
     const licenseStatusObj: licenseStatusType = {
         asignado: 'success',
         finalizado: 'secondary',
     };
+
+    const formatDate = (dateString: string | number | Date) => {
+        const date = new Date(dateString);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
 
     const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
 
@@ -234,7 +231,6 @@ const licenseList = () => {
 
         )
     }
-    const [open, setOpen] = useState(false);
     const columns = [
         {
             flex: 0.1,
@@ -319,11 +315,12 @@ const licenseList = () => {
             field: 'startDate',
             headerName: 'Fecha de Inicio',
             renderCell: ({ row }: CellType) => {
+                const formattedDate = formatDate(row.startDate);
                 return (
-                    <Tooltip title={row.startDate || ''}>
+                    <Tooltip title={formattedDate}>
                         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             <Typography noWrap variant='body2'>
-                                {row.startDate}
+                                {formattedDate}
                             </Typography>
                         </div>
                     </Tooltip>
@@ -336,11 +333,12 @@ const licenseList = () => {
             field: 'endDate',
             headerName: 'Fecha de Finalización',
             renderCell: ({ row }: CellType) => {
+                const formattedDate = formatDate(row.endDate);
                 return (
-                    <Tooltip title={row.endDate || ''}>
+                    <Tooltip title={formattedDate}>
                         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             <Typography noWrap variant='body2'>
-                                {row.endDate}
+                                {formattedDate}
                             </Typography>
                         </div>
                     </Tooltip>
@@ -362,9 +360,9 @@ const licenseList = () => {
                 <Grid item xs={12}>
                     <Card>
                         <TableHeader
-                            //value={value}
                             toggle={toggleAddLicense}
                             pageSize={pageSize}
+                            page={page} setPage={setPage} setCurrentFilters={setCurrentFilters}
                         />
                         <DataGrid
 

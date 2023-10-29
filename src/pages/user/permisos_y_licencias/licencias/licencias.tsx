@@ -123,7 +123,7 @@ const AsignarLicencia: NextPage = () => {
     const handleSearch = async () => {
         setIsSearching(true);
         try {
-            const url = `http://10.10.214.50:3000/api/personal/filtered?${searchBy}=${searchValue}`;
+            const url = `https://khaki-badgers-feel.loca.lt/api/personal/filtered?${searchBy}=${searchValue}`;
             const response = await axios.get(url);
             setFilteredUsers(response.data.data);
         } catch (error) {
@@ -148,7 +148,7 @@ const AsignarLicencia: NextPage = () => {
         };
 
         try {
-            const response = await axios.post('http://10.10.214.50:3000/api/license', nuevaAsignacionLicencia);
+            const response = await axios.post('https://khaki-badgers-feel.loca.lt/api/license', nuevaAsignacionLicencia);
             setAsignacionesLicencias(prevAsignaciones => [...prevAsignaciones, response.data]);
         } catch (error) {
             console.error("Error al asignar licencia:", error);
@@ -165,7 +165,7 @@ const AsignarLicencia: NextPage = () => {
         try {
             setIsEditing(true); // Cambia a modo de edición
             // Realiza una solicitud para obtener la información de la licencia con el ID seleccionado
-            const response = await axios.get(`http://10.10.214.50:3000/api/license/${id}`);
+            const response = await axios.get(`https://khaki-badgers-feel.loca.lt/api/license/${id}`);
             const fetchedLicense = response.data;
             if (fetchedLicense) {
                 setEditingLicense(fetchedLicense);

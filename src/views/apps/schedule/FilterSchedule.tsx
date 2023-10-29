@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, Paper, Typography, Button, InputAdornment } from '@mui/material';
+import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, Paper, Button, InputAdornment } from '@mui/material';
 import { fetchScheduleByPage } from 'src/store/apps/schedule/index';
 import { AppDispatch } from 'src/redux/store';
 import { useSelector } from 'react-redux';
@@ -11,6 +10,9 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 interface FilterProps {
     pageSize: number;
     onFilterSubmit?: (filters: any) => void;
+    page: number;
+    setPage: (page: number) => void;
+    setCurrentFilters: (data: {}) => void;
 }
 
 const initialFilters = {
@@ -18,10 +20,15 @@ const initialFilters = {
     isActive: ''
 };
 
-const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) => {
+const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCurrentFilters }) => {
+
+    const scheduleStatus = useSelector((state: RootState) => state.users.status);
+    const totalPages = useSelector((state: RootState) => state.users.pageSize) || 0;
+    const paginatedSchedule = useSelector((state: RootState) => state.users.paginatedUsers);
+
+    console.log({ scheduleStatus, totalPages, paginatedSchedule, page });
     const [filters, setFilters] = useState(initialFilters);
     const dispatch = useDispatch<AppDispatch>();
-    const currentPage = useSelector((state: RootState) => state.schedules.currentPage);
 
     const handleInputChange = (event: any) => {
         const { name, value } = event.target;
@@ -34,26 +41,18 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const finalFilters = {
-            ...filters,
-            page: 1,
-            pageSize: pageSize
-        };
-
-        dispatch(fetchScheduleByPage(finalFilters));
-
-        if (onFilterSubmit) {
-            onFilterSubmit(finalFilters);
-        }
+        setPage(1);
+        setCurrentFilters(filters);
+        dispatch(fetchScheduleByPage({ page, pageSize, ...filters }));
     };
 
     const handleReset = () => {
-        setFilters(initialFilters); // Restablecer los filtros al estado inicial
+        setFilters(initialFilters);
+        setCurrentFilters({})
         console.log("Estado actualizado a:", initialFilters);
-
-        // Suponiendo que si no pasas filtros a fetchChargesByPage, devuelve todos los datos.
-        dispatch(fetchScheduleByPage({ page: 1, pageSize: pageSize }));
+        dispatch(fetchScheduleByPage({ page: 1, pageSize }));
     };
+
     return (
 
         <Paper style={{ padding: '10px', marginBottom: '10px', width: '100%' }}>

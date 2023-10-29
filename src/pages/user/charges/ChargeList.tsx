@@ -9,8 +9,7 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon';
-import { useState, useEffect, MouseEvent, useCallback } from 'react'
-import charge, { fetchCharges } from 'src/store/apps/charge/index';
+import { useState, useEffect, MouseEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toggleChargeStatus, fetchChargesByPage } from 'src/store/apps/charge/index';
 import { RootState } from 'src/store';
@@ -34,13 +33,6 @@ export interface Docu {
   isActive: boolean
 }
 
-// interface ChargeData {
-//   _id: string
-//   name: string
-//   description: string
-//   isActive: boolean
-// }
-
 interface CellType {
   row: Docu
 }
@@ -49,31 +41,19 @@ interface ChargeStatusType {
   [key: string]: ThemeColor
 }
 
-
+// Componente Principal
 const ChargeList = () => {
-  // ** State
-  const [data, setData] = useState<Docu[]>([])
-  const [value, setValue] = useState<string>('')
   const [addChargeOpen, setAddChargeOpen] = useState<boolean>(false)
   const [editChargeOpen, setEditChargeOpen] = useState<boolean>(false)
   const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null);
   const toggleAddCharge = () => setAddChargeOpen(!addChargeOpen)
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  // const dispatch = useDispatch<AppDispatch>()
-  // const charges: Docu[] = useSelector((state: RootState) => state.charges.list);
-  // const chargeStatus = useSelector((state: RootState) => state.charges.status);
-  // const paginatedCharges = useSelector((state: RootState) => state.charges.paginatedCharges);
-  // const totalPages = useSelector((state: RootState) => state.charges.totalPages);
-  // const [paginationModel, setPaginationModel] = useState({
-  //   pageSize,
-  //   page
-  // });
   const dispatch = useDispatch<AppDispatch>()
   const chargeStatus = useSelector((state: RootState) => state.charges.status);
   const totalPages = useSelector((state: RootState) => state.charges.pageSize) || 0;
   const paginatedCharges = useSelector((state: RootState) => state.charges.paginatedCharges);
-  console.log(chargeStatus)
+  const [currentFilters, setCurrentFilters] = useState({});
 
   const useStyles = makeStyles((theme: Theme) => ({
     selectContainer: {
@@ -88,25 +68,15 @@ const ChargeList = () => {
       },
     },
     menuPaper: {
-      border: 'none', // Elimina el borde
-      boxShadow: 'none', // Elimina la sombra
+      border: 'none',
+      boxShadow: 'none',
     },
   }));
-  // useEffect(() => {
-  //   dispatch(fetchCharges());
-  // }, [dispatch]);
-  const classes = useStyles();
-
-  // useEffect(() => {
-  //   dispatch(fetchChargesByPage({ page, pageSize }));
-  // }, [page, pageSize, dispatch]);
 
   useEffect(() => {
-    dispatch(fetchChargesByPage({ page, pageSize }));
-    //dispatch(setCurrentPage(page));
-    console.log(page)
-    console.log('pageSize', pageSize)
-  }, [page, pageSize, dispatch]);
+    dispatch(fetchChargesByPage({ page, pageSize, ...currentFilters }));
+
+  }, [page, pageSize, currentFilters, dispatch]);
 
 
   const chargeStatusObj: ChargeStatusType = {
@@ -132,7 +102,7 @@ const ChargeList = () => {
     const handleUpdate = (chargeId: string) => () => {
       setSelectedChargeId(chargeId);
       setEditChargeOpen(true);
-      console.log("handleUpdate called:", chargeId, editChargeOpen);
+
     };
 
     const swalWithBootstrapButtons = Swal.mixin({
@@ -200,11 +170,11 @@ const ChargeList = () => {
                 reverseButtons: true
               }).then((result) => {
                 if (result.isConfirmed) {
-                  // Desactivar o activar el cargo
+
                   dispatch(
                     toggleChargeStatus({
                       chargeId: id.toString(),
-                      isActive: !isActive, // Invertir el estado actual
+                      isActive: !isActive,
                     })
                   )
                     .then(() => {
@@ -247,7 +217,6 @@ const ChargeList = () => {
 
     )
   }
-  const [open, setOpen] = useState(false);
   const columns = [
     {
       flex: 0.1,
@@ -323,20 +292,20 @@ const ChargeList = () => {
         <Grid item xs={12}>
           <Card>
             <TableHeader
-              //value={value}
               toggle={toggleAddCharge}
               pageSize={pageSize}
+              page={page}
+              setPage={setPage}
+              setCurrentFilters={setCurrentFilters}
             />
             <DataGrid
 
               loading={chargeStatus === 'loading'}
               getRowId={row => row._id}
               autoHeight
-              // rows={[...charges].reverse()}
               rows={reversedPaginatedCharges}
               columns={columns}
               pageSize={pageSize}
-              // rowsPerPageOptions={[10, 25, 50]}
               disableSelectionOnClick
               sx={{
                 '& .MuiDataGrid-columnHeaders': { borderRadius: 0 }, '& .MuiDataGrid-window': {

@@ -332,7 +332,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 		await dispatch(addUser({ ...userData, file: previewfile }));
 
 		if (errorFromRedux) {
-			setLocalError(errorFromRedux);
+			//setLocalError(errorFromRedux);
 		} else {
 			dispatch(fetchUsersByPage({ page, pageSize }));
 			setPreviewfile('');

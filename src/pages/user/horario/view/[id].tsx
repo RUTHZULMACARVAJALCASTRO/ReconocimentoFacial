@@ -124,6 +124,7 @@ const PlanillaHorario = () => {
         }
     };
 
+
     useEffect(() => {
         if (id) {
             fetchData();

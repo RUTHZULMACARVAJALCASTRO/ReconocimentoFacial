@@ -1,28 +1,35 @@
 
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { TextField, Grid, FormControl, InputLabel, Select, MenuItem, Paper, Typography, Button, InputAdornment } from '@mui/material';
-
+import { Grid, FormControl, InputLabel, Select, MenuItem, Paper, Button } from '@mui/material';
 import { AppDispatch } from 'src/redux/store';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { fetchLicensesByPage } from 'src/store/apps/license';
 
 interface FilterProps {
     pageSize: number;
     onFilterSubmit?: (filters: any) => void;
+    page: number;
+    setPage: (page: number) => void;
+    setCurrentFilters: (data: {}) => void;
 }
 
 const initialFilters = {
     licenseType: '',
-    isActive: ''
+    isActive: undefined
 };
 
-const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) => {
+const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCurrentFilters }) => {
+    const licenseStatus = useSelector((state: RootState) => state.license.status);
+    const totalPages = useSelector((state: RootState) => state.license.pageSize) || 0;
+    const paginatedLicenses = useSelector((state: RootState) => state.license.paginatedLicenses);
+
+
+    console.log({ licenseStatus, totalPages, paginatedLicenses, page });
+
     const [filters, setFilters] = useState(initialFilters);
     const dispatch = useDispatch<AppDispatch>();
-    const currentPage = useSelector((state: RootState) => state.charges.currentPage);
 
     const handleInputChange = (event: any) => {
         const { name, value } = event.target;
@@ -35,25 +42,16 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const finalFilters = {
-            ...filters,
-            page: 1,
-            pageSize: pageSize
-        };
-
-        dispatch(fetchLicensesByPage(finalFilters));
-
-        if (onFilterSubmit) {
-            onFilterSubmit(finalFilters);
-        }
+        setPage(1);
+        setCurrentFilters(filters);
+        dispatch(fetchLicensesByPage({ page, pageSize, ...filters }));
     };
 
     const handleReset = () => {
-        setFilters(initialFilters); // Restablecer los filtros al estado inicial
+        setFilters(initialFilters);
+        setCurrentFilters({})
         console.log("Estado actualizado a:", initialFilters);
-
-        // Suponiendo que si no pasas filtros a fetchChargesByPage, devuelve todos los datos.
-        dispatch(fetchLicensesByPage({ page: 1, pageSize: pageSize }));
+        dispatch(fetchLicensesByPage({ page: 1, pageSize }));
     };
     return (
 
@@ -77,17 +75,26 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
                         </FormControl>
                     </Grid>
                     <Grid item xs={3}>
-                        <TextField name="name" variant="standard" value={filters.licenseType} onChange={handleInputChange} label="Nombre" fullWidth
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <FilterListIcon />
-                                    </InputAdornment>
-                                ),
-                            }} />
+                        <FormControl fullWidth variant="standard">
+                            <InputLabel htmlFor="licenseType">Tipo de Licencia</InputLabel>
+                            <Select
+                                name="licenseType"
+                                value={filters.licenseType}
+                                onChange={handleInputChange}
+                                id="licenseType"
+                            >
+                                <MenuItem value={'Medica'}>Medica</MenuItem>
+                                <MenuItem value={'Maternidad'}>Maternidad</MenuItem>
+                                <MenuItem value={'Paternidad'}>Paternidad</MenuItem>
+                                <MenuItem value={'Duelo'}>Duelo</MenuItem>
+                                <MenuItem value={'Vacaciones'}>Vacaciones</MenuItem>
+                                <MenuItem value={'Personal'}>Personal</MenuItem>
+                            </Select>
+
+                        </FormControl>
                     </Grid>
 
-                    <Grid item xs={3}>
+                    <Grid item xs={1.5}>
                         <Button
                             type="submit"
                             fullWidth
@@ -95,10 +102,10 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, onFilterSubmit }) =>
                             color="primary"
                             style={{ marginTop: '10px' }}
                         >
-                            Aplicar Filtro
+                            Filtrar
                         </Button>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={1.5}>
                         <Button
                             onClick={handleReset}
                             fullWidth

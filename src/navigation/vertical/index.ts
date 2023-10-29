@@ -61,21 +61,21 @@ const navigation = (): VerticalNavItemsType => {
       icon: 'mdi:clipboard-list',
     },
     {
-      title: 'Permisos y Licencias',
+      title: 'Licencias',
       icon: 'mdi:account-lock',
       children: [
+        // {
+        //   title: 'Permisos',
+        //   path: '/user/permisos_y_licencias/permisos/permisos'
+        // },
         {
-          title: 'Permisos',
-          path: '/user/permisos_y_licencias/permisos/permisos'
-        },
+          title: 'Licencias',
+          path: '/user/permisos_y_licencias/licencias/licenseList'
+        }
         // {
         //   title: 'Licencias',
         //   path: '/user/permisos_y_licencias/licencias/licencias'
         // }
-        {
-          title: 'Licencias',
-          path: '/user/permisos_y_licencias/licencias/licencias'
-        }
       ]
     },
     {

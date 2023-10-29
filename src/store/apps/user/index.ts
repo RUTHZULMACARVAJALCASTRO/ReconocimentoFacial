@@ -1,4 +1,3 @@
-
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { Docu } from 'src/pages/user/usuario/userlist';
@@ -19,8 +18,6 @@ export interface UserData {
 
 interface UserState {
   data: UserData | null;
-  list: Docu[];
-  findPaginateUsers: Docu[],
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   pageSize: number;
   currentPage: number;
@@ -47,23 +44,8 @@ interface PaginationResponse {
   totalPages: number;
 }
 
-interface Filters {
-  name?: string;
-  lastName?: string;
-  ci?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  nationality?: string;
-  isActive?: string;
-  page?: number;
-  pageSize?: number;
-}
-
 const initialState: UserState = {
   data: null,
-  list: [],
-  findPaginateUsers: [],
   paginatedUsers: [],
   status: 'idle',
   pageSize: 0,
@@ -79,22 +61,15 @@ export const addUser = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.data && error.response.data.message) {
-        // Rechazar con el mensaje de error del servidor
+   
         return rejectWithValue(error.response.data.message);
       }
-      // Rechazar con un mensaje de error general
+      
       return rejectWithValue(error.message);
     }
   }
 );
 
-export const fetchUsers = createAsyncThunk(
-  'users/fetchUsers',
-  async (): Promise<Docu[]> => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}`);
-    return response.data;
-  }
-);
 
 export const fetchUsersByPage = createAsyncThunk<PaginationResponse, FetchUsersByPageArg, {}>(
   'users/fetchUsersByPage',
@@ -118,37 +93,6 @@ export const fetchUsersByPage = createAsyncThunk<PaginationResponse, FetchUsersB
 
     const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}filtered?${queryString}`);
     return response.data;
-  }
-);
-
-
-export const fetchFilteredUsers = createAsyncThunk(
-  'users/fetchFilteredUsers',
-  async (filters: Filters, { rejectWithValue }) => {
-    try {
-      const cleanedFilters: Filters = Object.fromEntries(
-        Object.entries(filters).filter(([key, value]) => value !== undefined && value !== '')
-      );
-
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}filtered`, {  
-        params: {
-          ...cleanedFilters,
-          page: cleanedFilters.page,
-          pageSize: cleanedFilters.pageSize
-        }
-      });
-
-      if (response.data && response.data.data) {
-        return response.data  // Retorna solo el arreglo "data" si deseas
-      } else {
-        throw new Error('Respuesta malformada del servidor');
-      }
-    } catch (error: any) {
-      if (error.response && error.response.data && error.response.data.message) {
-        return rejectWithValue(error.response.data.message);
-      }
-      return rejectWithValue(error.message);
-    }
   }
 );
 
@@ -186,13 +130,13 @@ export const toggleUserStatus = createAsyncThunk(
   }
 );
 
-const userSlice: any = createSlice({
+const userSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(addUser.pending, (state) => {
+      .addCase(addUser.pending, (state, action) => {
         state.status = 'loading';
       })
       .addCase(addUser.fulfilled, (state, action) => {
@@ -203,17 +147,6 @@ const userSlice: any = createSlice({
       .addCase(addUser.rejected, (state: any, action) => {
         state.status = 'failed';
         state.error = action.payload;
-      })
-      .addCase(fetchUsers.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.list = action.payload;
-      })
-      .addCase(fetchUsers.rejected, (state: any, action) => {
-        state.status = 'failed';
-        state.error = action.error.message;
       })
       .addCase(fetchUsersByPage.pending, (state) => {
         state.status = 'loading';
@@ -226,18 +159,6 @@ const userSlice: any = createSlice({
       .addCase(fetchUsersByPage.rejected, (state: any, action) => {
         state.status = 'failed';
         state.error = action.error.message;
-      })
-      .addCase(fetchFilteredUsers.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchFilteredUsers.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.paginatedUsers = action.payload;  // Asumiendo que deseas almacenar la lista filtrada en "list". Si no, usa otra clave del estado.
-        state.pageSize = action.payload.totalPages;
-      })
-      .addCase(fetchFilteredUsers.rejected, (state: any, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
       })
       .addCase(editUser.pending, (state) => {
         state.status = 'loading';
@@ -258,14 +179,14 @@ const userSlice: any = createSlice({
         state.status = 'loading';
         const user = state.paginatedUsers.find(user => user._id === action.meta.arg.userId);
         if (user) {
-          user.isActive = !user.isActive; // Invertir el estado
+          user.isActive = !user.isActive; 
         }
       })
       .addCase(toggleUserStatus.fulfilled, (state, action: PayloadAction<Docu>) => {
         state.status = 'succeeded';
         const index = state.paginatedUsers.findIndex(user => user._id === action.payload._id);
         if (index !== -1) {
-            state.list[index] = action.payload; 
+            state.paginatedUsers[index] = action.payload; 
         }
       })
       .addCase(toggleUserStatus.rejected, (state, action) => {
