@@ -45,7 +45,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 import { useRouter } from 'next/router'
 import { Login } from 'src/services/services'
-import {UserDataType,AuthValuesType} from 'src/context/types'
+import { UserDataType, AuthValuesType } from 'src/context/types'
 
 const defaultProvider: AuthValuesType = {
   user: null,
@@ -134,49 +134,48 @@ const LoginPage = () => {
   const queryLogin = router.query
 
   console.log(queryLogin)
-  
+
   if (router.isReady) {
     //useEffect(() => {
+    console.log("into!!!! success")
+    ///setLoading(true)
+    // window.localStorage.setItem('accessToken', 'esyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw')
+    // window.localStorage.setItem('userData', JSON.stringify({"id":1,"role":"admin","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"})) 
+    // window.location.href = "/home"
+    Login(queryLogin).then((result: any) => {
+      //console.log("login success")
+      //useEffect(() => {
+      // if (!router.isReady) {
+      //   return
+      // }
+
+      // if (auth.user && auth.user.role) {
+      //   const homeRoute = getHomeRoute(auth.user.role)
+
+      //   // Redirect user to Home URL
       console.log("into!!!! success")
-      ///setLoading(true)
-              // window.localStorage.setItem('accessToken', 'esyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw')
-              // window.localStorage.setItem('userData', JSON.stringify({"id":1,"role":"admin","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"})) 
-              // window.location.href = "/home"
-      Login(queryLogin).then((result:any)=>{
-          //console.log("login success")
-            //useEffect(() => {
-              // if (!router.isReady) {
-              //   return
-              // }
+      const response = { "id": 1, "usepage": "use-page-frontend", "fullName": "John Doe", "username": "johndoe", "email": "admin@materialize.com" }
+      window.localStorage.setItem('userData', JSON.stringify(response))
+      //setUser({...response})
+      //setLoading(false)
+      //window.location.href = "/home"
 
-              // if (auth.user && auth.user.role) {
-              //   const homeRoute = getHomeRoute(auth.user.role)
-
-              //   // Redirect user to Home URL
-              console.log("into!!!! success")
-              const response = {"id":1,"usepage":"use-page-frontend","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"}
-              window.localStorage.setItem('accessToken', 'esyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjg1ODE5MDE5LCJleHAiOjE2ODU4MTkzMTl9.ZgzkIlCQ2JIV2KIHuTEHD4ORl_o_OQbAk0RfQ1U-3Cw')
-              window.localStorage.setItem('userData', JSON.stringify(response)) 
-              //setUser({...response})
-              //setLoading(false)
-              //window.location.href = "/home"
-
-                 router.replace('/home')
-              // }
-              // eslint-disable-next-line react-hooks/exhaustive-deps
-            //}, [])
-      }).catch(e=>{
-        console.log(e)
-        console.log("mal!!!")
-      })
-  //}, [])
+      router.replace('/home')
+      // }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      //}, [])
+    }).catch(e => {
+      console.log(e)
+      console.log("mal!!!")
+    })
+    //}, [])
   }
   //////////////
 
   //////////////
   // ** Hooks
   const auth
-   = useAuth()
+    = useAuth()
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()

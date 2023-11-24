@@ -277,14 +277,7 @@ const Planillas = () => {
             >
                 PLANILLA DE ASISTENCIA
             </Typography>
-            <Button
-                variant="contained"
-                color="primary"
-                startIcon={<SaveIcon />}
-                style={{ marginBottom: '16px' }}
-            >
-                Exportar a PDF
-            </Button>
+
             <Card>
                 <DataGrid
                     getRowId={(row) => row.id}

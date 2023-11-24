@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import FilterComponent from './FilterUser';
+import { findPermission } from 'src/components/findPermission';
 
 interface TableHeaderProps {
   toggle: () => void;
@@ -19,21 +20,23 @@ const TableHeader: React.FC<TableHeaderProps> = ({ toggle, pageSize, page, setPa
 
   return (
     <Box sx={{ p: 5, pb: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-
+      {/* {findPermission('PERSONAL_FILTRAR_PER') ? ( */}
       <Button
         onClick={toggleFilterComponent}
         variant='contained'
-        sx={{ mr: 6, mb: 2, pr: 15, pl: 15 }}>
+        sx={{ mr: 6, mb: 2, pr: 5, pl: 5 }}>
         {isFilterComponentVisible ? "Cerrar Filtro" : "Mostrar Filtro"}
       </Button>
+      {/* ) : (<></>)} */}
 
-
-      <Button
-        sx={{ mb: 2 }}
-        onClick={toggle}
-        variant='contained'>
-        Crear Personal
-      </Button>
+      {findPermission('CENTRAL_ESTABLECER_ROL_USUARIO') ? (
+        <Button
+          sx={{ mb: 2 }}
+          onClick={toggle}
+          variant='contained'>
+          Crear Personal
+        </Button>
+      ) : (<></>)}
 
       {isFilterComponentVisible && <FilterComponent pageSize={pageSize} page={page} setPage={setPage} setCurrentFilters={setCurrentFilters} />}
     </Box>

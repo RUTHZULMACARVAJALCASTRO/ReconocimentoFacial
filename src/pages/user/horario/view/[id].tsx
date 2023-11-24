@@ -38,6 +38,12 @@ interface Docu {
     isActive?: boolean;
 }
 
+interface User {
+    _id: string;
+    name: string;
+    lastName: string;
+}
+
 interface PlanillaHorarioProps {
     scheduleId: string;
 }
@@ -51,8 +57,9 @@ const PlanillaHorario = () => {
     const router = useRouter();
     const { id } = router.query;
     const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const [userNames, setUserNames] = useState<Record<string, string>>({});
+    const [userIds, setUserIds] = useState<string[]>([]);
 
-    // Función para cargar los datos del horario normal
     const fetchData = async () => {
         try {
             const { data } = await axios.get(
@@ -95,44 +102,29 @@ const PlanillaHorario = () => {
         }
     };
 
-    // Función para cargar todos los usuarios
-    const fetchAllUsers = async () => {
-        try {
-            const { data } = await axios.get(
-                `${process.env.NEXT_PUBLIC_PERSONAL}`
-            );
-            console.log('Data de usuarios cargada:', data);
-            setAllUsers(data.users);
-        } catch (error) {
-            console.error('Error al cargar todos los usuarios:', error);
+    const fetchUserNames = async (userIds: string[]) => {
+        for (const userId of userIds) {
+            if (!userNames[userId]) {
+                try {
+                    const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL}${userId}`);
+                    const name = `${response.data.name} ${response.data.lastName}`;
+                    setUserNames(prevState => ({
+                        ...prevState,
+                        [userId]: name
+                    }));
+                } catch (error) {
+                    console.error(`Error al obtener el nombre completo para el usuario ${userId}:`, error);
+                }
+            }
         }
     };
-
-    // Función para cargar los usuarios asignados al horario especial
-    const fetchSpecialScheduleUsers = async () => {
-        try {
-            const { data } = await axios.get(
-                `${process.env.NEXT_PUBLIC_PERSONAL_SCHEDULE}${id}`
-            );
-
-            // Extrae los IDs de los usuarios asignados al horario especial
-            const userIds: string[] = data.scheduleSpecial.flatMap((schedule: ScheduleSpecial) => schedule.usersAssigned);
-
-            setSpecialScheduleUsers(userIds);
-        } catch (error) {
-            console.error('Error al cargar usuarios asignados:', error);
-        }
-    };
-
 
     useEffect(() => {
         if (id) {
             fetchData();
-            fetchAllUsers().then(() => {
-                fetchSpecialScheduleUsers();
-            });
+            fetchUserNames(userIds);
         }
-    }, [id]);
+    }, [id, userIds]);
 
     // Define las columnas para el horario normal
     const normalColumns = [
@@ -235,6 +227,7 @@ const PlanillaHorario = () => {
     ];
 
     // Columnas para la tabla de usuarios asignados al horario especial
+
     const specialScheduleUsersColumns = [
         {
             flex: 0.1,
@@ -242,18 +235,16 @@ const PlanillaHorario = () => {
             headerName: 'Nombre de Usuario',
             valueFormatter: (params: GridValueFormatterParams) => {
                 const userIds: string[] = params.value as string[];
-                const userNames: string[] = userIds.map((userId) => {
-                    if (allUsers) {
-                        const user = allUsers.find((user) => user._id === userId);
-                        console.log(`ID: ${userId}, User:`, user);
-                        return user ? `${user.name} ${user.lastName}` : userId;
-                    }
-                    return userId;
+                fetchUserNames(userIds); // Llamar a fetchUserNames para obtener los nombres correspondientes
+                const userNamesArray: string[] = userIds.map((userId) => {
+                    const userName = userNames[userId] || userId; // Obtener el nombre del estado userNames
+                    return userName;
                 });
-                return userNames.join(', ');
+                return userNamesArray.join(', ');
             },
         },
     ];
+
 
     return (
         <Paper elevation={3} style={{ padding: '16px', borderRadius: '12px', marginTop: '30px' }}>

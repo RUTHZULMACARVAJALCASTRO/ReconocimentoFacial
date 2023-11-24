@@ -6,7 +6,7 @@ import SidebarAddHorario from '../../../views/apps/schedule/AddHorario';
 import { fetchScheduleByPage, toggleScheduleStatus } from 'src/store/apps/schedule/index';
 import { AppDispatch } from 'src/redux/store';
 import { Box } from '@mui/system';
-import { Card, FormControl, Grid, Pagination, Select, Link as StyledLink } from '@mui/material';
+import { Card, FormControl, Grid, Link, Pagination, Select } from '@mui/material';
 import CustomChip from 'src/@core/components/mui/chip'
 import { ThemeColor } from 'src/@core/layouts/types';
 import IconButton from '@mui/material/IconButton';
@@ -18,6 +18,7 @@ import SidebarEditHorario from 'src/views/apps/schedule/EditHorario';
 import Swal from 'sweetalert2';
 import TableHeader from 'src/views/apps/schedule/TableHeaderSchedule'
 import CircularProgress from '@material-ui/core/CircularProgress/CircularProgress';
+import { styled } from '@mui/material/styles'
 
 interface ScheduleNormal {
   day: number;
@@ -63,8 +64,19 @@ interface ScheduleStatusType {
 
 const scheduleStatusObj: ScheduleStatusType = {
   activo: 'success',
-  inactivo: 'secondary'
+  inactivo: 'secondary',
 }
+const StyledLink = styled(Link)(({ theme }) => ({
+  fontWeight: 600,
+  fontSize: '1rem',
+  cursor: 'pointer',
+  textDecoration: 'none',
+  color: theme.palette.text.secondary,
+  '&:hover': {
+    color: theme.palette.primary.main
+  }
+}))
+
 // Componente Principal
 
 function HorarioTable() {
@@ -72,13 +84,14 @@ function HorarioTable() {
   const [addHorarioOpen, setAddHorarioOpen] = useState<boolean>(false);
   const [editHorarioOpen, setEditHorarioOpen] = useState<boolean>(false)
   const toggleAddHorario = () => setAddHorarioOpen(!addHorarioOpen);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const scheduleStatus = useSelector((state: RootState) => state.schedules.status);
   const totalPages = useSelector((state: RootState) => state.schedules.pageSize) || 0;
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
   const paginatedSchedule = useSelector((state: RootState) => state.schedules.paginatedSchedule);
   const [currentFilters, setCurrentFilters] = useState({});
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+
 
 
   useEffect(() => {
@@ -125,8 +138,8 @@ function HorarioTable() {
 
     const handleUpdate = (scheduleId: string) => () => {
       setSelectedScheduleId(scheduleId);
-      setAddHorarioOpen(true);
-      console.log("handleUpdate called:", scheduleId, addHorarioOpen);
+      setEditHorarioOpen(true);
+      console.log("handleUpdate called:", scheduleId, editHorarioOpen);
     };
 
     const swalWithBootstrapButtons = Swal.mixin({
@@ -142,9 +155,16 @@ function HorarioTable() {
 
     return (
       <>
-        <IconButton size='small' onClick={handleRowOptionsClick}>
+        <IconButton
+          size='small'
+          data-action-button="true"
+          onClick={handleRowOptionsClick}
+          style={{ height: '500%', width: '100%', display: 'flex', justifyContent: 'center' }}
+        >
           <Icon icon='mdi:dots-vertical' />
         </IconButton>
+
+
         <Menu
           keepMounted
           anchorEl={anchorEl}
@@ -245,38 +265,17 @@ function HorarioTable() {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 230,
-      field: 'name',
-      headerName: 'Nombre del Horario',
-      renderCell: ({ row }: CellType) => {
-        const { name } = row
-
-        return (
-
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <StyledLink href={`/user/horario/view/${row._id}/`}>{[name]}</StyledLink>
-          </Box>
-
-        )
-      },
+      minWidth: 90,
+      sortable: false,
+      field: 'actions',
+      headerName: 'Acciones',
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
     },
-    {
-      flex: 0.1,
-      field: 'createdAt',
-      headerName: 'Fecha de Creación',
-
-      valueFormatter: (params: any) => {
-        const date = new Date(params.value);
-        return date.toLocaleDateString();
-      },
-    },
-
     {
       flex: 0.1,
       field: 'isActive',
       headerName: 'Estado',
-
-      minWidth: 110,
+      minWidth: 200,
       renderCell: ({ row }: CellType) => {
         const status = row.isActive ? 'activo' : 'inactivo';
         return (
@@ -290,15 +289,35 @@ function HorarioTable() {
         )
       }
     },
-
     {
       flex: 0.1,
-      minWidth: 90,
-      sortable: false,
-      field: 'actions',
-      headerName: 'Acciones',
-      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
-    }
+      minWidth: 450,
+      field: 'name',
+      headerName: 'Nombre del Horario',
+      renderCell: ({ row }: CellType) => {
+        const { name } = row
+
+        return (
+          <StyledLink href={`/user/horario/view/${row._id}/`}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
+              {name}
+            </Box>
+          </StyledLink>
+        )
+      },
+    },
+    {
+      flex: 0.1,
+      minWidth: 300,
+      field: 'createdAt',
+      headerName: 'Fecha de Creación',
+
+      valueFormatter: (params: any) => {
+        const date = new Date(params.value);
+        return date.toLocaleDateString();
+      },
+    },
+
   ];
 
   function CustomLoadingOverlay() {
@@ -313,7 +332,7 @@ function HorarioTable() {
   return (
     <>
       <Grid>
-        <SidebarAddHorario open={addHorarioOpen} toggle={toggleAddHorario} />
+        <SidebarAddHorario open={addHorarioOpen} toggle={toggleAddHorario} setPage={setPage} />
         {selectedScheduleId && <SidebarEditHorario scheduleId={selectedScheduleId} open={editHorarioOpen} toggle={() => setEditHorarioOpen(false)} />}
         <Grid item xs={12}>
           <Card>
@@ -328,6 +347,12 @@ function HorarioTable() {
               autoHeight
               rows={paginatedSchedule}
               columns={columns}
+              onRowClick={(params, event) => {
+                const target = event.target as Element; // <- Aquí hacemos el type assertion
+                if (!target.closest('[data-action-button="true"]')) {
+                  window.location.href = `/user/horario/view/${params.id}/`;
+                }
+              }}
               disableSelectionOnClick
               pageSize={pageSize}
               components={{
@@ -348,6 +373,7 @@ function HorarioTable() {
                           }}
                         >
                           <MenuItem value={2}>2</MenuItem>
+                          <MenuItem value={5}>5</MenuItem>
                           <MenuItem value={10}>10</MenuItem>
                           <MenuItem value={20}>20</MenuItem>
                           <MenuItem value={50}>50</MenuItem>

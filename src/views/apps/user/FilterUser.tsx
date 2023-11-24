@@ -159,28 +159,29 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
 
                         </FormControl>
                     </Grid>
-
-                    <Grid item xs={1.5}>
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            color="primary"
-                            style={{ marginTop: '10px' }}
-                        >
-                            Filtrar
-                        </Button>
-                    </Grid>
-                    <Grid item xs={1.5}>
-                        <Button
-                            onClick={handleReset}
-                            fullWidth
-                            variant="outlined"
-                            color="primary"
-                            style={{ marginTop: '10px' }}
-                        >
-                            Restablecer
-                        </Button>
+                    <Grid container spacing={4}>
+                        <Grid item xs={1.5}>
+                            <Button
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                color="primary"
+                                style={{ marginTop: '20px' }}
+                            >
+                                Filtrar
+                            </Button>
+                        </Grid>
+                        <Grid item xs={1.5}>
+                            <Button
+                                onClick={handleReset}
+                                fullWidth
+                                variant="outlined"
+                                color="primary"
+                                style={{ marginTop: '20px' }}
+                            >
+                                Restablecer
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Grid>
             </form>

@@ -108,7 +108,10 @@ const UserDropdown = (props: Props) => {
     <Fragment>
       <Typography>
         {user?.name} {user?.lastName} <b></b>
-        CI:{user?.ci}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          {/* <p style={{ margin: '0' }}>Nombre: {window.localStorage.getItem("name")}</p> */}
+          {/* <p style={{ margin: '0' }}>CI: {window.localStorage.getItem("id")}</p> */}
+        </div>
       </Typography>
       <Badge
         overlap='circular'

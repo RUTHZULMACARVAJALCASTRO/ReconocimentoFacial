@@ -99,8 +99,8 @@ const AuthProvider = ({ children }: Props) => {
 
   const handleLogout = () => {
     setUser(null)
-    window.localStorage.removeItem('userData')
-    window.localStorage.removeItem(authConfig.storageTokenKeyName)
+    // window.localStorage.removeItem('userData')
+    // window.localStorage.removeItem(authConfig.storageTokenKeyName)
     router.push('/login')
   }
 
@@ -118,8 +118,8 @@ const AuthProvider = ({ children }: Props) => {
   }
   console.log(user)
   const values = {
-    user: {"id":1,"usepage":"use-page-frontend","fullName":"John Doe","username":"johndoe","email":"admin@materialize.com"} as any,
-    loading:false,
+    user: { "id": 1, "usepage": "use-page-frontend", "fullName": "John Doe", "username": "johndoe", "email": "admin@materialize.com" } as any,
+    loading: false,
     // user,
     // loading,
     setUser,

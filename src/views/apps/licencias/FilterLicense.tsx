@@ -21,12 +21,12 @@ const initialFilters = {
 };
 
 const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCurrentFilters }) => {
-    const licenseStatus = useSelector((state: RootState) => state.license.status);
-    const totalPages = useSelector((state: RootState) => state.license.pageSize) || 0;
-    const paginatedLicenses = useSelector((state: RootState) => state.license.paginatedLicenses);
+    // const licenseStatus = useSelector((state: RootState) => state.license.status);
+    // const totalPages = useSelector((state: RootState) => state.license.pageSize) || 0;
+    // const paginatedLicenses = useSelector((state: RootState) => state.license.paginatedLicenses);
 
 
-    console.log({ licenseStatus, totalPages, paginatedLicenses, page });
+    // console.log({ licenseStatus, totalPages, paginatedLicenses, page });
 
     const [filters, setFilters] = useState(initialFilters);
     const dispatch = useDispatch<AppDispatch>();
@@ -93,7 +93,8 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
 
                         </FormControl>
                     </Grid>
-
+                </Grid>
+                <Grid container spacing={4}>
                     <Grid item xs={1.5}>
                         <Button
                             type="submit"
@@ -116,8 +117,8 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
                             Restablecer
                         </Button>
                     </Grid>
-
                 </Grid>
+
             </form>
         </Paper>
     );

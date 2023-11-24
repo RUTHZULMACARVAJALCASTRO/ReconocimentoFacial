@@ -5,6 +5,7 @@ import { Docu } from 'src/pages/user/usuario/userlist';
 export interface UserData {
   name: string;
   lastName: string;
+  gender: string;
   ci: string;
   email: string;
   phone: string;
@@ -13,6 +14,7 @@ export interface UserData {
   unity: string;
   charge: string;
   schedule: string;
+  level: string;
   file: string;
 }
 
@@ -30,6 +32,7 @@ interface FetchUsersByPageArg {
   pageSize: number;
   name?: string;
   lastName?: string;
+  gender?: string;
   ci?: string;
   email?: string;
   phone?: string;
@@ -61,10 +64,10 @@ export const addUser = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       if (error.response && error.response.data && error.response.data.message) {
-   
+        // Rechazar con el mensaje de error del servidor
         return rejectWithValue(error.response.data.message);
       }
-      
+      // Rechazar con un mensaje de error general
       return rejectWithValue(error.message);
     }
   }
@@ -179,7 +182,7 @@ const userSlice = createSlice({
         state.status = 'loading';
         const user = state.paginatedUsers.find(user => user._id === action.meta.arg.userId);
         if (user) {
-          user.isActive = !user.isActive; 
+          user.isActive = !user.isActive; // Invertir el estado
         }
       })
       .addCase(toggleUserStatus.fulfilled, (state, action: PayloadAction<Docu>) => {

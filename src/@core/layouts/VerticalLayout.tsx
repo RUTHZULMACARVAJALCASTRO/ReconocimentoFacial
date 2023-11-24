@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Fab from '@mui/material/Fab'
@@ -21,6 +21,9 @@ import Customizer from 'src/@core/components/customizer'
 import Navigation from './components/vertical/navigation'
 import Footer from './components/shared-components/footer'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
+import { useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router'
+
 
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',
@@ -60,14 +63,26 @@ const VerticalLayout = (props: LayoutProps) => {
   // ** States
   const [navVisible, setNavVisible] = useState<boolean>(false)
 
+
+  const router = useRouter()
+
   // ** Toggle Functions
   const toggleNavVisibility = () => setNavVisible(!navVisible)
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('hideSidebar') === 'true') {
+      setNavVisible(false);
+    }
+  }, [location]);
+
+  const shouldHideNavigation = router.pathname === '/user/Asistencia/controlFacial'
 
   return (
     <>
       <VerticalLayoutWrapper className='layout-wrapper'>
         {/* Navigation Menu */}
-        {navHidden && !(navHidden && settings.lastLayout === 'horizontal') ? null : (
+        {!shouldHideNavigation && (
           <Navigation
             navWidth={navWidth}
             navVisible={navVisible}

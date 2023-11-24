@@ -86,7 +86,6 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
     handleSubmit,
     formState: { errors },
   } = useForm<LicenseData>({
-    // defaultValues,
     mode: 'onChange',
   });
 
@@ -101,7 +100,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
     dispatch(addLicense(adjustedData));
     toggle();
     reset();
-    // defaultValues
+    defaultValues
     MySwal.fire({
       title: <p>Licencia creado con exito!</p>,
       icon: 'success',
@@ -161,7 +160,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
         <Box sx={{ p: 5 }}>
           <form onSubmit={handleSubmit(handleSave)}>
             <Grid container spacing={3}>
-              <Grid item xs={4}>
+              <Grid item xs={4} spacing={3}>
                 <FormControl variant="outlined" fullWidth>
                   <InputLabel>Buscar por</InputLabel>
                   <Select
@@ -213,7 +212,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
                 </Box>
               )}
 
-              <Grid item xs={12}>
+              <Grid item xs={12} spacing={3}>
                 <TextField
                   fullWidth
                   margin="normal"
@@ -225,10 +224,11 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} spacing={3}>
                 <Controller
                   name="licenseType"
                   control={control}
+                  defaultValue=""
                   render={({ field }) => (
                     <FormControl fullWidth variant="outlined" error={Boolean(errors.licenseType)}>
                       <InputLabel>Tipo de Licencia</InputLabel>
@@ -245,7 +245,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
                   )}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} spacing={3}>
                 <Controller
                   name="description"
                   control={control}
@@ -264,7 +264,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={6} spacing={3}>
                 <Controller
                   name="startDate"
                   control={control}
@@ -283,7 +283,7 @@ const SidebarAddLicense = ({ open, toggle }: SidebarAddLicenseType) => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={6} >
                 <Controller
                   name="endDate"
                   control={control}

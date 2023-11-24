@@ -42,6 +42,7 @@ interface ChargeData {
   _id: string
   name: string
   description: string
+  salary: string
   isActive: boolean
 }
 
@@ -67,6 +68,7 @@ const defaultValues = {
   _id: '',
   name: '',
   description: '',
+  salary: '',
   isActive: true
 }
 
@@ -87,6 +89,7 @@ const SidebarEditCharge = ({ chargeId, open, toggle }: SidebarEditChargeType) =>
     if (selectedCharge) {
       setValue("name", selectedCharge.name);
       setValue("description", selectedCharge.description);
+      setValue("salary", selectedCharge.salary);
     }
   }, [chargeId, selectedCharge, setValue]);
 
@@ -174,6 +177,20 @@ const SidebarEditCharge = ({ chargeId, open, toggle }: SidebarEditChargeType) =>
                 )}
               /> */}
               {/* {errors.description && <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>} */}
+            </FormControl>
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='salary'
+                control={control}
+                rules={{ required: true, minLength: 2 }} // Puedes ajustar estas reglas
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Salario'
+                    autoComplete='off'
+                  />
+                )}
+              />
             </FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Button size='large' type='submit' variant='contained' sx={{ mr: 6 }}>

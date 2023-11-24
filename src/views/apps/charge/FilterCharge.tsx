@@ -56,10 +56,12 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
         <Paper style={{ padding: '10px', marginBottom: '10px', width: '100%' }}>
 
             <form onSubmit={handleSubmit}>
-                <Grid container spacing={3}>
+                <Grid container spacing={4}>
                     <Grid item xs={3}>
                         <FormControl fullWidth variant="standard">
+
                             <InputLabel htmlFor="isActive">Estado</InputLabel>
+
                             <Select
                                 name="isActive"
                                 value={filters.isActive}
@@ -82,30 +84,31 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
                                 ),
                             }} />
                     </Grid>
+                </Grid>
 
-                    <Grid item xs={3}>
+                <Grid container spacing={4}>
+                    <Grid item xs={1.5}>
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
                             color="primary"
-                            style={{ marginTop: '10px' }}
+                            style={{ marginTop: '15px' }}
                         >
-                            Aplicar Filtro
+                            Filtrar
                         </Button>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={1.5}>
                         <Button
                             onClick={handleReset}
                             fullWidth
                             variant="outlined"
                             color="primary"
-                            style={{ marginTop: '10px' }}
+                            style={{ marginTop: '15px' }}
                         >
                             Restablecer
                         </Button>
                     </Grid>
-
                 </Grid>
             </form>
         </Paper>

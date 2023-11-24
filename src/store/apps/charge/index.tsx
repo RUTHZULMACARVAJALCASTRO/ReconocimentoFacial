@@ -1,18 +1,34 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { ThemeColor } from 'src/@core/layouts/types';
 import { Docu } from 'src/pages/user/charges/ChargeList';
+
+
 
 export interface ChargeData {
 	name: string;
+	salary: string;
 	description: string;
+}
+
+interface Filters {
+	name?: string;
+	description?: string;
+	salary?: string;
+	isActive?: string;
+	page?: number;
+	pageSize?: number;
 }
 
 interface ChargeState {
 	data: ChargeData | null;
+	list: Docu[];
+	findPaginateCharges: Docu[],
 	status: 'idle' | 'loading' | 'succeeded' | 'failed';
 	pageSize: number;
 	currentPage: number;
 	paginatedCharges: Docu[];
+	currentFilters: Filters;
 	error: string | null;
 }
 
@@ -22,7 +38,6 @@ interface FetchChargesByPageArg {
 	name?: string;
 	description?: string;
 	isActive?: string;
-
 }
 
 interface PaginationResponse {
@@ -31,12 +46,17 @@ interface PaginationResponse {
 	totalPages: number;
 }
 
+
+
 const initialState: ChargeState = {
 	data: null,
+	list: [],
+	findPaginateCharges: [],
 	paginatedCharges: [] as Docu[],
 	status: 'idle',
 	pageSize: 0,
 	currentPage: 1,
+	currentFilters: {},
 	error: null
 };
 
@@ -48,10 +68,10 @@ export const addCharge = createAsyncThunk(
 			return response.data;
 		} catch (error: any) {
 			if (error.response && error.response.data && error.response.data.message) {
-
+				// Rechazar con el mensaje de error del servidor
 				return rejectWithValue(error.response.data.message);
 			}
-
+			// Rechazar con un mensaje de error general
 			return rejectWithValue(error.message);
 		}
 	}
@@ -86,6 +106,36 @@ export const fetchChargesByPage = createAsyncThunk<PaginationResponse, FetchChar
 
 		const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}filtered?${queryString}`);
 		return response.data;
+	}
+);
+
+export const fetchFilteredCharges = createAsyncThunk(
+	'users/fetchFilteredCharges',
+	async (filters: Filters, { rejectWithValue }) => {
+		try {
+			const cleanedFilters: Filters = Object.fromEntries(
+				Object.entries(filters).filter(([key, value]) => value !== undefined && value !== '')
+			);
+
+			const response = await axios.get(`${process.env.NEXT_PUBLIC_PERSONAL_CHARGE}filtered`, {
+				params: {
+					...cleanedFilters,
+					page: cleanedFilters.page,
+					pageSize: cleanedFilters.pageSize
+				}
+			});
+
+			if (response.data && response.data.data) {
+				return response.data  // Retorna solo el arreglo "data" si deseas
+			} else {
+				throw new Error('Respuesta malformada del servidor');
+			}
+		} catch (error: any) {
+			if (error.response && error.response.data && error.response.data.message) {
+				return rejectWithValue(error.response.data.message);
+			}
+			return rejectWithValue(error.message);
+		}
 	}
 );
 
@@ -129,9 +179,20 @@ const chargeSlice = createSlice({
 				state.paginatedCharges.push(action.payload);
 				state.data = action.payload;
 			})
-			.addCase(addCharge.rejected, (state: any, action) => {
+			.addCase(addCharge.rejected, (state, action) => {
 				state.status = 'failed';
 				state.error = action.error.message || null;
+			})
+			.addCase(fetchCharges.pending, (state) => {
+				state.status = 'loading';
+			})
+			.addCase(fetchCharges.fulfilled, (state, action) => {
+				state.status = 'succeeded';
+				state.list = action.payload;
+			})
+			.addCase(fetchCharges.rejected, (state: any, action) => {
+				state.status = 'failed';
+				state.error = action.error.message;
 			})
 			.addCase(fetchChargesByPage.pending, (state) => {
 				state.status = 'loading';
@@ -140,6 +201,7 @@ const chargeSlice = createSlice({
 				state.status = 'succeeded';
 				state.paginatedCharges = action.payload.data;
 				state.pageSize = action.payload.totalPages;
+				state.currentFilters = action.meta.arg;
 			})
 			.addCase(fetchChargesByPage.rejected, (state: any, action) => {
 				state.status = 'failed';
@@ -167,14 +229,14 @@ const chargeSlice = createSlice({
 				state.status = 'loading';
 				const charge = state.paginatedCharges.find(charge => charge._id === action.meta.arg.chargeId);
 				if (charge) {
-					charge.isActive = !charge.isActive;
+					charge.isActive = !charge.isActive; // Invertir el estado
 				}
 			})
 			.addCase(toggleChargeStatus.fulfilled, (state, action: PayloadAction<Docu>) => {
 				state.status = 'succeeded';
-				const index = state.paginatedCharges.findIndex(charge => charge._id === action.payload._id);
+				const index = state.list.findIndex(charge => charge._id === action.payload._id);
 				if (index !== -1) {
-					state.paginatedCharges[index] = action.payload;
+					state.list[index] = action.payload;  // Asumiendo que la respuesta del servidor contiene el cargo actualizado
 				}
 			})
 			.addCase(toggleChargeStatus.rejected, (state, action) => {
@@ -189,3 +251,4 @@ const chargeSlice = createSlice({
 });
 
 export default chargeSlice.reducer;
+// export const { setCurrentPage } = chargeSlice.actions;

@@ -22,7 +22,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({ toggle, pageSize, page, setPa
             <Button
                 onClick={toggleFilterComponent}
                 variant='contained'
-                sx={{ mr: 6, mb: 2, pr: 15, pl: 15 }}>
+                sx={{ mr: 6, mb: 2, pr: 5, pl: 5 }}>
                 {isFilterComponentVisible ? "Cerrar Filtro" : "Mostrar Filtro"}
             </Button>
 

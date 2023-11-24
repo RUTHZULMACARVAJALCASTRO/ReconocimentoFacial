@@ -30,6 +30,7 @@ export interface Docu {
   _id: string
   name: string
   description: string
+  salary: string
   isActive: boolean
 }
 
@@ -48,7 +49,7 @@ const ChargeList = () => {
   const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null);
   const toggleAddCharge = () => setAddChargeOpen(!addChargeOpen)
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const dispatch = useDispatch<AppDispatch>()
   const chargeStatus = useSelector((state: RootState) => state.charges.status);
   const totalPages = useSelector((state: RootState) => state.charges.pageSize) || 0;
@@ -81,7 +82,7 @@ const ChargeList = () => {
 
   const chargeStatusObj: ChargeStatusType = {
     disponible: 'success',
-    No_disponible: 'secondary'
+    No_disponible: 'secondary',
   }
 
   const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
@@ -118,7 +119,12 @@ const ChargeList = () => {
 
     return (
       <>
-        <IconButton size='small' onClick={handleRowOptionsClick}>
+        <IconButton
+          size='small'
+          data-action-button="true"
+          onClick={handleRowOptionsClick}
+          style={{ height: '500%', width: '100%', display: 'flex', justifyContent: 'center' }}
+        >
           <Icon icon='mdi:dots-vertical' />
         </IconButton>
         <Menu
@@ -220,7 +226,16 @@ const ChargeList = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 110,
+      minWidth: 60,
+      sortable: false,
+      textAlign: 'center',
+      field: 'actions',
+      headerName: 'Acciones',
+      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
+    },
+    {
+      flex: 0.1,
+      minWidth: 150,
       field: 'status',
       headerName: 'Estado',
       renderCell: ({ row }: CellType) => {
@@ -237,11 +252,12 @@ const ChargeList = () => {
       }
     },
 
+
     {
       flex: 0.1,
       minWidth: 150,
       field: 'name',
-      headerName: 'Nombre',
+      headerName: 'Nombre de Cargo',
       renderCell: ({ row }: CellType) => {
         return (
           <Typography noWrap variant='body2'>
@@ -252,13 +268,13 @@ const ChargeList = () => {
     },
     {
       flex: 0.1,
-      minWidth: 110,
+      minWidth: 450,
       field: 'description',
       headerName: 'Descripcion',
       renderCell: ({ row }: CellType) => {
         return (
           <Tooltip title={row.description || ''}>
-            <div>
+            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <Typography noWrap variant='body2'>
                 {row.description}
               </Typography>
@@ -269,12 +285,22 @@ const ChargeList = () => {
     },
     {
       flex: 0.1,
-      minWidth: 90,
-      sortable: false,
-      field: 'actions',
-      headerName: 'Acciones',
-      renderCell: ({ row }: CellType) => <RowOptions id={row._id} isActive={row.isActive} />
+      minWidth: 200,
+      field: 'salary',
+      headerName: 'Salario',
+      renderCell: ({ row }: CellType) => {
+        return (
+          <Tooltip title={row.salary || ''}>
+            <div>
+              <Typography noWrap variant='body2'>
+                {row.salary}
+              </Typography>
+            </div>
+          </Tooltip>
+        )
+      }
     }
+
   ]
   function CustomLoadingOverlay() {
     return (
@@ -284,7 +310,7 @@ const ChargeList = () => {
     );
   }
 
-  const reversedPaginatedCharges = [...paginatedCharges].reverse();
+
 
   return (
     <>
@@ -303,7 +329,7 @@ const ChargeList = () => {
               loading={chargeStatus === 'loading'}
               getRowId={row => row._id}
               autoHeight
-              rows={reversedPaginatedCharges}
+              rows={paginatedCharges}
               columns={columns}
               pageSize={pageSize}
               disableSelectionOnClick
@@ -330,14 +356,10 @@ const ChargeList = () => {
                           }}
                         >
                           <MenuItem value={2}>2</MenuItem>
+                          <MenuItem value={5}>5</MenuItem>
                           <MenuItem value={10}>10</MenuItem>
                           <MenuItem value={20}>20</MenuItem>
                           <MenuItem value={50}>50</MenuItem>
-                          <MenuItem value={100}>100</MenuItem>
-                          <MenuItem value={300}>300</MenuItem>
-                          <MenuItem value={500}>500</MenuItem>
-                          <MenuItem value={800}>800</MenuItem>
-                          <MenuItem value={1000}>1000</MenuItem>
                         </Select>
                       </FormControl>
                       <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
@@ -357,7 +379,7 @@ const ChargeList = () => {
           </Card>
         </Grid>
 
-        <SidebarAddCharge open={addChargeOpen} toggle={toggleAddCharge} />
+        <SidebarAddCharge open={addChargeOpen} toggle={toggleAddCharge} setPage={setPage} page={0} pageSize={0} />
         {selectedChargeId && <SidebarEditCharge chargeId={selectedChargeId} open={editChargeOpen} toggle={() => setEditChargeOpen(false)} />}
       </Grid>
     </>

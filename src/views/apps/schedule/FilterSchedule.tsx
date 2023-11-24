@@ -84,14 +84,15 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
                                 ),
                             }} />
                     </Grid>
-
-                    <Grid item xs={1.2}>
+                </Grid>
+                <Grid container spacing={4}>
+                    <Grid item xs={1.5}>
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
                             color="primary"
-                            style={{ marginTop: '10px' }}
+                            style={{ marginTop: '15px' }}
                         >
                             Filtrar
                         </Button>
@@ -102,7 +103,7 @@ const FilterComponent: React.FC<FilterProps> = ({ pageSize, page, setPage, setCu
                             fullWidth
                             variant="outlined"
                             color="primary"
-                            style={{ marginTop: '10px' }}
+                            style={{ marginTop: '15px' }}
                         >
                             Restablecer
                         </Button>

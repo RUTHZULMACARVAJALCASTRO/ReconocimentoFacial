@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { AsignacionLicencia } from 'src/pages/user/permisos_y_licencias/licencias/licenseList';
+import { AsignacionLicencia } from 'src/pages/user/licencias/licenseList';
 
 export interface LicenseData {
     personal: string | null;

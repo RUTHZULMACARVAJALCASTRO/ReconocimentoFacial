@@ -27,6 +27,7 @@ import { RootState } from 'src/store';
 
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { InputLabel, MenuItem, Select } from '@mui/material';
 
 
 interface SidebarAddUserType {
@@ -34,6 +35,7 @@ interface SidebarAddUserType {
 	toggle: () => void;
 	page: number;
 	pageSize: number;
+	setPage: (page: number) => void;
 }
 
 interface Charge {
@@ -52,8 +54,10 @@ interface Unit {
 }
 
 interface UserData {
+	_id?: string;
 	name: string;
 	lastName: string;
+	gender: string;
 	ci: string;
 	email: string;
 	phone: string;
@@ -62,8 +66,8 @@ interface UserData {
 	unity: string;
 	charge: string;
 	schedule: string;
+	level: string;
 	file: string;
-	_id?: string;
 	isActive?: boolean;
 }
 
@@ -149,6 +153,7 @@ const schema = yup.object().shape({
 const defaultValues = {
 	name: '',
 	lastName: '',
+	gender: '',
 	ci: '',
 	email: '',
 	phone: '',
@@ -158,10 +163,11 @@ const defaultValues = {
 	unity: '',
 	charge: '',
 	schedule: '',
+	level: ''
 };
 
 const SidebarAddUser = (props: SidebarAddUserType) => {
-	const { open, toggle, page, pageSize } = props;
+	const { open, toggle, page, pageSize, setPage } = props;
 	const [previewfile, setPreviewfile] = useState<string | ''>('');
 	const [schedules, setSchedules] = useState<Schedule[]>([]);
 	const [charges, setCharges] = useState<Charge[]>([]);
@@ -171,11 +177,13 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	const dispatch: AppDispatch = useDispatch();
 	const activeCharges = charges.filter(charge => charge.isActive);
 	const activeSchedules = schedules.filter(schedule => schedule.isActive);
+	const [gender, setGender] = useState('');
 	//
 	// const userStatus = useSelector((state: RootState) => state.users.status);
 	const [user, setUser] = useState<UserData>({
 		name: '',
 		lastName: '',
+		gender: '',
 		ci: '',
 		email: '',
 		phone: '',
@@ -185,6 +193,7 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 		unity: '',
 		charge: '',
 		schedule: '',
+		level: ''
 	});
 
 	useEffect(() => {
@@ -323,41 +332,42 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 	};
 
 	const MySwal = withReactContent(Swal)
-	const errorFromRedux = useSelector((state: RootState) => state.users.error);
-	const [localError, setLocalError] = useState(null);
-
-	const [error, setError] = useState(null);
 
 	const onSubmit = async (userData: UserData) => {
-		await dispatch(addUser({ ...userData, file: previewfile }));
+		const actionResult = await dispatch(addUser({ ...userData, file: previewfile }));
 
-		if (errorFromRedux) {
-			//setLocalError(errorFromRedux);
-		} else {
+		if (addUser.fulfilled.match(actionResult)) {
 			dispatch(fetchUsersByPage({ page, pageSize }));
 			setPreviewfile('');
 			toggle();
+			setPage(1);
 			reset(defaultValues);
+
 			MySwal.fire({
 				title: <p>Usuario creado con éxito!</p>,
 				icon: 'success'
 			});
+		} else if (addUser.rejected.match(actionResult)) {
+			toggle()
+			const error = actionResult.payload
+
+			if (typeof error === 'string') {
+				MySwal.fire({
+					title: <p>Error al crear el usuario</p>,
+					text: error,
+					icon: 'error'
+				});
+				toggle()
+
+			} else {
+				MySwal.fire({
+					title: <p>Error al crear el usuario</p>,
+					text: 'Ocurrió un error desconocido.',
+					icon: 'error'
+				});
+			}
 		}
 	};
-
-
-	useEffect(() => {
-		if (localError) {
-			MySwal.fire({
-				title: <p>Error al crear el usuario</p>,
-				text: localError,
-				icon: 'error'
-			});
-
-			// Limpia el error después de mostrarlo
-			setLocalError(null);
-		}
-	}, [localError]);
 
 
 	const handleClose = () => {
@@ -401,31 +411,24 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 				<Box sx={{ p: 5 }}>
 					<form onSubmit={handleSubmit(onSubmit)}>
 						<Grid container spacing={3}>
-							<Grid item xs={12} >
-								<FormControl fullWidth sx={{ mb: 4 }}>
+							<Grid item xs={12} md={12}>
+								<Button variant="contained"
+									fullWidth
+									color="primary"
+									size="large"
+									startIcon={<CloudUploadIcon style={{ fontSize: '20px' }} />}
+									component="label"
+									style={{ height: '60px' }}
+								>
 
-									<UploadButton htmlFor='file'>
-										<CloudUploadIcon fontSize='large' />
-										<Typography>Seleccionar Imagen</Typography>
-										<input
-											id='file'
-											type='file'
-											accept='image/*'
-											style={{ display: 'none' }}
-											onChange={handlefileChange}
-										/>
-									</UploadButton>
-									{previewfile && (
-										<div style={{ textAlign: 'center', marginTop: '16px' }}>
-											<img
-												src={previewfile}
-												alt='Preview'
-												style={{ maxWidth: '100%', maxHeight: '300px' }}
-											/>
-										</div>
-									)}
-
-								</FormControl>
+									<Typography style={{ color: 'white' }}>Seleccionar Imagen</Typography>
+									<input id='file' type='file' accept='image/*' style={{ display: 'none' }} onChange={handlefileChange} />
+								</Button>
+								{previewfile && (
+									<div style={{ textAlign: 'center', marginTop: '16px' }}>
+										<img src={previewfile} alt='Preview' style={{ maxWidth: '100%', maxHeight: '300px' }} />
+									</div>
+								)}
 							</Grid>
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth sx={{ mb: 4 }}>
@@ -465,6 +468,63 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 									{errors.lastName && <FormHelperText sx={{ color: 'error.main' }}>{errors.lastName.message}</FormHelperText>}
 								</FormControl>
 							</Grid>
+
+							<Grid item xs={12} md={6}>
+								<FormControl fullWidth sx={{ mb: 4 }}>
+									<Controller
+										name='gender'
+										control={control}
+										rules={{ required: true }}
+										render={({ field: { value, onChange } }) => (
+											<FormControl fullWidth>
+												<InputLabel id="demo-simple-select-label">Género</InputLabel>
+												<Select
+													labelId="demo-simple-select-label"
+													id="demo-simple-select"
+													value={value}
+													label="Género"
+													onChange={onChange}
+													error={Boolean(errors.gender)}
+												>
+													<MenuItem value={'Hombre'}>Hombre</MenuItem>
+													<MenuItem value={'Mujer'}>Mujer</MenuItem>
+												</Select>
+											</FormControl>
+										)}
+									/>
+									{errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender.message}</FormHelperText>}
+								</FormControl>
+							</Grid>
+
+							<Grid item xs={12} md={6}>
+								<FormControl fullWidth sx={{ mb: 4 }}>
+									<Controller
+										name='level'
+										control={control}
+										rules={{ required: true }}
+										render={({ field: { value, onChange } }) => (
+											<FormControl fullWidth>
+												<InputLabel id="demo-simple-select-label">Categoria Profesional</InputLabel>
+												<Select
+													labelId="demo-simple-select-label"
+													id="demo-simple-select"
+													value={value}
+													label="Categoria Profesional"
+													onChange={onChange}
+													error={Boolean(errors.gender)}
+												>
+													<MenuItem value={'0'}>0</MenuItem>
+													<MenuItem value={'1'}>1</MenuItem>
+													<MenuItem value={'2'}>2</MenuItem>
+													<MenuItem value={'3'}>3</MenuItem>
+												</Select>
+											</FormControl>
+										)}
+									/>
+									{errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender.message}</FormHelperText>}
+								</FormControl>
+							</Grid>
+
 							<Grid item xs={12} md={6}>
 								<FormControl fullWidth sx={{ mb: 4 }}>
 									<Controller
@@ -475,14 +535,14 @@ const SidebarAddUser = (props: SidebarAddUserType) => {
 											<TextField
 												type='email'
 												value={value}
-												label='Correo Electronico'
+												label='Correo Electrónico'
 												onChange={onChange}
 												error={Boolean(errors.email)}
+												helperText={errors.email ? 'Por favor, ingrese un correo electrónico válido.' : ''}
 												inputProps={{ autoComplete: "off" }}
 											/>
 										)}
 									/>
-									{errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
 								</FormControl>
 							</Grid>
 							<Grid item xs={12} md={6}>

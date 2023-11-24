@@ -25,7 +25,6 @@ import { FormControl, Pagination, Select, Tooltip } from '@mui/material';
 import TableHeader from 'src/views/apps/user/TableHeaderUser';
 import SidebarEditUser from 'src/views/apps/user/EditUserDrawer';
 import SidebarAddUser from 'src/views/apps/user/AddUserDrawer';
-
 import CircularProgress from '@mui/material/CircularProgress';
 
 // Interfaces
@@ -38,6 +37,8 @@ export interface Docu {
   phone: string;
   address: string;
   nationality: string;
+  level: string;
+  gender: string
   unity: string;
   charge: string;
   schedule: string;
@@ -68,7 +69,7 @@ const UserList = () => {
   const paginatedUsers = useSelector((state: RootState) => state.users.paginatedUsers);
   const [currentFilters, setCurrentFilters] = useState({});
 
-  console.log({ userStatus, totalPages, paginatedUsers, page });
+  console.log({ paginatedUsers });
 
   useEffect(() => {
     dispatch(fetchUsersByPage({ page, pageSize, ...currentFilters }));
@@ -94,23 +95,6 @@ const UserList = () => {
     return `data:image/png;base64,${base64String}`
   }
 
-  const renderClient = (row: Docu) => {
-    let imageSrc = convertBase64ToImageUrl(row.file);
-
-    if (row.file) {
-      return <CustomAvatar src={imageSrc} sx={{ mr: 3, width: 34, height: 34 }} />;
-    } else {
-      return (
-        <CustomAvatar
-          skin='light'
-          color={row.avatarColor || 'primary'}
-          sx={{ mr: 3, width: 34, height: 34, fontSize: '1rem' }}
-        >
-          {getInitials(row.name ? row.name : '')}
-        </CustomAvatar>
-      )
-    }
-  }
 
 
   const RowOptions = ({ id, isActive }: { id: number | string, isActive: boolean }) => {
@@ -134,7 +118,12 @@ const UserList = () => {
 
     return (
       <>
-        <IconButton size='small' onClick={handleRowOptionsClick}>
+        <IconButton
+          size='small'
+          data-action-button="true"
+          onClick={handleRowOptionsClick}
+          style={{ height: '500%', width: '100%', display: 'flex', justifyContent: 'center' }}
+        >
           <Icon icon='mdi:dots-vertical' />
         </IconButton>
         <Menu
@@ -158,6 +147,7 @@ const UserList = () => {
             placement="top"
           >
             <span>
+
               <MenuItem
                 onClick={isActive ? handleUpdate(id.toString()) : undefined}
                 sx={{
@@ -169,6 +159,7 @@ const UserList = () => {
                 <Icon icon='mdi:edit' fontSize={20} />
                 Editar
               </MenuItem>
+
             </span>
           </Tooltip>
 
@@ -259,15 +250,14 @@ const UserList = () => {
       headerName: 'Usuario',
       disableColumnMenu: true,
       renderCell: ({ row }: CellType) => {
-        const { name, lastName } = row
+        const { name, lastName } = row;
 
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {row.file ?
-              (
+          <Tooltip title={name + ' ' + lastName} arrow>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {row.file ? (
                 <CustomAvatar src={convertBase64ToImageUrl(row.file)} sx={{ mr: 3, width: 34, height: 34 }} />
-              )
-              : (
+              ) : (
                 <CustomAvatar
                   skin='light'
                   color={row.avatarColor || 'primary'}
@@ -276,11 +266,22 @@ const UserList = () => {
                   {getInitials(row.name ? row.name : '')}
                 </CustomAvatar>
               )}
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-              <StyledLink href={`/user/usuario/view/${row._id}/`}>{[name, ' ', lastName]}</StyledLink>
+
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
+                <div
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '150px',
+                  }}
+                >
+                  <StyledLink href={`/user/usuario/view/${row._id}/`}>{[name, ' ', lastName]}</StyledLink>
+                </div>
+              </Box>
             </Box>
-          </Box>
-        )
+          </Tooltip>
+        );
       },
     },
     {
@@ -386,13 +387,24 @@ const UserList = () => {
       <Grid container spacing={6} >
         <Grid item xs={12}>
           <Card>
-            <TableHeader toggle={toggleAddUserDrawer} pageSize={pageSize} page={page} setPage={setPage} setCurrentFilters={setCurrentFilters} />
+            <TableHeader
+              toggle={toggleAddUserDrawer}
+              pageSize={pageSize}
+              page={page}
+              setPage={setPage}
+              setCurrentFilters={setCurrentFilters} />
             <DataGrid
               loading={userStatus === 'loading'}
               rowHeight={60}
               getRowId={row => row._id}
               autoHeight
               rows={paginatedUsers}
+              onRowClick={(params, event) => {
+                const target = event.target as Element;
+                if (!target.closest('[data-action-button="true"]')) {
+                  window.location.href = `/user/usuario/view/${params.id}/`;
+                }
+              }}
               columns={columns}
               sx={{
                 '& .MuiDataGrid-columnHeaders': { borderRadius: 0 },
@@ -416,16 +428,11 @@ const UserList = () => {
                             width: '70px',
                           }}
                         >
-
+                          <MenuItem value={2}>2</MenuItem>
                           <MenuItem value={5}>5</MenuItem>
                           <MenuItem value={10}>10</MenuItem>
                           <MenuItem value={20}>20</MenuItem>
                           <MenuItem value={50}>50</MenuItem>
-                          <MenuItem value={100}>100</MenuItem>
-                          <MenuItem value={300}>300</MenuItem>
-                          <MenuItem value={500}>500</MenuItem>
-                          <MenuItem value={800}>800</MenuItem>
-                          <MenuItem value={1000}>1000</MenuItem>
                         </Select>
                       </FormControl>
                       <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
@@ -435,7 +442,7 @@ const UserList = () => {
 
               localeText={{
 
-                noRowsLabel: 'No hay filas',
+                noRowsLabel: 'No hay Personal Registrado',
                 noResultsOverlayLabel: 'No se encontraron resultados.',
                 errorOverlayDefaultLabel: 'Ocurrió un error.'
               }}
@@ -443,7 +450,7 @@ const UserList = () => {
             />
           </Card>
         </Grid>
-        <SidebarAddUser open={addUserOpen} toggle={toggleAddUserDrawer} page={page} pageSize={pageSize} />
+        <SidebarAddUser open={addUserOpen} toggle={toggleAddUserDrawer} page={0} pageSize={0} setPage={setPage} />
         {selectedUserId && <SidebarEditUser userId={selectedUserId} open={editUserOpen} toggle={() => setEditUserOpen(false)} />}
       </Grid>
     </>

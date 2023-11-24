@@ -11,6 +11,7 @@ import { useEffect } from 'react'
 import axios from 'axios'
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
+import { WindowSharp } from '@mui/icons-material'
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -32,17 +33,68 @@ const useStyles = makeStyles((theme) => ({
 
 const Home = () => {
   const router = useRouter()
-  //const { id, token } = router.query
-  //console.log(id, token)
   const id = router.query.id
   const token = router.query.token
+
+  // if (id !== undefined) window.localStorage.setItem("id", id.toString())
+  if (token !== undefined) window.localStorage.setItem("token", token.toString())
   //const id = '638f4aed-5a41-4a9a-9d1a-0f3e3f1e66dd'
   //const token =
   // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZFVzZXIiOiI2NDdmOTBjMDU5YzE2OWI5OGVmMzVhZmIiLCJBcHAiOnsiMCI6eyJ1dWlkIjoiZGFmM2U4NDItZTA2NS00MGRmLWJlMjgtZjBjOTk2NjdmYTBkIiwibmFtZSI6InBlcnNvbmFsIiwidXJsIjoiaHR0cDovLzEwLjEwLjIxNC4yMTk6MzAwNi9ob21lIn0sIjEiOnsidXVpZCI6IjYzOGY0YWVkLTVhNDEtNGE5YS05ZDFhLTBmM2UzZjFlNjZkZCIsIm5hbWUiOiJhY3Rpdm8iLCJ1cmwiOiJodHRwOi8vMTAuMTAuMjE0LjIxOTozMDUwL2hvbWUifX0sImlhdCI6MTY4Nzk4Nzk2NiwiZXhwIjoxNjg4MDA5NTY2fQ.ULVJ61tQ-ocAu1fmEqh7vQrO_cxkbAQvr62Grbe2cgM'
+
+
+
+
+  const permissions = async (token: string) => {
+    try {
+      console.log('auth/decoded')
+
+      // window.localStorage.setItem('TokenLogin', token)
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_CENTRAL}auth/decoded`, {
+        token: token
+      })
+      console.log('decoded token login roles: ' + response.data.id)
+
+      const id = response.data.id
+      window.localStorage.setItem('id', id)
+
+      console.log('roles: ', response.data.roles)
+
+      let permisos
+      const permisosLista = []
+      for (let j = 0; j < response.data.roles.length; j++) {
+        permisos = response.data.roles[j].permissionName
+        const keyPermisos = Object.keys(permisos)
+        const permisosLength = keyPermisos.length
+        console.log('length: ' + permisosLength)
+
+        for (let i = 0; i < permisosLength; i++) {
+          console.log('for: ' + i)
+          try {
+            console.log('auth/decoded')
+            const respon = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_CENTRAL}permission/${response.data.roles[j].permissionName[i]}`
+            )
+            permisosLista.push(respon.data.permissionName)
+          } catch (error) {
+            console.log(error)
+          }
+        }
+      }
+
+      const arrayPermisos = JSON.stringify(permisosLista)
+      window.localStorage.setItem('permisos', arrayPermisos)
+      console.log('permisos' + arrayPermisos)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  if (token !== undefined) permissions(token.toString())
+
   if (id && token) {
     Redirect(id.toString(), token.toString())
   }
-
   // if(id && token){
   //   const app = id
   //   const data= {app, token}
@@ -67,6 +119,8 @@ const Home = () => {
         alert(JSON.stringify(e))
       })
   }
+
+
   const classes = useStyles();
 
   return (

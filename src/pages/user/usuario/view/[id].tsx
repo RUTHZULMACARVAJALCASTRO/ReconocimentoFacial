@@ -5,8 +5,6 @@ import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import Avatar from '@mui/material/Avatar';
-import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import {
   Mail as MailIcon,
@@ -19,17 +17,18 @@ import {
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import React from 'react';
-import { Box, Tabs } from '@mui/material';
+import { Box, Button, Tabs } from '@mui/material';
 import Tab from '@mui/material/Tab';
-//import AsistenciaTable from './AsistenciaTable';
 import { useTheme } from '@mui/material/styles';
-import UsersProjectListTable from 'src/pages/user/usuario/view/UsersProjectListTable';
-import UserViewConnection from './UserViewConnection';
+import SalarySlip from './salarios';
 import CustomAvatar from 'src/@core/components/mui/avatar';
 import AsistenciaTable from './AsistenciaTable';
-import PlanillaPersonal from './AsistenciaTable';
+import ReportGenerator from './reportes';
 export type ThemeColor = 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
-
+import FemaleIcon from '@mui/icons-material/Female';
+import MaleIcon from '@mui/icons-material/Male';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import PrintIcon from '@mui/icons-material/Print';
 
 interface Docu {
   _id: string;
@@ -42,6 +41,8 @@ interface Docu {
   nationality: string;
   charge: string;
   schedule: string;
+  level: string;
+  gender: string;
   unity: string;
   file: string;
   isActive: boolean;
@@ -173,7 +174,7 @@ const UserViewLeft = () => {
             fontSize: '0.85rem',
             letterSpacing: '0.3px',
             fontWeight: 500,
-            color: theme.palette.mode === 'dark' ? '#ddd' : '#333' // Colores para oscuro y claro
+            color: theme.palette.mode === 'dark' ? '#ddd' : '#333'
           }}>
           <strong>{label}:</strong>
         </Typography>
@@ -182,7 +183,7 @@ const UserViewLeft = () => {
             marginLeft: '5px',
             fontSize: '0.8rem',
             letterSpacing: '0.2px',
-            color: theme.palette.mode === 'dark' ? '#ccc' : '#555' // Colores para oscuro y claro
+            color: theme.palette.mode === 'dark' ? '#ccc' : '#555'
           }}>
           {value}
         </Typography>
@@ -260,12 +261,28 @@ const UserViewLeft = () => {
               <DetailItem icon={<PhoneIcon color="primary" />} label="Celular" value={data.phone} />
               <DetailItem icon={<HomeIcon color="primary" />} label="Dirección" value={data.address} />
               <DetailItem icon={<PublicIcon color="primary" />} label="Nacionalidad" value={data.nationality} />
-
+              <DetailItem icon={<BusinessCenterIcon color="primary" />} label="Categoría Profesional" value={data.level} />
+              <DetailItem icon={data.gender === 'Femenino' ? <FemaleIcon color="primary" /> : <MaleIcon color="primary" />} label="Género" value={data.gender} />
               <DetailItem icon={<WorkIcon color="primary" />} label="Unidad" value={data.unity} />
               <DetailItem icon={<AssignmentIndIcon color="primary" />} label="Cargo" value={charge ? charge : data.charge} />
               <DetailItem icon={<ScheduleIcon color="primary" />} label="Horario" value={schedule ? schedule : data.schedule} />
 
               <Divider sx={{ mt: 4, mb: 2 }} />
+
+              <Button
+                variant="contained"
+                color="primary"
+                style={{
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                startIcon={<PrintIcon />}
+              >
+                Imprimir Kardex
+              </Button>
+
             </CardContent>
           </Card>
         </Grid>
@@ -274,19 +291,19 @@ const UserViewLeft = () => {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
                 <Tab label="Asistencia" {...a11yProps(0)} />
-                <Tab label="Salarios" {...a11yProps(1)} />
-                <Tab label="Kardex" {...a11yProps(2)} />
+                <Tab label="Reportes" {...a11yProps(1)} />
+                {/* <Tab label="Salarios" {...a11yProps(2)} /> */}
               </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
               <AsistenciaTable personalId={personalId} />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-              <UserViewConnection />
+              <ReportGenerator personalId={personalId} />
             </CustomTabPanel>
-            <CustomTabPanel value={value} index={2}>
-              <UsersProjectListTable />
-            </CustomTabPanel>
+            {/* <CustomTabPanel value={value} index={2}>
+              <SalarySlip />
+            </CustomTabPanel> */}
           </Box>
         </Grid>
       </Grid>

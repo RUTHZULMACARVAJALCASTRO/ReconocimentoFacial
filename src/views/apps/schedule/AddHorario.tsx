@@ -20,7 +20,6 @@ import {
 	FormLabel,
 	List,
 	ListItem,
-	FormGroup,
 	ListItemIcon,
 	ListItemText,
 	FormControl,
@@ -39,13 +38,8 @@ import ScrollBar from 'react-perfect-scrollbar';
 import axios from 'axios';
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker';
 import { ReactDatePickerProps } from 'react-datepicker';
-import { DateType } from 'src/components/PickersTime';
-import addDays from 'date-fns/addDays';
-import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Cipher } from 'crypto';
-
 import { useDispatch } from 'react-redux'
 import { addSchedule } from 'src/store/apps/schedule/index'
 import { AppDispatch } from 'src/redux/store';
@@ -53,10 +47,13 @@ import SearchIcon from '@material-ui/icons/Search';
 import Grid from '@mui/material/Grid';
 import { makeStyles } from '@material-ui/core/styles';
 import es from 'date-fns/locale/es';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
 interface SidebarAddHorarioType {
 	open: boolean;
 	toggle: () => void;
+	setPage: (page: number) => void;
 }
 
 interface Schedule {
@@ -120,10 +117,10 @@ interface SpecialDaysData {
 
 const useStyles = makeStyles((theme) => ({
 	listContainer: {
-		maxHeight: '300px', // Puedes ajustar el valor según tus necesidades
+		maxHeight: '300px',
 		overflowY: 'auto',
-		border: '1px solid #ccc', // Define el borde del cuadrado
-		borderRadius: '5px', // Agrega un pequeño borde redondeado
+		border: '1px solid #ccc',
+		borderRadius: '5px',
 		padding: theme.spacing(1),
 	},
 }));
@@ -183,24 +180,19 @@ const PickersRange = ({
 
 
 const SidebarAddHorario = (props: SidebarAddHorarioType) => {
-	const { open, toggle } = props;
+	const { open, toggle, setPage } = props;
 	const [selectedDays, setSelectedDays] = useState<number[]>([]);
 	const [selectedDaysSpecial, setSelectedDaysSpecial] = useState<number[]>([]);
 	const [isAtLeastOneDaySelected, setIsAtLeastOneDaySelected] = useState(false);
 	const [value, setValue] = useState('Horario Normal');
 	const [usersError, setUsersError] = useState('');
 	const [selectedDateRange, setSelectedDateRange] = useState<string[]>([]);
-	const [dateRange, setDateRange] = useState<string[]>([]);
-	const [selectedUserId, setSelectedUserId] = useState("");
-	const [users, setUsers] = useState<User[]>([]);
-	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-	const [isPermanent, setIsPermanent] = useState(true);
-	const [usersAssigned, setUsersAssigned] = useState<string[]>([]);
 	const [specialDaysData, setSpecialDaysData] = useState<SpecialDaysData>({});
-	const [isUserModalOpen, setUserModalOpen] = useState(false);
 	const dispatch: AppDispatch = useDispatch();
+	const [searchValues, setSearchValues] = useState({});
+	const [searchResults, setSearchResults] = useState({});
 	const classes = useStyles();
-
+	const MySwal = withReactContent(Swal)
 	const schema = yup.object().shape({
 		name: yup.string().required('El nombre del horario es requerido'),
 		scheduleNormal: yup.array().of(
@@ -265,7 +257,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 			toleranceOut: 15,
 		})),
 		scheduleSpecial: dias.map(dia => ({
-			name: 'Descripcion',
+			name: '.',
 			day: dia.value,
 			into: '08:00',
 			out: '12:00',
@@ -278,6 +270,8 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 			usersAssigned: [],
 		})),
 	};
+
+
 	//dateRange: [new Date().toISOString(), new Date().toISOString()], // Esto simplemente pone la fecha actual como rango por defecto
 
 	const handleUserCheckboxChange = (dayValue: string, userId: string, isChecked: boolean) => {
@@ -414,7 +408,12 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 			}));
 
 			toggle();
+			setPage(1);
 			reset(defaultValues);
+			MySwal.fire({
+				title: <p>Cargo creado con exito!</p>,
+				icon: 'success'
+			});
 
 		} catch (error) {
 			// Enviar un mensaje de error (ocurrio un error. Vuelva a intentarlo)
@@ -428,7 +427,7 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 
 	const handleClose = () => {
 		toggle();
-		reset();
+		reset(defaultValues);
 		setUsersError('');
 	};
 
@@ -482,24 +481,6 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 
 	return (
 		<>
-			<Button
-				onClick={handleClose}
-				variant="contained"
-				color="primary"
-				sx={{
-					borderRadius: '8px',
-					marginBottom: '15px',
-					fontSize: '12px',
-					fontWeight: 'bold',
-					padding: '10px 20px',
-					boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
-					'&:hover': {
-						backgroundColor: '#1565c0',
-					},
-				}}
-			>
-				Crear Horario
-			</Button>
 			<Drawer
 				open={open}
 				anchor="right"
@@ -922,21 +903,6 @@ const SidebarAddHorario = (props: SidebarAddHorarioType) => {
 																			/>
 																		</DatePickerWrapper>
 																	)}
-
-																	{/* {isPermanent && (
-                                    <Collapse in={isPermanent} >
-                                      <DatePickerWrapper>
-                                        <PickersRange
-                                          selectedDateRange={selectedDateRange}
-                                          onDateRangeChange={(newRange: [string, string]) => {
-                                            setSelectedDateRange(newRange);
-                                            handleDateRangeChange(newRange);
-                                          }}
-                                          popperPlacement="bottom"
-                                        />
-                                      </DatePickerWrapper>
-                                    </Collapse>
-                                  )} */}
 																</Box>
 															</Grid>
 														</Grid>

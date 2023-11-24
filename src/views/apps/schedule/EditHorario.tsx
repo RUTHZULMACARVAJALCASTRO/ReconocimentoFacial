@@ -1,12 +1,10 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   useForm,
   Controller,
 } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import {
-  Card, CardContent, Checkbox, TextField, Button, Box, Tab, Divider, CardActions, FormControlLabel, Collapse, FormLabel, List, ListItem, ListItemText, FormControl, Switch, useTheme, Grid,
+  Card, CardContent, Checkbox, TextField, Button, Box, Tab, Divider, CardActions, FormControlLabel, Collapse, FormLabel, List, ListItem, ListItemIcon, ListItemText, FormControl, Switch, useTheme, Grid, InputAdornment, InputLabel, MenuItem, Select,
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -23,6 +21,7 @@ import { AppDispatch } from 'src/redux/store';
 import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
+import SearchIcon from '@material-ui/icons/Search';
 
 interface SidebarEditHorarioType {
   scheduleId: string;
@@ -88,6 +87,7 @@ interface SpecialDaysData {
   [key: string]: DayData;
 }
 
+
 const dias = [
   { nombre: 'Lunes', value: 1 },
   { nombre: 'Martes', value: 2 },
@@ -100,7 +100,7 @@ const dias = [
 
 const defaultValues: ScheduleData = {
   name: '',
-  scheduleNormal: dias.map(dia => ({
+  scheduleNormal: dias.filter(dia => dia.value !== 0).map(dia => ({
     day: dia.value,
     into: '08:00',
     out: '12:00',
@@ -123,6 +123,7 @@ const defaultValues: ScheduleData = {
     usersAssigned: [],
   })),
 };
+
 
 const PickersRange = ({
   selectedDateRange,
@@ -178,18 +179,10 @@ const PickersRange = ({
 
 const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType) => {
   console.log(scheduleId)
-  // const [schedule, setSchedule] = useState<ScheduleData>({
-  //   name: '',
-  //   scheduleNormal: [],
-  //   scheduleSpecial: [],
-  // });
-
-
   const [tabValue, setTabValue] = useState("Horario Normal");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [selectedDaysSpecial, setSelectedDaysSpecial] = useState<number[]>([]);
   const [isAtLeastOneDaySelected, setIsAtLeastOneDaySelected] = useState(false);
-  // const [value, setValue] = useState('Horario Normal');
   const [usersError, setUsersError] = useState('');
   const [selectedDateRange, setSelectedDateRange] = useState<string[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -206,97 +199,55 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
   useEffect(() => {
     if (selectedSchedule) {
       setValue('name', selectedSchedule.name);
-
-      // Para scheduleNormal
-      if (selectedSchedule.scheduleNormal) {
+      if (Array.isArray(selectedSchedule.scheduleNormal)) {
         dias.forEach((dia, index) => {
-          const normal = selectedSchedule.scheduleNormal.find(normal => normal.day === dia.value);
-          if (normal) {
-            // Si se encuentra un valor en selectedSchedule, lo establece
-            setValue(`scheduleNormal[${index}].day`, normal.day);
-            setValue(`scheduleNormal[${index}].into`, normal.into);
-            setValue(`scheduleNormal[${index}].out`, normal.out);
-            setValue(`scheduleNormal[${index}].intoTwo`, normal.intoTwo);
-            setValue(`scheduleNormal[${index}].outTwo`, normal.outTwo);
-            setValue(`scheduleNormal[${index}].toleranceInto`, normal.toleranceInto);
-            setValue(`scheduleNormal[${index}].toleranceOut`, normal.toleranceOut);
+          if (dia) {
+            const normal = selectedSchedule.scheduleNormal.find(n => n && n.day === dia.value);
+            if (normal) {
+              setValue(`scheduleNormal[${index}].day`, normal.day);
+              setValue(`scheduleNormal[${index}].into`, normal.into);
+              setValue(`scheduleNormal[${index}].out`, normal.out);
+              setValue(`scheduleNormal[${index}].intoTwo`, normal.intoTwo);
+              setValue(`scheduleNormal[${index}].outTwo`, normal.outTwo);
+              setValue(`scheduleNormal[${index}].toleranceInto`, normal.toleranceInto);
+              setValue(`scheduleNormal[${index}].toleranceOut`, normal.toleranceOut);
+            }
           }
         });
       }
-
-      // Para scheduleSpecial
-      if (selectedSchedule.scheduleSpecial) {
+      if (Array.isArray(selectedSchedule.scheduleSpecial)) {
         dias.forEach((dia, index) => {
-          const special = selectedSchedule.scheduleSpecial.find(special => special.day === dia.value);
-          if (special) {
-            // Si se encuentra un valor en selectedSchedule, lo establece
-            setValue(`scheduleSpecial[${index}].day`, special.day);
-            setValue(`scheduleSpecial[${index}].into`, special.into);
-            setValue(`scheduleSpecial[${index}].out`, special.out);
-            setValue(`scheduleSpecial[${index}].intoTwo`, special.intoTwo);
-            setValue(`scheduleSpecial[${index}].outTwo`, special.outTwo);
-            setValue(`scheduleSpecial[${index}].toleranceInto`, special.toleranceInto);
-            setValue(`scheduleSpecial[${index}].toleranceOut`, special.toleranceOut);
-            setValue(`scheduleSpecial[${index}].name`, special.name);
-            setValue(`scheduleSpecial[${index}].permanente`, special.permanente);
-            special.dateRange.forEach((date, dateIndex) => {
-              setValue(`scheduleSpecial[${index}].dateRange[${dateIndex}]`, date);
-            });
-            special.usersAssigned.forEach((user, userIndex) => {
-              setValue(`scheduleSpecial[${index}].usersAssigned[${userIndex}]`, user);
-            });
+          if (dia) {
+            const special = selectedSchedule.scheduleSpecial.find(s => s && s.day === dia.value);
+            if (special) {
+              setValue(`scheduleSpecial[${index}].day`, special.day);
+              setValue(`scheduleSpecial[${index}].into`, special.into);
+              setValue(`scheduleSpecial[${index}].out`, special.out);
+              setValue(`scheduleSpecial[${index}].intoTwo`, special.intoTwo);
+              setValue(`scheduleSpecial[${index}].outTwo`, special.outTwo);
+              setValue(`scheduleSpecial[${index}].toleranceInto`, special.toleranceInto);
+              setValue(`scheduleSpecial[${index}].toleranceOut`, special.toleranceOut);
+              setValue(`scheduleSpecial[${index}].name`, special.name);
+              setValue(`scheduleSpecial[${index}].permanente`, special.permanente);
+
+              if (Array.isArray(special.dateRange)) {
+                special.dateRange.forEach((date, dateIndex) => {
+                  setValue(`scheduleSpecial[${index}].dateRange[${dateIndex}]`, date);
+                });
+              }
+
+              if (Array.isArray(special.usersAssigned)) {
+                special.usersAssigned.forEach((user, userIndex) => {
+                  setValue(`scheduleSpecial[${index}].usersAssigned[${userIndex}]`, user);
+                });
+              }
+            }
           }
         });
       }
     }
   }, [scheduleId, selectedSchedule, setValue, dias]);
 
-
-
-
-
-
-  const schema = yup.object().shape({
-    name: yup.string().required('El nombre del horario es requerido'),
-    scheduleNormal: yup.array().of(
-      yup.object().shape({
-        day: yup.number().min(0).max(6),
-        into: yup.string().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-        out: yup.string().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-        intoTwo: yup.string().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-        outTwo: yup.string().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-        toleranceInto: yup.number().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-        toleranceOut: yup.number().when('day', (day, schema) =>
-          selectedDays.includes(day) ? schema : schema
-        ),
-      })
-    ),
-    scheduleSpecial: yup.array().of(
-      yup.object().shape({
-        day: yup.number().min(0).max(6),
-        name: yup.string().required('El nombre del día especial es requerido'),
-        into: yup.string(),
-        out: yup.string(),
-        intoTwo: yup.string(),
-        outTwo: yup.string(),
-        toleranceInto: yup.number(),
-        toleranceOut: yup.number(),
-        permanente: yup.boolean(),
-        dateRange: yup.array(),
-        usersAssigned: yup.array(),
-      })
-    ),
-  });
 
   const handleUserCheckboxChange = (dayValue: string, userId: string, isChecked: boolean) => {
     console.log(`Checkbox change for user: ${userId} on day: ${dayValue}. Checked: ${isChecked}`);
@@ -319,34 +270,12 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
 
     console.log('entraa', specialDaysData);
   };
-
   const theme = useTheme()
   const { direction } = theme
   const popperPlacement: ReactDatePickerProps['popperPlacement'] = direction === 'ltr' ? 'bottom-start' : 'bottom-end'
 
-
-  type PermanentStatesType = {
-    [key: number]: boolean;
-  };
-
-  // const { reset, control, handleSubmit, formState: { errors } } = useForm({
-  //   defaultValues,
-  //   mode: 'onChange',
-  //   resolver: yupResolver(schema),
-  // });
-
-  const handleDaySelect = (dayValue: number) => {
-    if (selectedDays.includes(dayValue)) {
-      setSelectedDays(selectedDays.filter((day) => day !== dayValue));
-    } else {
-      setSelectedDays([...selectedDays, dayValue]);
-    }
-  }
-
   const handleDaySpecialSelect = (dayValue: string) => {
     const dayNumber = parseInt(dayValue, 10);
-    // const currentDay = getValues(`scheduleSpecial.${day}.day`);
-
     const isDaySelected = selectedDaysSpecial.includes(dayNumber);
     if (isDaySelected) {
       setSelectedDaysSpecial(prev => prev.filter(day => day !== dayNumber));
@@ -407,9 +336,8 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
     try {
       await dispatch(editSchedule({ ...data, _id: scheduleId })).unwrap();
       toggle();
-      // setOpenSnackbar(true);
     } catch (error: any) {
-      // Manejar el error
+
     }
   };
 
@@ -423,27 +351,56 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
     setUsersError('');
   };
 
+
+  const [searchValue, setSearchValue] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchBy, setSearchBy] = useState('name');
+  const [searchRequested, setSearchRequested] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+
+  useEffect(() => {
+    if (searchRequested) {
+      handleSearch();
+      setSearchRequested(false);
+    }
+  }, [searchRequested]);
+
+
+  const handleSearch = async () => {
+    setIsSearching(true);
+
+    let queryParams = [];
+
+    if (searchValue) {
+      try {
+        const terms = searchValue.split(' ');
+
+        if (terms.length > 1) {
+          queryParams.push(`name=${terms[0]}`);
+          queryParams.push(`lastName=${terms[1]}`);
+        } else {
+          queryParams.push(`${searchBy}=${terms[0]}`);
+        }
+
+        const queryString = queryParams.join('&');
+        const url = `${process.env.NEXT_PUBLIC_PERSONAL}filtered?${queryString}`;
+
+        const response = await axios.get(url);
+        setFilteredUsers(response.data.data);
+      } catch (error) {
+        console.error("Error buscando usuarios:", error);
+      }
+    } else {
+
+      setFilteredUsers([]);
+    }
+
+    setIsSearching(false);
+  };
+
   return (
     <>
-      {/* <Button
-        onClick={handleClose}
-        variant="contained"
-        color="primary"
-
-        sx={{
-          borderRadius: '8px',
-          marginBottom: '15px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          padding: '10px 20px',
-          boxShadow: '0 3px 5px rgba(0, 0, 0, 0.2)',
-          '&:hover': {
-            backgroundColor: '#1565c0',
-          },
-        }}
-      >
-        Editar
-      </Button> */}
       <Drawer
         open={open}
         anchor="right"
@@ -472,7 +429,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                         <Controller
                           name='name'
                           control={control}
-                          rules={{ required: true, minLength: 2 }} // Puedes ajustar estas reglas
+                          rules={{ required: true, minLength: 2 }}
                           render={({ field }) => (
                             <TextField
                               {...field}
@@ -513,8 +470,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   label="Entrada 1"
                                   type="time"
                                   {...field}
-                                  // error={Boolean(errors.scheduleNormal?.[index]?.into)}
-                                  // helperText={errors.scheduleNormal?.[index]?.into?.message}
                                   fullWidth
                                 />
                               )}
@@ -529,8 +484,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   label="Salida 1"
                                   type="time"
                                   {...field}
-                                  // error={Boolean(errors.scheduleNormal?.[index]?.out)}
-                                  // helperText={errors.scheduleNormal?.[index]?.out?.message}
                                   fullWidth
                                 />
                               )}
@@ -545,8 +498,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   label="Entrada 2"
                                   type="time"
                                   {...field}
-                                  // error={Boolean(errors.scheduleNormal?.[index]?.intoTwo)}
-                                  // helperText={errors.scheduleNormal?.[index]?.intoTwo?.message}
                                   fullWidth
                                 />
                               )}
@@ -561,8 +512,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   label="Salida 2"
                                   type="time"
                                   {...field}
-                                  // error={Boolean(errors.scheduleNormal?.[index]?.outTwo)}
-                                  // helperText={errors.scheduleNormal?.[index]?.outTwo?.message}
                                   fullWidth
                                 />
                               )}
@@ -577,8 +526,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   label="Tolerancia Entrada"
                                   type="number"
                                   {...field}
-                                  // error={Boolean(errors.scheduleNormal?.[index]?.toleranceInto)}
-                                  // helperText={errors.scheduleNormal?.[index]?.toleranceInto?.message}
                                   fullWidth
                                 />
                               )}
@@ -592,8 +539,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                 label="Tolerancia Salida"
                                 type="number"
                                 {...field}
-                                // error={Boolean(errors.scheduleNormal?.[index]?.toleranceOut)}
-                                // helperText={errors.scheduleNormal?.[index]?.toleranceOut?.message}
                                 fullWidth
                               />
                             )}
@@ -614,10 +559,10 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                 render={({ field: { onChange, value } }) => (
                                   <Checkbox
                                     edge="start"
-                                    checked={value} // Usa el value de field para controlar el estado checked del Checkbox
+                                    checked={value}
                                     onChange={(e) => {
-                                      onChange(e.target.checked); // Actualiza el valor en el formulario
-                                      handleDaySpecialSelect(dia.value.toString()); // Llama a tu función handleDaySpecialSelect
+                                      onChange(e.target.checked);
+                                      handleDaySpecialSelect(dia.value.toString());
                                     }}
                                     color="primary"
                                   />
@@ -638,7 +583,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                   <TextField
                                     {...field}
                                     label='Descripción'
-                                    // error={Boolean(errors.scheduleSpecial?.[index]?.name)}
                                     inputProps={{ autoComplete: "off" }}
                                     sx={{ marginBottom: (theme) => theme.spacing(5) }}
                                     fullWidth
@@ -658,8 +602,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label="Entrada 1"
                                         type="time"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.into)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.into?.message}
                                         fullWidth
                                       />
                                     )}
@@ -677,8 +619,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label='Salida 1'
                                         type="time"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.out)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.out?.message}
                                         fullWidth
                                       />
                                     )}
@@ -696,8 +636,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label='Entrada 2'
                                         type="time"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.intoTwo)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.intoTwo?.message}
                                         fullWidth
                                       />
                                     )}
@@ -715,8 +653,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label='Salida 2'
                                         type="time"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.outTwo)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.outTwo?.message}
                                         fullWidth
                                       />
                                     )}
@@ -734,8 +670,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label='Tolerancia Entrada'
                                         type="number"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.toleranceInto)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.toleranceInto?.message}
                                         fullWidth
                                       />
                                     )}
@@ -753,43 +687,82 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                         label='Tolerancia Salida'
                                         type="number"
                                         {...field}
-                                        // error={Boolean(errors.scheduleSpecial?.[index]?.toleranceOut)}
-                                        // helperText={errors.scheduleSpecial?.[index]?.toleranceOut?.message}
                                         fullWidth
                                       />
                                     )}
                                   />
                                 </Box>
                               </Grid>
-                              <Grid item xs={6}>
+                              <Grid item xs={12}>
                                 <Box mb={2}>
                                   <FormControl component="fieldset">
                                     <FormLabel component="legend">Seleccionar usuarios</FormLabel>
-                                    <List dense>
-                                      {users.map((user, index) => (
-                                        <ListItem key={user._id}>
-                                          {/* <ListItemIcon>
-                                            <Controller
-                                              name={`users.${index}`}
-                                              control={control}
-                                              defaultValue={selectedUsers.includes(user._id)} 
-                                              render={({ field }) => (
-                                                <Checkbox
-                                                  {...field}
-                                                  checked={field.value}
-                                                  onChange={(e) => field.onChange(e.target.checked)}
-                                                  edge="start"
+                                    <br />
+                                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                                      <Box flex="0 1 auto" mr={2}>
+                                        <FormControl variant="outlined" style={{ width: '220px' }}>
+                                          <InputLabel>Buscar por</InputLabel>
+                                          <Select
+                                            value={searchBy}
+                                            onChange={(e) => setSearchBy(e.target.value)}
+                                            label="Buscar por"
+                                          >
+                                            <MenuItem value="all">Todos los campos</MenuItem>
+                                            <MenuItem value="name">Nombre</MenuItem>
+                                            <MenuItem value="lastName">Apellido</MenuItem>
+                                            <MenuItem value="nationality">Nacionalidad</MenuItem>
+                                            <MenuItem value="ci">CI</MenuItem>
+                                            <MenuItem value="address">Dirección</MenuItem>
+                                            <MenuItem value="phone">Teléfono</MenuItem>
+                                            <MenuItem value="email">Email</MenuItem>
+                                            <MenuItem value="isActive">Estado Activo</MenuItem>
+                                          </Select>
+                                        </FormControl>
+                                      </Box>
+                                      <Box flex="1">
+                                        <TextField
+                                          variant="outlined"
+                                          placeholder="Buscar usuario..."
+                                          value={searchValue}
+                                          onChange={(e) => setSearchValue(e.target.value)}
+                                          fullWidth
+                                          InputProps={{
+                                            endAdornment: (
+                                              <InputAdornment position="end">
+                                                <Button
+                                                  onClick={() => setSearchRequested(true)}
                                                   color="primary"
-                                                />
-                                              )}
-                                            />
-                                          </ListItemIcon> */}
+                                                >
+                                                  <SearchIcon />
+                                                  Buscar
+                                                </Button>
+                                              </InputAdornment>
+                                            ),
+                                          }}
+                                        />
+                                      </Box>
+                                    </Box>
+                                    {isSearching && <p>Buscando...</p>}
 
-                                          <ListItemText primary={`${user.name} ${user.lastName}`} />
-                                        </ListItem>
-                                      ))}
-
-                                    </List>
+                                    {!isSearching && filteredUsers.length > 0 && (
+                                      // <Box className={classes.listContainer}>
+                                      <List dense>
+                                        {filteredUsers.map((user: any) => (
+                                          <ListItem key={user._id}>
+                                            <ListItemIcon>
+                                              <Checkbox
+                                                edge="start"
+                                                checked={specialDaysData[dia.value.toString()]?.selectedUsers?.includes(user._id) || false}
+                                                onChange={(e) => handleUserCheckboxChange(dia.value.toString(), user._id, e.target.checked)}
+                                                color="primary"
+                                              />
+                                            </ListItemIcon>
+                                            <ListItemText primary={`${user.name} ${user.lastName}`} />
+                                          </ListItem>
+                                        ))}
+                                      </List>
+                                      // </Box>
+                                    )}
                                   </FormControl>
                                 </Box>
                               </Grid>
@@ -811,7 +784,6 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                                       <PickersRange
                                         selectedDateRange={selectedDateRange}
                                         onDateRangeChange={(newRange: [string, string]) => {
-                                          // setSelectedDateRange(newRange);
                                           handleDateRangeChange(String(dia.value), newRange);
                                         }}
                                         popperPlacement='bottom'
@@ -831,7 +803,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
                 </CardContent>
                 <Divider sx={{ m: '0 !important' }} />
                 <CardActions>
-                  <Button type="submit" size="large" sx={{ mr: 2 }} variant="contained" disabled={!isAtLeastOneDaySelected} >
+                  <Button type="submit" size="large" sx={{ mr: 2 }} variant="contained">
                     Aceptar
                   </Button>
                   <Button type="reset" size="large" variant="outlined" color="secondary" onClick={handleClose}>
@@ -843,10 +815,7 @@ const SidebarEditHorario = ({ scheduleId, open, toggle }: SidebarEditHorarioType
           </Card>
         </ScrollBar>
       </Drawer>
-
     </>
   );
 };
-
-
 export default SidebarEditHorario;

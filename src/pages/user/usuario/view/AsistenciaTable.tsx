@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridRenderCellParams } from '@mui/x-data-grid';
-import { Box, Paper, TableCell, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Paper, TableCell, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import { minifyIconSet } from '@iconify/utils';
 
@@ -33,16 +33,6 @@ type PersonalData = {
 interface PlanillaPersonalProps {
     personalId: string;
 }
-
-// const renderTooltipCell = (params: GridRenderCellParams) => (
-// 	<Tooltip title={params.value} arrow>
-// 		<TableCell
-// 			style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-// 		>
-// 			{params.value}
-// 		</TableCell>
-// 	</Tooltip>
-// );
 
 const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
     const [data, setData] = useState<any[]>([]);
@@ -83,6 +73,26 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
             setData(processedData);
         } catch (error) {
             console.log(error);
+        }
+    };
+    const exportToPDF = async () => {
+        try {
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_PDF_ATTENDANCE_EXPORT}/${personalId}`,
+                { responseType: 'blob' }
+            );
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(blob);
+
+            const anchor = document.createElement('a');
+            anchor.href = pdfUrl;
+            anchor.download = 'attendance_report.pdf';
+            anchor.click();
+
+            URL.revokeObjectURL(pdfUrl);
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
         }
     };
 
@@ -195,10 +205,18 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
             >
                 CONTROL DE ASISTENCIA
             </Typography>
+            {/* <Button
+                variant="contained"
+                color="primary"
+                onClick={exportToPDF}
+                style={{ marginBottom: '16px' }}
+            >
+                Exportar Planilla
+            </Button> */}
 
             <Box style={{ height: 400, width: '100%' }}>
                 <DataGrid
-                    autoHeight // añadir esta prop
+                    autoHeight
                     rows={data}
                     columns={columns.map(column => ({
                         ...column,
@@ -207,6 +225,13 @@ const PlanillaPersonal: React.FC<PlanillaPersonalProps> = ({ personalId }) => {
                     disableColumnMenu={true}
                     hideFooterPagination
                     hideFooterSelectedRowCount
+                    localeText={{
+
+                        noRowsLabel: 'No se registro Ninguna Asitencia',
+                        noResultsOverlayLabel: 'No se encontraron resultados.',
+                        errorOverlayDefaultLabel: 'Ocurrió un error.'
+                    }}
+
                 />
             </Box>
         </Paper>

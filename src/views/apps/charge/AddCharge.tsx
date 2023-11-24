@@ -20,16 +20,21 @@ import { addCharge } from 'src/store/apps/charge/index'
 import { AppDispatch } from 'src/redux/store';
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
+import { Grid } from '@mui/material';
 
 
 interface SidebarAddUserType {
   open: boolean
   toggle: () => void
+  page: number;
+  pageSize: number;
+  setPage: (page: number) => void
 }
 
 interface ChargeData {
   name: string;
   description: string;
+  salary: string;
 }
 
 const showErrors = (field: string, valueLen: number, min: number) => {
@@ -58,17 +63,22 @@ const schema = yup.object().shape({
   description: yup
     .string()
     .min(3, obj => showErrors('descripcion', obj.value.length, obj.min))
+    .required(),
+  salary: yup
+    .string()
+    .min(3, obj => showErrors('descripcion', obj.value.length, obj.min))
     .required()
 })
 
 const defaultValues = {
   name: '',
   description: '',
+  salary: '',
 }
 
-const SidebarAddCharge = ({ open, toggle }: SidebarAddUserType) => {
+const SidebarAddCharge = ({ open, toggle, setPage }: SidebarAddUserType) => {
   const dispatch: AppDispatch = useDispatch();
-  //const error = chargeSelector((state: RootState) => state.users.error);
+
   const [message, setMessage] = useState<string | null>(null);
 
   const MySwal = withReactContent(Swal)
@@ -87,6 +97,7 @@ const SidebarAddCharge = ({ open, toggle }: SidebarAddUserType) => {
   const handleSave = async (chargeData: ChargeData) => {
     dispatch(addCharge(chargeData));
     toggle();
+    setPage(1);
     reset(defaultValues);
     MySwal.fire({
       title: <p>Cargo creado con exito!</p>,
@@ -141,40 +152,68 @@ const SidebarAddCharge = ({ open, toggle }: SidebarAddUserType) => {
         </Header>
         <Box sx={{ p: 5 }}>
           <form onSubmit={handleSubmit(handleSave)}>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='name'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Nombre'
-                    onChange={onChange}
-                    error={Boolean(errors.name)}
-                    inputProps={{ autoComplete: "off" }}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth sx={{ mb: 4 }}>
+                  <Controller
+                    name='name'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        value={value}
+                        label='Nombre'
+                        onChange={onChange}
+                        error={Boolean(errors.name)}
+                        inputProps={{ autoComplete: "off" }}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-            </FormControl>
-            <FormControl fullWidth sx={{ mb: 4 }}>
-              <Controller
-                name='description'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Descripcion'
-                    onChange={onChange}
-                    error={Boolean(errors.description)}
-                    inputProps={{ autoComplete: "off" }}
+                  {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth sx={{ mb: 4 }}>
+                  <Controller
+                    name='salary'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        value={value}
+                        label='Salario'
+                        onChange={onChange}
+                        inputProps={{ autoComplete: "off" }}
+                        error={Boolean(errors.salary)}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.description && <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>}
-            </FormControl>
+                  {errors.salary && <FormHelperText sx={{ color: 'error.main' }}>{errors.salary.message}</FormHelperText>}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={12}>
+                <FormControl fullWidth sx={{ mb: 4 }}>
+                  <Controller
+                    name='description'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        value={value}
+                        label='Descripcion'
+                        onChange={onChange}
+                        error={Boolean(errors.description)}
+                        inputProps={{ autoComplete: "off" }}
+                      />
+                    )}
+                  />
+                  {errors.description && <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>}
+                </FormControl>
+              </Grid>
+            </Grid>
+
             <Box sx={{ display: 'flex', alignItems: 'center', columnGap: '20px' }}>
               <Button
                 size='large' type='submit' variant='contained' color='primary'
